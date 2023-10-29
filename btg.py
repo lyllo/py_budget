@@ -38,36 +38,39 @@ def limpar_data(linha):
 # Exemplo de uso
 nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\banking.txt'
 linhas_arquivo = ler_arquivo(nome_arquivo)
+
 num_linha = 0
-
-class entry:
-    data = '01/01/1900'
-    item = 'meu_item'
-    valor = 'meu_valor'
-    status = 'meu_status'
-
-num_item = 1
+lista_de_registros = []
 
 for linha in linhas_arquivo:
-    # Encontrar uma linha de data
+
+    # Encontrar uma linha de data em Outubro
     if linha.find("/Out") != -1:
-        # print("DATA: " + linha)
-        entry.data = limpar_data(linha)
+        
+        # Armazenar o valor da última data encontrada
+        data = limpar_data(linha)
 
     # Encontrar uma linha de status
     if linha.find("Compra ") != -1:
-        # print("    STATUS: " + linha)
-        entry.status = linha
 
-        # Encontrar uma linha de item
-        # print("    ITEM: " + linhas_arquivo[num_linha-1])
-        entry.item = linhas_arquivo[num_linha-1]
+        # Criar um novo registro com valores padrões
+        novo_registro = {'data': 'minha_data', 'item': 'meu_item', 'valor': 'meu_valor'}
+
+        # Definir o valor da chave 'data' com a última data encontrada
+        novo_registro['data'] = data
+
+        # Definir o valor da chave 'item' com o item encontrado
+        novo_registro['item'] = linhas_arquivo[num_linha-1]
 
     # Encontrar uma linha de valor
     if linha.find("- R$", 0, 4) != -1:
-        # print("    VALOR: " + linha)
-        entry.valor = linha
-        print(num_item, entry.data, entry.item, entry.valor)
-        num_item += 1
+
+        # Definir o valor da chave 'valor' com o valor encontrado
+        novo_registro['valor'] =linha
+
+        # Armazenar o novo registro na lista de registros
+        lista_de_registros.append(novo_registro)
 
     num_linha += 1
+
+print(lista_de_registros)
