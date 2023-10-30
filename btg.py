@@ -1,8 +1,10 @@
 from openpyxl import Workbook
+from openpyxl.styles import numbers
 
 def incluir_linhas_em_excel(nome_arquivo, linhas):
     # Cria um novo arquivo do Excel
     workbook = Workbook()
+    
     # Seleciona a planilha ativa
     sheet = workbook.active
 
@@ -13,6 +15,7 @@ def incluir_linhas_em_excel(nome_arquivo, linhas):
     # Salva o arquivo do Excel
     workbook.save(nome_arquivo)
 
+# Carregar arquivo de texto
 def ler_arquivo(nome_arquivo):
     linhas = []
     with open(nome_arquivo, 'r', -1, 'utf-8') as arquivo:
@@ -20,25 +23,18 @@ def ler_arquivo(nome_arquivo):
             linhas.append(linha.strip())
     return linhas
 
+# Limpar as datas para formato dd/mmm
 def limpar_data(linha):
     if len(linha) != 6:
         return linha[-6:]
     else:
         return linha
 
-# Exemplo de uso
-# nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\arquivo.xlsx'			
-# linhas = [
-#     ['DATA', 'ITEM', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG'],
-#     ['01/01/2023', 'Antonio Manoel Tiago', '-R$ 19,99', 'PHILIPPE', '1/1', 'MERCADO', '']
-# ]
-
-# incluir_linhas_em_excel(nome_arquivo, linhas)
-
-# Exemplo de uso
+# Carregar o arquivo banking.txt com as transações de cartões do BTG
 nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\banking.txt'
 linhas_arquivo = ler_arquivo(nome_arquivo)
 
+# Declarar contador de linha e lista de registros
 num_linha = 0
 lista_de_registros = []
 
@@ -73,4 +69,23 @@ for linha in linhas_arquivo:
 
     num_linha += 1
 
-print(lista_de_registros)
+# print(lista_de_registros)
+
+# Transformar a lista de dicionários em uma lista de listas, sem os nomes das chaves
+lista_de_listas = [list(item.values()) for item in lista_de_registros]
+
+# print(lista_de_listas)
+
+# Adicionar cabeçalho a lista de listas
+lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELA', 'CATEGORIA', 'TAG'])
+
+# Salvar as informações em um arquivo Excel
+nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\arquivo.xlsx'			
+incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
+
+# TO-DO:
+# 1. Transformar tipo da Coluna A de texto em data
+# 2. Transformar tipo da Coluna C de texto em moeda
+# 3. Preencher campos de CARTAO
+# 4. Preencher campos de PARCELAS
+# 5. Preencher campos de CATEGORIA
