@@ -1,5 +1,6 @@
 from openpyxl import Workbook
 from datetime import datetime
+import category
 
 def incluir_linhas_em_excel(nome_arquivo, linhas):
     # Cria um novo arquivo do Excel
@@ -34,7 +35,6 @@ def limpar_data(linha):
     data_datetime = datetime(2023, 10, int(data_string[:2])).date()
 
     return data_datetime
-
 
 # Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
 def limpar_valor(linha):
@@ -97,7 +97,16 @@ for linha in linhas_arquivo:
 
     num_linha += 1
 
-# print(lista_de_registros)
+# Busca por categorias
+categorias = category.carrega_dicionario()
+num_matches = 0
+for registro in lista_de_registros:
+    # busca exata
+    if registro['item'] in categorias:
+        registro['categoria'] = categorias[registro['item']]
+        num_matches += 1
+
+print(str(num_matches) + " matches em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_matches/len(lista_de_registros)),2)) + "%.")
 
 # Transformar a lista de dicionários em uma lista de listas, sem os nomes das chaves
 lista_de_listas = [list(item.values()) for item in lista_de_registros]
@@ -112,12 +121,19 @@ nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\arquivo.xlsx'
 incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
 
 # TO-DO:
-# [ ] 1. Transformar tipo da Coluna A de texto em data
-        # Não tive sucesso com a NumberFormat de numbers de opepyxl
-# [ ] 2. Transformar tipo da Coluna C de texto em moeda
+# [X] 1. Transformar tipo da Coluna A de texto em data
+        # Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime
+# [-] 2. Transformar tipo da Coluna C de texto em moeda
+        # Não tive sucesso com a NumberFormat de numbers de opepyxl, que precisa ser chamada após a célula ter sido criada
 # [X] 3. Preencher campos de CARTAO
 # [X] 4. Preencher campos de PARCELAS
         # Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
         # Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
         # Eu deveria estar dividindo o valor da compra pelo número de parcelas.
-# [ ] 5. Preencher campos de CATEGORIA
+# [-] 5. Preencher campos de CATEGORIA
+        # Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
+        # Criar função que consulta a categoria dado o nome do estabelecimento
+        #   a. buscando nome exato (SW 1.0)
+        #   b. depois por similaridade (SW 1.0)
+        #   c. deixando os últimos pra AI (SW 3.0)
+        # Preencher a categoria do objeto (espero que mais de 50% dos registros sejam automaticamente categorizados) => Foram 40% na busca exata
