@@ -1,5 +1,5 @@
 from openpyxl import Workbook
-from openpyxl.styles import numbers
+from datetime import datetime
 
 def incluir_linhas_em_excel(nome_arquivo, linhas):
     # Cria um novo arquivo do Excel
@@ -23,12 +23,24 @@ def ler_arquivo(nome_arquivo):
             linhas.append(linha.strip())
     return linhas
 
-# Limpar as datas para formato dd/mmm
+# Converter strings no formato dd/Out para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
-    if len(linha) != 6:
-        return linha[-6:]
+    data_string = linha
+    if len(data_string) != 6:
+        data_string = linha[-6:]
     else:
-        return linha
+        data_string = linha
+        
+    data_datetime = datetime(2023, 10, int(data_string[:2])).date()
+
+    return data_datetime
+
+
+# Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
+def limpar_valor(linha):
+    valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
+    valor_string = str(valor_float).replace(".",",")
+    return valor_string
 
 # Carregar o arquivo banking.txt com as transações de cartões do BTG
 nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\banking.txt'
@@ -50,19 +62,35 @@ for linha in linhas_arquivo:
     if linha.find("Compra ") != -1:
 
         # Criar um novo registro com valores padrões
-        novo_registro = {'data': 'minha_data', 'item': 'meu_item', 'valor': 'meu_valor'}
+        novo_registro = {'data': 'minha_data', 
+                         'item': 'meu_item', 
+                         'valor': 'meu_valor', 
+                         'cartao': 'meu_cartao', 
+                         'parcelas': 'minhas_parcelas'}
 
         # Definir o valor da chave 'data' com a última data encontrada
         novo_registro['data'] = data
 
-        # Definir o valor da chave 'item' com o item encontrado
+        # Definir o valor da chave 'item' com o item encontrado (linha anterior)
         novo_registro['item'] = linhas_arquivo[num_linha-1]
 
+        # Definir o valor da chave 'cartao' com o nome do portador
+        if linha.find("CINTHIA") != -1:
+            novo_registro['cartao'] = 'CINTHIA'
+        else:
+            novo_registro['cartao'] = 'PHILIPPE'
+
+        # Definir o valor da chave 'parcelas' com o número de parcelas da compra
+        if linha.find("Compra no crédito em ") != -1:
+            novo_registro['parcelas'] = "1/" + linha[-2]
+        else:
+            novo_registro['parcelas'] = "1/1"
+        
     # Encontrar uma linha de valor
     if linha.find("- R$", 0, 4) != -1:
 
         # Definir o valor da chave 'valor' com o valor encontrado
-        novo_registro['valor'] =linha
+        novo_registro['valor'] = limpar_valor(linha)
 
         # Armazenar o novo registro na lista de registros
         lista_de_registros.append(novo_registro)
@@ -77,15 +105,19 @@ lista_de_listas = [list(item.values()) for item in lista_de_registros]
 # print(lista_de_listas)
 
 # Adicionar cabeçalho a lista de listas
-lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELA', 'CATEGORIA', 'TAG'])
+lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG'])
 
 # Salvar as informações em um arquivo Excel
 nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\arquivo.xlsx'			
 incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
 
 # TO-DO:
-# 1. Transformar tipo da Coluna A de texto em data
-# 2. Transformar tipo da Coluna C de texto em moeda
-# 3. Preencher campos de CARTAO
-# 4. Preencher campos de PARCELAS
-# 5. Preencher campos de CATEGORIA
+# [ ] 1. Transformar tipo da Coluna A de texto em data
+        # Não tive sucesso com a NumberFormat de numbers de opepyxl
+# [ ] 2. Transformar tipo da Coluna C de texto em moeda
+# [X] 3. Preencher campos de CARTAO
+# [X] 4. Preencher campos de PARCELAS
+        # Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
+        # Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
+        # Eu deveria estar dividindo o valor da compra pelo número de parcelas.
+# [ ] 5. Preencher campos de CATEGORIA

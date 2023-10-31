@@ -1,8 +1,205 @@
 Atividades banking
-Hoje 28/Out
+Hoje 30/Out
+undefined
+Uber
+Compra no crédito autorizada no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
+- R$ 16,95
+
+Transporte
+undefined
+Moema Service
+Compra no crédito autorizada
+
+- R$ 30,00
+
+Casa
+undefined
+Uber
+Compra no crédito autorizada no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
+- R$ 56,49
+
+Transporte
+undefined
+Uber
+Compra no crédito cancelada pelo estabelecimento no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
++ R$ 34,90
+
+Transporte
+undefined
+Uber
+Compra no crédito cancelada pelo estabelecimento no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
++ R$ 34,41
+
+Transporte
+Ontem 29/Out
+undefined
+Bar E Lanches El Reli
+Compra no crédito
+
+- R$ 10,00
+
+Alimentação
+undefined
+Jean
+Compra no crédito
+
+- R$ 75,00
+
+Outra Categoria
+undefined
+Tom Buffet
+Compra no crédito não autorizada
+
++ R$ 16,00
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 16,00
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 16,00
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 16,00
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 16,00
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 16,00
+
+Alimentação
+undefined
+Koa Moema
+Compra no crédito no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
+- R$ 116,70
+
+Alimentação
+undefined
+Tom Buffet
+Compra no crédito
+
+- R$ 100,00
+
+Alimentação
+undefined
+Lea Michele Pereira
+Compra no crédito
+
+- R$ 15,00
+
+Outra Categoria
+undefined
+Top Lanches
+Compra no crédito
+
+- R$ 10,02
+
+Alimentação
+undefined
+Top Lanches
+Compra no crédito
+
+- R$ 10,00
+
+Alimentação
+undefined
+Uber
+Compra no crédito
+
+- R$ 29,95
+
+Transporte
+undefined
+Tayti Gelateria
+Compra no crédito no cartão adicional de CINTHIA ROSA
+imagem de cartão
+
+- R$ 17,90
+
+Alimentação
+undefined
+Aaa3 Cervejaria E Rest
+Compra no crédito
+
+- R$ 239,90
+
+Alimentação
+undefined
+Oxxo
+Compra no crédito
+
+- R$ 10,28
+
+Supermercado
+Sábado 28/Out
+undefined
+Nova Imperio Da Jandi
+Compra no crédito
+
+- R$ 93,00
+
+Alimentação
+undefined
+Nova Imperio Da Jandi
+Compra no crédito
+
+- R$ 100,00
+
+Alimentação
 undefined
 Pad E Conf Alcantara
-Compra no crédito autorizada
+Compra no crédito
+
+- R$ 3,00
+
+Supermercado
+undefined
+Bar Jobim
+Compra no crédito
+
+- R$ 227,92
+
+Alimentação
+undefined
+Shop Sul
+Compra no crédito
+
+- R$ 56,00
+
+Casa
+undefined
+Pad E Conf Alcantara
+Compra no crédito
 
 - R$ 56,90
 
@@ -13,7 +210,7 @@ Cartão
 undefined
 Sua fatura BTG Pactual no valor de R$12.756,74 fechou e tem vencimento no dia 01/11.
 Cartão
-Ontem 27/Out
+Sexta 27/Out
 undefined
 Lanchonete Tony E Tha
 Compra no crédito
@@ -144,7 +341,7 @@ Compra internacional
 
 - R$ 52,98
 
-Educação
+Compras
 undefined
 Openai
 Compra internacional autorizada
@@ -207,7 +404,7 @@ Compra no crédito
 - R$ 4,40
 
 Transporte
-Domingo 22/Out
+22/Out
 undefined
 Bar E Lanches El Reli
 Compra no crédito
@@ -243,7 +440,7 @@ Compra no crédito
 - R$ 19,99
 
 Compras
-Sábado 21/Out
+21/Out
 undefined
 Forneria Sant Antonio
 Compra no crédito
