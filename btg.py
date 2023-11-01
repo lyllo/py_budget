@@ -97,16 +97,36 @@ for linha in linhas_arquivo:
 
     num_linha += 1
 
+print("[" + datetime.now().strftime("%H:%M:%S") +"] Iniciando carregamento do dicionário...")
+
 # Busca por categorias
 categorias = category.carrega_dicionario()
-num_matches = 0
+
+print("[" + datetime.now().strftime("%H:%M:%S") +"] Dicionário carregado em memória.")
+
+num_simple_matches = 0
+num_similar_matches = 0
+
 for registro in lista_de_registros:
     # busca exata
     if registro['item'] in categorias:
         registro['categoria'] = categorias[registro['item']]
-        num_matches += 1
+        num_simple_matches += 1
+    # busca por similaridade
+    else:
+        # limite de similaridade, valor de 75 encontrado por inspeção manual
+        limite = 75
+        palavras_parecidas = category.busca_palavras_parecidas(registro['item'], categorias.keys(), limite)
+        # só estamos interessados quando a busca encontra apenas 1 elemento e não mais de 1
+        if len(palavras_parecidas) == 1:
+            # print("As palavras parecidas com " + registro['item'] + " são:")
+            # print(palavras_parecidas[0] + " : " + categorias[palavras_parecidas[0]])
+            registro['categoria'] = categorias[palavras_parecidas[0]]
+            num_similar_matches += 1
 
-print(str(num_matches) + " matches em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_matches/len(lista_de_registros)),2)) + "%.")
+print(str(num_simple_matches) + " simple matches em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_simple_matches/len(lista_de_registros)),2)) + "%.")
+
+print(str(num_similar_matches) + " similar matches quando limite = " + str(limite) + " em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_similar_matches/len(lista_de_registros)),2)) + "%.")
 
 # Transformar a lista de dicionários em uma lista de listas, sem os nomes das chaves
 lista_de_listas = [list(item.values()) for item in lista_de_registros]
@@ -130,10 +150,9 @@ incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
         # Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
         # Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
         # Eu deveria estar dividindo o valor da compra pelo número de parcelas.
-# [-] 5. Preencher campos de CATEGORIA
+# [-] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
         # Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
         # Criar função que consulta a categoria dado o nome do estabelecimento
-        #   a. buscando nome exato (SW 1.0)
-        #   b. depois por similaridade (SW 1.0)
-        #   c. deixando os últimos pra AI (SW 3.0)
-        # Preencher a categoria do objeto (espero que mais de 50% dos registros sejam automaticamente categorizados) => Foram 40% na busca exata
+        # [X]  a. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
+        # [ ]  b. depois por similaridade (SW 1.0)
+        # [ ]  c. deixando os últimos pra AI (SW 3.0)
