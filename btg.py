@@ -131,28 +131,9 @@ print(str(num_similar_matches) + " similar matches quando limite = " + str(limit
 # Transformar a lista de dicionários em uma lista de listas, sem os nomes das chaves
 lista_de_listas = [list(item.values()) for item in lista_de_registros]
 
-# print(lista_de_listas)
-
 # Adicionar cabeçalho a lista de listas
 lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG'])
 
 # Salvar as informações em um arquivo Excel
 nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\arquivo.xlsx'			
 incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
-
-# TO-DO:
-# [X] 1. Transformar tipo da Coluna A de texto em data
-        # Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime
-# [-] 2. Transformar tipo da Coluna C de texto em moeda
-        # Não tive sucesso com a NumberFormat de numbers de opepyxl, que precisa ser chamada após a célula ter sido criada
-# [X] 3. Preencher campos de CARTAO
-# [X] 4. Preencher campos de PARCELAS
-        # Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
-        # Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
-        # Eu deveria estar dividindo o valor da compra pelo número de parcelas.
-# [-] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
-        # Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
-        # Criar função que consulta a categoria dado o nome do estabelecimento
-        # [X]  a. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
-        # [ ]  b. depois por similaridade (SW 1.0)
-        # [ ]  c. deixando os últimos pra AI (SW 3.0)
