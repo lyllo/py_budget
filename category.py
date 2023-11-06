@@ -91,6 +91,6 @@ def prepara_prompt(estabelecimento):
     print("Prompt: " + prompt)
     return prompt
 
-prompt = prepara_prompt("AIRBNB, PÃO DE AÇÚCAR, UBER")
-resposta = interagir_com_llm(prompt)
-print("Response: " + resposta.upper())
+# prompt = prepara_prompt("AIRBNB, PÃO DE AÇÚCAR, UBER")
+# resposta = interagir_com_llm(prompt)
+# print("Response: " + resposta.upper())

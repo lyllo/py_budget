@@ -24,6 +24,25 @@ def ler_arquivo(nome_arquivo):
             linhas.append(linha.strip())
     return linhas
 
+# Substituir mes
+def obter_numero_mes(mes):
+    meses = {
+        'jan': 1,
+        'fev': 2,
+        'mar': 3,
+        'abr': 4,
+        'mai': 5,
+        'jun': 6,
+        'jul': 7,
+        'ago': 8,
+        'set': 9,
+        'out': 10,
+        'nov': 11,
+        'dez': 12
+    }
+    return meses.get(mes.lower(), None)
+    
+
 # Converter strings no formato dd/Out para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
     data_string = linha
@@ -31,8 +50,10 @@ def limpar_data(linha):
         data_string = linha[-6:]
     else:
         data_string = linha
-        
-    data_datetime = datetime(2023, 10, int(data_string[:2])).date()
+
+    mes = obter_numero_mes(data_string[-3:].lower())
+
+    data_datetime = datetime(2023, mes, int(data_string[:2])).date()
 
     return data_datetime
 
@@ -43,7 +64,7 @@ def limpar_valor(linha):
     return valor_string
 
 # Carregar o arquivo banking.txt com as transações de cartões do BTG
-nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\banking.txt'
+nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\temp.txt'
 linhas_arquivo = ler_arquivo(nome_arquivo)
 
 # Declarar contador de linha e lista de registros
@@ -53,7 +74,7 @@ lista_de_registros = []
 for linha in linhas_arquivo:
 
     # Encontrar uma linha de data em Outubro
-    if linha.find("/Out") != -1:
+    if (linha.find("/Out") != -1 or linha.find("/Nov") != -1):
         
         # Armazenar o valor da última data encontrada
         data = limpar_data(linha)
