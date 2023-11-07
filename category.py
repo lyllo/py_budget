@@ -10,7 +10,7 @@ import openai
 def carrega_dicionario():
 
     # Carrega o arquivo Excel BUDGET_SET23 com transações até o mês passado
-    workbook = load_workbook('BUDGET_SET23.xlsx')
+    workbook = load_workbook('history.xlsx')
 
     # Seleciona a planilha Summary desejada
     worksheet = workbook['Summary']
@@ -63,6 +63,7 @@ def interagir_com_llm(prompt):
     )
     return response.choices[0].text.strip()
 
+# Função para carregar as categorias como string no prompt da LLM
 def carrega_categorias():
     categorias = ["ÁGUA",
                 "ALIMENTAÇÃO",
@@ -76,7 +77,7 @@ def carrega_categorias():
                 "INTERNET",
                 "LUZ",
                 "MERCADO",
-                "OUTROS",
+                # "OUTROS",
                 "PET",
                 "SAÚDE",
                 "SERVIÇOS",
@@ -86,11 +87,40 @@ def carrega_categorias():
     return(", ".join(categorias))
 
 # Preparar o prompt para um registro
-def prepara_prompt(estabelecimento):
-    prompt = "Dentre as seguintes categorias \"" + carrega_categorias() + "\", quais seriam as mais adequadas para classificar as compras em um cartão, cujos estabelecimentos comerciais se chamam, respectivamente \"" + estabelecimento + "\"?"
-    print("Prompt: " + prompt)
+def prepara_prompt(estabelecimentos):
+    prompt = "Retorne uma lista de strings em Python contendo, dentre as seguintes categorias \"" + carrega_categorias() + "\", quais seriam as mais adequadas para classificar as compras realizadas com um cartão de crédito, cujos estabelecimentos comerciais se chamam, respectivamente " + str(estabelecimentos) + ", preenchendo com uma string vazia quando a entrada também for uma string vazia."
+    # print("Prompt: " + prompt)
+    # print(str(estabelecimentos))
     return prompt
 
-# prompt = prepara_prompt("AIRBNB, PÃO DE AÇÚCAR, UBER")
-# resposta = interagir_com_llm(prompt)
-# print("Response: " + resposta.upper())
+def preenche_categorias_com_respostas_da_ai(lista_de_registros, resposta):
+    # print(type(resposta))
+    for indice, registro in enumerate(lista_de_registros):
+        if "categoria" not in registro:
+            registro['categoria'] = resposta[indice]
+
+# Fecha a lista com "]" caso a LLM não retorne com esse caractere
+def verificar_resposta(resposta):
+    if resposta[-2] != "]":
+        return resposta[:-1] + "]" + resposta[-1:]
+
+def busca_categoria_com_ai(lista_de_registros):
+    # Preparar a lista de itens separada por vírgula
+    lista_de_registros_para_ai = []
+    for registro in lista_de_registros:
+        if "categoria" not in registro:
+            lista_de_registros_para_ai.append(registro['item'])
+        else:
+            lista_de_registros_para_ai.append('')
+    # Monta o prompt
+    prompt = prepara_prompt(lista_de_registros_para_ai)
+    # Chama a LLM
+    resposta = interagir_com_llm(prompt)
+    resposta_limpa = verificar_resposta(resposta)
+    # Imprime a resposta (alterar para preencher as categorias)
+    # print("Response: " + resposta.upper())
+   
+    # Percorrer a lista de categorias para preencher com os resultados
+    preenche_categorias_com_respostas_da_ai(lista_de_registros, eval(resposta_limpa.upper()))
+
+# prompt = prepara_prompt("[\'AIRBNB\', \'PÃO DE AÇÚCAR\', \'\', \'\', \'UBER\']")
