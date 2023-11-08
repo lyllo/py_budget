@@ -15,7 +15,7 @@ TO-DO:
 [-] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
         [x] Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
         [x] Criar função que consulta a categoria dado o nome do estabelecimento
-        [ ] Aumentar velocidade do carregamento do dicionário (pre-carregar em um arquivo mais leve?)
+        [x] Aumentar velocidade do carregamento do dicionário (pre-carregar em um arquivo mais leve?)
         [X]  a. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
         [X]  b. depois por similaridade (SW 1.0) => consegui 9,16% de eficiência aqui
         [X]  c. deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas

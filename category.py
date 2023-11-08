@@ -1,6 +1,18 @@
 from openpyxl import load_workbook
 from fuzzywuzzy import fuzz
 import openai
+import pickle
+import configparser
+
+# Ler as Feature Toggles do arquivo de configuração
+# Crie uma instância do ConfigParser
+config = configparser.ConfigParser()
+
+# Leia o arquivo de configuração
+config.read('config.ini')
+
+# Obtenha o valor global
+load_xlsx = config.get('Toggle', 'load_xlsx')
 
 # 
 # BUSCA SIMPLES (ANÁLISE LÉXICA)
@@ -9,24 +21,36 @@ import openai
 # Carrega as colunas do Excel referentes a ITEM e CATEGORIA
 def carrega_dicionario():
 
-    # Carrega o arquivo Excel BUDGET_SET23 com transações até o mês passado
-    workbook = load_workbook('history.xlsx')
-
-    # Seleciona a planilha Summary desejada
-    worksheet = workbook['Summary']
-
     # Cria um dicionário vazio
     dicionario = {}
 
-    # Percorre as células das colunas B e D iniciando pela linha 2, onde B = Item e C = Categoria.
-    # Exemplo ["iFood" = "Alimentação"]
-    for row in worksheet.iter_rows(min_row=2, values_only=True):
-        chave = row[1]
-        valor = row[3]
-        dicionario[chave] = valor
-    
-    # Fecha o arquivo
-    workbook.close()
+    if(load_xlsx == "true"):
+
+        # Carrega o arquivo Excel BUDGET_SET23 com transações até o mês passado
+        workbook = load_workbook('history.xlsx')
+
+        # Seleciona a planilha Summary desejada
+        worksheet = workbook['Summary']
+
+        # Percorre as células das colunas B e D iniciando pela linha 2, onde B = Item e C = Categoria.
+        # Exemplo ["iFood" = "Alimentação"]
+        for row in worksheet.iter_rows(min_row=2, values_only=True):
+            chave = row[1]
+            valor = row[3]
+            dicionario[chave] = valor
+        
+        # Fecha o arquivo
+        workbook.close()
+
+        # Salvando os dados em um arquivo binário
+        with open('dados.bin', 'wb') as arquivo:
+            pickle.dump(dicionario, arquivo)
+
+    else:
+
+        # Carrega os dados salvos em um arquivo binário
+        with open('dados.bin', 'rb') as arquivo:
+            dicionario = pickle.load(arquivo)
 
     # Retorna o dicionário
     return dicionario
