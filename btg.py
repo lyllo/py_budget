@@ -1,5 +1,6 @@
 from openpyxl import Workbook
 from datetime import datetime
+from openpyxl.styles import Font
 import category
 import configparser
 
@@ -23,10 +24,21 @@ def incluir_linhas_em_excel(nome_arquivo, linhas):
     # Seleciona a planilha ativa
     sheet = workbook.active
 
+    # Inicializa o contador de linhas da planilha
+    num_linha_excel = 1
+
     # Inclui as linhas no arquivo do Excel
     for linha in linhas:
         sheet.append(linha)
+        
+        # Teste pora pintar as células da categoria TRANSPORTE
+        if 'TRANSPORTE' in linha:
+            for cell in sheet[num_linha_excel]:
+                if cell.column == 6:
+                    print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
+                    cell.font = Font(color='FF0000')
 
+        num_linha_excel += 1
     # Salva o arquivo do Excel
     workbook.save(nome_arquivo)
 
@@ -75,10 +87,10 @@ def limpar_data(linha):
 def limpar_valor(linha):
     valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
     valor_string = str(valor_float).replace(".",",")
-    return valor_string
+    return valor_float
 
 # Carregar o arquivo banking.txt com as transações de cartões do BTG
-nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\temp.txt'
+nome_arquivo = 'btg.txt'
 linhas_arquivo = ler_arquivo(nome_arquivo)
 
 # Declarar contador de linha e lista de registros
@@ -181,5 +193,5 @@ lista_de_listas = [list(item.values()) for item in lista_de_registros]
 lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG'])
 
 # Salvar as informações em um arquivo Excel
-nome_arquivo = 'C:\\Users\\lyllo\\Workspaces\\Python\\BTG\\OUTPUT.xlsx'			
+nome_arquivo = 'btg.xlsx'			
 incluir_linhas_em_excel(nome_arquivo, lista_de_listas)

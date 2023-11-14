@@ -1,4 +1,3 @@
-TO-DO:
 [X] 1. Transformar tipo da Coluna A de texto em data
         Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime
 
@@ -21,3 +20,5 @@ TO-DO:
         [X]  c. deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
                 [ ] Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
         [ ]  d. (plus) tentar jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
+
+[ ] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
