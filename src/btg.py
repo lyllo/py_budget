@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 from datetime import datetime
 from openpyxl.styles import Font
+from openpyxl.styles import numbers
 import category
 import configparser
 import os
@@ -45,8 +46,12 @@ def incluir_linhas_em_excel(nome_arquivo, linhas):
         # Teste pora pintar as células da categoria TRANSPORTE
         if 'TRANSPORTE' in linha:
             for cell in sheet[num_linha_excel]:
+                # A coluna C (3) é do VALOR
+                if cell.column == 3:
+                    cell.number_format = 'R$ #,##0.00'
+                # A coluna F (6) é da CATEGORIA
                 if cell.column == 6:
-                    print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
+                    # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
                     cell.font = Font(color='FF0000')
 
         num_linha_excel += 1
@@ -79,7 +84,6 @@ def obter_numero_mes(mes):
     }
     return meses.get(mes.lower(), None)
     
-
 # Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
     data_string = linha
@@ -90,6 +94,7 @@ def limpar_data(linha):
 
     mes = obter_numero_mes(data_string[-3:].lower())
 
+    # TODO: Permitir outros anos, além de 2023
     data_datetime = datetime(2023, mes, int(data_string[:2])).date()
 
     return data_datetime
@@ -98,7 +103,7 @@ def limpar_data(linha):
 def limpar_valor(linha):
     valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
     valor_string = str(valor_float).replace(".",",")
-    return valor_float
+    return float(valor_float)
 
 # Carregar o arquivo banking.txt com as transações de cartões do BTG
 nome_arquivo = PATH_TO_INPUT_FILE
