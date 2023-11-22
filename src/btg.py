@@ -1,8 +1,7 @@
-from openpyxl import Workbook
 from datetime import datetime
-from openpyxl.styles import Font
-from openpyxl.styles import numbers
+
 import category
+import files
 import configparser
 import os
 
@@ -23,46 +22,16 @@ simple_match = config.get('Toggle', 'simple_match')
 similar_match = config.get('Toggle', 'similar_match')
 ai_match = config.get('Toggle', 'ai_match')
 
-# Inclui linhas em arquivo Excel
-def incluir_linhas_em_excel(nome_arquivo, linhas):
-    # Cria um novo arquivo do Excel
-    workbook = Workbook()
-    
-    # Seleciona a planilha ativa
-    sheet = workbook.active
+"""
+  ______                /\/|                                _ _ _                     
+ |  ____|              |/\/                 /\             (_) (_)                    
+ | |__ _   _ _ __   ___ ___   ___  ___     /  \  _   ___  ___| |_  __ _ _ __ ___  ___ 
+ |  __| | | | '_ \ / __/ _ \ / _ \/ __|   / /\ \| | | \ \/ / | | |/ _` | '__/ _ \/ __|
+ | |  | |_| | | | | (_| (_) |  __/\__ \  / ____ \ |_| |>  <| | | | (_| | | |  __/\__ \
+ |_|   \__,_|_| |_|\___\___/ \___||___/ /_/    \_\__,_/_/\_\_|_|_|\__,_|_|  \___||___/
+                    )_)                                                               
 
-    # Inicializa o contador de linhas da planilha
-    num_linha_excel = 1
-
-    # Inclui as linhas no arquivo do Excel
-    for linha in linhas:
-        sheet.append(linha)
-        
-        # Formata como moeda em BRL a coluna C (3) do VALOR
-        for cell in sheet[num_linha_excel]:
-            if cell.column == 3:
-                cell.number_format = 'R$ #,##0.00'
-
-        # Pintar de vermelho a fonte das células das categorias preenchidas por AI
-        if 'ai_gpt' in linha:
-            for cell in sheet[num_linha_excel]:
-                # A coluna F (6) é da CATEGORIA
-                if cell.column == 6:
-                    # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
-                    cell.font = Font(color='FF0000')
-
-        num_linha_excel += 1
-
-    # Salva o arquivo do Excel
-    workbook.save(nome_arquivo)
-
-# Carregar arquivo de texto
-def ler_arquivo(nome_arquivo):
-    linhas = []
-    with open(nome_arquivo, 'r', -1, 'utf-8') as arquivo:
-        for linha in arquivo:
-            linhas.append(linha.strip())
-    return linhas
+"""
 
 # Substituir mes
 def obter_numero_mes(mes):
@@ -103,23 +72,38 @@ def limpar_valor(linha):
     valor_string = str(valor_float).replace(".",",")
     return float(valor_float)
 
-# Carregar o arquivo banking.txt com as transações de cartões do BTG
-linhas_arquivo = ler_arquivo(PATH_TO_INPUT_FILE)
+"""
 
-# Declarar contador de linha e lista de registros
+  _____       __     _             _          _____           _       _   
+ |_   _|     /_/    (_)           | |        / ____|         (_)     | |  
+   | |  _ __  _  ___ _  ___     __| | ___   | (___   ___ _ __ _ _ __ | |_ 
+   | | | '_ \| |/ __| |/ _ \   / _` |/ _ \   \___ \ / __| '__| | '_ \| __|
+  _| |_| | | | | (__| | (_) | | (_| | (_) |  ____) | (__| |  | | |_) | |_ 
+ |_____|_| |_|_|\___|_|\___/   \__,_|\___/  |_____/ \___|_|  |_| .__/ \__|
+                                                               | |        
+                                                               |_|        
+
+"""
+
+# Carrega o arquivo de entrada com as transações de cartões do BTG
+linhas_arquivo = files.ler_arquivo(PATH_TO_INPUT_FILE)
+
+# Declara contador de linha e lista de registros
 num_linha = 0
 lista_de_registros = []
 
+# Lê as linhas do arquivo para tratamento dos dados
 for linha in linhas_arquivo:
 
     # TODO: Tornar a busca por data mais abrangente
-    # Encontrar uma linha de data em Outubro ou Novembro
+    
+    # Encontra uma linha de data em Outubro ou Novembro
     if (linha.find("/Out") != -1 or linha.find("/Nov") != -1):
         
         # Armazenar o valor da última data encontrada
         data = limpar_data(linha)
 
-    # Encontrar uma linha de status
+    # Encontra uma linha de status
     if linha.find("Compra ") != -1:
 
         # Criar um novo registro com valores padrões
@@ -132,25 +116,25 @@ for linha in linhas_arquivo:
                          'tag': 'minha_tag',
                          'source': 'minha_fonte'}
 
-        # Definir o valor da chave 'data' com a última data encontrada
+        # Define o valor da chave 'data' com a última data encontrada
         novo_registro['data'] = data
 
-        # Definir o valor da chave 'item' com o item encontrado (linha anterior)
+        # Define o valor da chave 'item' com o item encontrado (linha anterior)
         novo_registro['item'] = linhas_arquivo[num_linha-1]
 
-        # Definir o valor da chave 'cartao' com o nome do portador
+        # Define o valor da chave 'cartao' com o nome do portador
         if linha.find("CINTHIA") != -1:
             novo_registro['cartao'] = 'CINTHIA'
         else:
             novo_registro['cartao'] = 'PHILIPPE'
 
-        # Definir o valor da chave 'parcelas' com o número de parcelas da compra
+        # Define o valor da chave 'parcelas' com o número de parcelas da compra
         if linha.find("Compra no crédito em ") != -1:
             novo_registro['parcelas'] = "1/" + linha[21]
         else:
             novo_registro['parcelas'] = "1/1"
         
-    # Encontrar uma linha de valor
+    # Encontra uma linha de valor
     if linha.find("- R$", 0, 4) != -1:
 
         # Definir o valor da chave 'valor' com o valor encontrado
@@ -177,20 +161,24 @@ if (simple_match == "true"):
     num_similar_matches = 0
 
     for registro in lista_de_registros:
-        # busca exata
+        
+        # Faz a busca exata
         if registro['item'] in lista_de_categorias:
             registro['categoria'] = lista_de_categorias[registro['item']]
             registro['source'] = 'history_exact'
             num_simple_matches += 1
         
-        # busca por similaridade
+        # Faz a busca por similaridade
         else:
             if(similar_match == "true"):
+                
                 # limite de similaridade, valor de 75 encontrado por inspeção manual
                 limite = 75
                 palavras_parecidas = category.busca_palavras_parecidas(registro['item'], lista_de_categorias.keys(), limite)
+                
                 # só estamos interessados quando a busca encontra apenas 1 elemento e não mais de 1
                 if len(palavras_parecidas) == 1:
+                    
                     # print("As palavras parecidas com " + registro['item'] + " são:")
                     # print(palavras_parecidas[0] + " : " + categorias[palavras_parecidas[0]])
                     registro['categoria'] = lista_de_categorias[palavras_parecidas[0]]
@@ -203,17 +191,17 @@ if (simple_match == "true"):
     if (similar_match == "true"):
         print(str(num_similar_matches) + " similar matches quando limite = " + str(limite) + " em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_similar_matches/len(lista_de_registros)),2)) + "%.")
 
-# busca com ai
+# Faz a busca com ai
 
 if (ai_match == "true"):
     category.busca_categoria_com_ai(lista_de_registros)
 
-# Transformar a lista de dicionários em uma lista de listas, sem os nomes das chaves
+# Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
 lista_de_listas = [list(item.values()) for item in lista_de_registros]
 
-# Adicionar cabeçalho a lista de listas
+# Adiciona o cabeçalho à lista de listas
 lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG', 'SOURCE'])
 
-# Salvar as informações em um arquivo Excel
+# Salva as informações em um arquivo Excel
 nome_arquivo = PATH_TO_OUTPUT_FILE		
-incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
+files.incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
