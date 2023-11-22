@@ -1,9 +1,8 @@
 from datetime import datetime
-
-import category
-import files
 import configparser
 import os
+import category
+import files
 
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
@@ -107,13 +106,13 @@ for linha in linhas_arquivo:
     if linha.find("Compra ") != -1:
 
         # Criar um novo registro com valores padrões
-        novo_registro = {'data': 'minha_data', 
-                         'item': 'meu_item', 
-                         'valor': 'meu_valor', 
-                         'cartao': 'meu_cartao', 
-                         'parcelas': 'minhas_parcelas',
-                         'categoria': 'minha_categoria',
-                         'tag': 'minha_tag',
+        novo_registro = {'data': '', 
+                         'item': '', 
+                         'valor': '', 
+                         'cartao': '', 
+                         'parcelas': '',
+                         'categoria': '',
+                         'tag': '',
                          'source': 'minha_fonte'}
 
         # Define o valor da chave 'data' com a última data encontrada
