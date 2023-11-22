@@ -18,7 +18,8 @@
         [X]  a. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
         [X]  b. depois por similaridade (SW 1.0) => consegui 9,16% de eficiência aqui
         [X]  c. deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
-                [ ] Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
-        [ ]  d. (plus) tentar jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
+                [x] Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
+        [x]  d. (plus) tentar jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
+                => Não necessário pois nos testes preliminares vi que a IA tem assertividade de 21%. Precisaria fazer algum fine tuning.
 
 [ ] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.

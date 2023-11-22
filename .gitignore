@@ -1,3 +1,5 @@
-__pycache__/category.cpython-311.pyc
-btg.xlsx
-btg.xlsx
+__pycache__/
+.vscode/
+data/
+in/
+out/
