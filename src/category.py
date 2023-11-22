@@ -5,24 +5,19 @@ import pickle
 import configparser
 import os
 
+# Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
     os.path.dirname(
         os.path.abspath(__file__)
     )
 )
-
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
 PATH_TO_BIN_FILE = os.path.join(ROOT_DIR, 'data\\dados.bin')
 
-# Ler as Feature Toggles do arquivo de configuração
-# Crie uma instância do ConfigParser
+# Le as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
-
-# Leia o arquivo de configuração
 config.read(PATH_TO_CONFIG_FILE)
-
-# Obtenha o valor global
 load_xlsx = config.get('Toggle', 'load_xlsx')
 
 # 
@@ -121,9 +116,9 @@ def carrega_categorias():
                 "VIAGENS"]
     return(", ".join(categorias))
 
-# Preparar o prompt para um registro
+# Prepara o prompt para um registro
 def prepara_prompt(estabelecimentos):
-    prompt = "Retorne uma lista de strings em Python contendo, dentre as seguintes categorias \"" + carrega_categorias() + "\", quais seriam as mais adequadas para classificar as compras realizadas com um cartão de crédito, cujos estabelecimentos comerciais se chamam, respectivamente " + str(estabelecimentos) + ", preenchendo com uma string vazia quando a entrada também for uma string vazia."
+    prompt = "Dentre as seguintes categorias \"" + carrega_categorias() + "\", qual é a mais adequada para classificar uma compra realizada com um cartão de crédito, cujo nome do estabelecimento comercial se chama " + str(estabelecimentos) + "?"
     # print("Prompt: " + prompt)
     # print(str(estabelecimentos))
     return prompt
@@ -133,29 +128,29 @@ def preenche_categorias_com_respostas_da_ai(lista_de_registros, resposta):
     for indice, registro in enumerate(lista_de_registros):
         if "categoria" not in registro:
             registro['categoria'] = resposta[indice]
+            registro['source'] = 'ai_gpt'
+    
+# Retira pontos e deixa a palavra em maiúsculo
+def limpa_resposta(resposta):
+    # Remove o caractere da string
+    resposta_limpa = resposta.replace('.', '')
 
-# Fecha a lista com "]" caso a LLM não retorne com esse caractere
-def verificar_resposta(resposta):
-    if resposta[-2] != "]":
-        return resposta[:-1] + "]" + resposta[-1:]
+    # Torna toda a string em maiúsculas
+    resposta_limpa = resposta_limpa.upper()
+
+    return resposta_limpa 
 
 def busca_categoria_com_ai(lista_de_registros):
-    # Preparar a lista de itens separada por vírgula
-    lista_de_registros_para_ai = []
-    for registro in lista_de_registros:
-        if "categoria" not in registro:
-            lista_de_registros_para_ai.append(registro['item'])
-        else:
-            lista_de_registros_para_ai.append('')
-    # Monta o prompt
-    prompt = prepara_prompt(lista_de_registros_para_ai)
-    # Chama a LLM
-    resposta = interagir_com_llm(prompt)
-    resposta_limpa = verificar_resposta(resposta)
-    # Imprime a resposta (alterar para preencher as categorias)
-    # print("Response: " + resposta.upper())
-   
-    # Percorrer a lista de categorias para preencher com os resultados
-    preenche_categorias_com_respostas_da_ai(lista_de_registros, eval(resposta_limpa.upper()))
 
-# prompt = prepara_prompt("[\'AIRBNB\', \'PÃO DE AÇÚCAR\', \'\', \'\', \'UBER\']")
+    for registro in lista_de_registros:
+        if registro['categoria'] == 'minha_categoria':
+
+            # TODO: Voltar a buscar chamar a LLM agrupada (que não funcionava bem) ao invés de unitariamente
+            
+            registro_para_ai = registro['item']
+            prompt = prepara_prompt(registro_para_ai)
+            resposta = interagir_com_llm(prompt)
+            resposta_limpa = limpa_resposta(resposta)
+            registro['categoria'] = resposta_limpa
+            registro['source'] = "ai_gpt"
+            print("[GPT] Encontrei a categoria " + resposta_limpa + " para o estabelecimento " + registro_para_ai)

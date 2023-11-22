@@ -6,24 +6,19 @@ import category
 import configparser
 import os
 
+# Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
     os.path.dirname(
         os.path.abspath(__file__)
     )
 )
-
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
 PATH_TO_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
 
-# Ler as Feature Toggles do arquivo de configuração
-# Crie uma instância do ConfigParser
+# Le as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
-
-# Leia o arquivo de configuração
 config.read(PATH_TO_CONFIG_FILE)
-
-# Obtenha o valor global
 simple_match = config.get('Toggle', 'simple_match')
 similar_match = config.get('Toggle', 'similar_match')
 ai_match = config.get('Toggle', 'ai_match')
@@ -43,18 +38,21 @@ def incluir_linhas_em_excel(nome_arquivo, linhas):
     for linha in linhas:
         sheet.append(linha)
         
-        # Teste pora pintar as células da categoria TRANSPORTE
-        if 'TRANSPORTE' in linha:
+        # Formata como moeda em BRL a coluna C (3) do VALOR
+        for cell in sheet[num_linha_excel]:
+            if cell.column == 3:
+                cell.number_format = 'R$ #,##0.00'
+
+        # Pintar de vermelho a fonte das células das categorias preenchidas por AI
+        if 'ai_gpt' in linha:
             for cell in sheet[num_linha_excel]:
-                # A coluna C (3) é do VALOR
-                if cell.column == 3:
-                    cell.number_format = 'R$ #,##0.00'
                 # A coluna F (6) é da CATEGORIA
                 if cell.column == 6:
                     # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
                     cell.font = Font(color='FF0000')
 
         num_linha_excel += 1
+
     # Salva o arquivo do Excel
     workbook.save(nome_arquivo)
 
@@ -106,8 +104,7 @@ def limpar_valor(linha):
     return float(valor_float)
 
 # Carregar o arquivo banking.txt com as transações de cartões do BTG
-nome_arquivo = PATH_TO_INPUT_FILE
-linhas_arquivo = ler_arquivo(nome_arquivo)
+linhas_arquivo = ler_arquivo(PATH_TO_INPUT_FILE)
 
 # Declarar contador de linha e lista de registros
 num_linha = 0
@@ -130,7 +127,10 @@ for linha in linhas_arquivo:
                          'item': 'meu_item', 
                          'valor': 'meu_valor', 
                          'cartao': 'meu_cartao', 
-                         'parcelas': 'minhas_parcelas'}
+                         'parcelas': 'minhas_parcelas',
+                         'categoria': 'minha_categoria',
+                         'tag': 'minha_tag',
+                         'source': 'minha_fonte'}
 
         # Definir o valor da chave 'data' com a última data encontrada
         novo_registro['data'] = data
@@ -161,12 +161,16 @@ for linha in linhas_arquivo:
 
     num_linha += 1
 
-print("[" + datetime.now().strftime("%H:%M:%S") +"] Iniciando carregamento do dicionário...")
-
 # Busca por categorias
 if (simple_match == "true"):
+
+    # Imprime timestamp do início do carregamento do dicionário de categorias
+    print("[" + datetime.now().strftime("%H:%M:%S") +"] Iniciando carregamento do dicionário...")
+
+    # Carrega dicionário de categorias
     lista_de_categorias = category.carrega_dicionario()
 
+    # Imprime timestamp do término do carregamento do dicionário
     print("[" + datetime.now().strftime("%H:%M:%S") +"] Dicionário carregado em memória.")
 
     num_simple_matches = 0
@@ -176,6 +180,7 @@ if (simple_match == "true"):
         # busca exata
         if registro['item'] in lista_de_categorias:
             registro['categoria'] = lista_de_categorias[registro['item']]
+            registro['source'] = 'history_exact'
             num_simple_matches += 1
         
         # busca por similaridade
@@ -189,6 +194,7 @@ if (simple_match == "true"):
                     # print("As palavras parecidas com " + registro['item'] + " são:")
                     # print(palavras_parecidas[0] + " : " + categorias[palavras_parecidas[0]])
                     registro['categoria'] = lista_de_categorias[palavras_parecidas[0]]
+                    registro['source'] = 'history_similar'
                     num_similar_matches += 1
 
     if (simple_match == "true"):
@@ -206,7 +212,7 @@ if (ai_match == "true"):
 lista_de_listas = [list(item.values()) for item in lista_de_registros]
 
 # Adicionar cabeçalho a lista de listas
-lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG'])
+lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG', 'SOURCE'])
 
 # Salvar as informações em um arquivo Excel
 nome_arquivo = PATH_TO_OUTPUT_FILE		
