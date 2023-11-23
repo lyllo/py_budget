@@ -71,9 +71,9 @@ lista_de_registros = []
 # Lê as linhas do arquivo para tratamento dos dados
 for linha in linhas_arquivo:
 
-    # TODO: Tornar a busca por data mais abrangente
+    # [ ] Tornar a busca por data mais abrangente
     
-    data = 'minha_data'
+    data = ''
 
     # Encontra uma linha de data em Outubro ou Novembro
     if linha.find("2023") != -1:
@@ -87,7 +87,7 @@ for linha in linhas_arquivo:
                         'valor': '', 
                         'categoria': '',
                         'tag': '',
-                        'source': 'minha_fonte'}
+                        'source': ''}
 
         # Define o valor da chave 'data' com a última data encontrada
         novo_registro['data'] = limpar_data(data)

@@ -60,7 +60,7 @@ def limpar_data(linha):
 
     mes = obter_numero_mes(data_string[-3:].lower())
 
-    # TODO: Permitir outros anos, além de 2023
+    # [ ] Permitir outros anos, além de 2023
     data_datetime = datetime(2023, mes, int(data_string[:2])).date()
 
     return data_datetime
@@ -94,7 +94,7 @@ lista_de_registros = []
 # Lê as linhas do arquivo para tratamento dos dados
 for linha in linhas_arquivo:
 
-    # TODO: Tornar a busca por data mais abrangente
+    # [ ] Tornar a busca por data mais abrangente
     
     # Encontra uma linha de data em Outubro ou Novembro
     if (linha.find("/Out") != -1 or linha.find("/Nov") != -1):

@@ -88,7 +88,7 @@ def busca_categoria_com_ai(lista_de_registros):
     for registro in lista_de_registros:
         if registro['categoria'] == 'minha_categoria':
 
-            # TODO: Voltar a buscar chamar a LLM agrupada (que não funcionava bem) ao invés de unitariamente
+            # [ ] Voltar a buscar chamar a LLM agrupada (que não funcionava bem) ao invés de unitariamente
             
             registro_para_ai = registro['item']
             prompt = ai.prepara_prompt(registro_para_ai)

@@ -1,25 +1,37 @@
-[X] 1. Transformar tipo da Coluna A de texto em data
+[x] Cartão BTG (copy/paste do site em txt)
+[ ] Cartão XP (2 excels)
+[ ] Cartão GPA (digitação/ 2 excels)
+[x] Cartão Flash (copy/paste do site em txt)
+[ ] CC Itaú (1 excel)
+[x] CI BTG (copy/paste do site em txt)
+[ ] CI Sofisa (digitação)
+[ ] CI XP (1 excel)
+[ ] CI Rico (1 excel)
+
+# BTG
+
+[x] 1. Transformar tipo da Coluna A de texto em data
         Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime
 
-[-] 2. Transformar tipo da Coluna C de texto em moeda
+[x] 2. Transformar tipo da Coluna C de texto em moeda
         Não tive sucesso com a NumberFormat de numbers de opepyxl, que precisa ser chamada após a célula ter sido criada
 
-[X] 3. Preencher campos de CARTAO
+[x] 3. Preencher campos de CARTAO
 
-[X] 4. Preencher campos de PARCELAS
+[x] 4. Preencher campos de PARCELAS
         Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
         Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
         Eu deveria estar dividindo o valor da compra pelo número de parcelas.
 
-[-] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
-        [x] Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
-        [x] Criar função que consulta a categoria dado o nome do estabelecimento
-        [x] Aumentar velocidade do carregamento do dicionário (pre-carregar em um arquivo mais leve?)
-        [X]  a. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
-        [X]  b. depois por similaridade (SW 1.0) => consegui 9,16% de eficiência aqui
-        [X]  c. deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
-                [x] Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
-        [x]  d. (plus) tentar jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
+[x] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
+        [x] 5.1. Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
+        [x] 5.2. Criar função que consulta a categoria dado o nome do estabelecimento
+        [x] 5.3. Aumentar velocidade do carregamento do dicionário (pre-carregar em um arquivo mais leve?)
+        [x]     5.3.1. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
+        [x]     5.3.2. depois por similaridade (SW 1.0) => consegui 9,16% de eficiência aqui
+        [x]     5.3.3 deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
+                        5.3.3.1. Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
+        [x]  5.4. jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
                 => Não necessário pois nos testes preliminares vi que a IA tem assertividade de 21%. Precisaria fazer algum fine tuning.
 
 [ ] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
