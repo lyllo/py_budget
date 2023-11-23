@@ -1,5 +1,7 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
+from openpyxl import load_workbook
+import xlrd
 
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, linhas):
@@ -41,3 +43,25 @@ def ler_arquivo(nome_arquivo):
         for linha in arquivo:
             linhas.append(linha.strip())
     return linhas
+
+
+def ler_arquivo_xlsx(nome_arquivo, nome_planilha):
+    # Carregar o arquivo Excel
+    workbook = load_workbook(nome_arquivo)
+
+    # Selecionar a planilha ativa
+    sheet = workbook.get_sheet_by_name(nome_planilha)
+
+    # Iterar sobre as linhas da planilha
+    return (row for row in sheet.iter_rows(values_only=True))
+
+def ler_arquivo_xls(nome_arquivo):
+    # Carregar o arquivo Excel
+    workbook = xlrd.open_workbook(nome_arquivo)
+
+    # Selecionar a planilha ativa
+    sheet = workbook.sheet_by_index(0)
+
+    # Iterar sobre as linhas da planilha
+    for row in range(sheet.nrows):
+        yield sheet.row_values(row)
