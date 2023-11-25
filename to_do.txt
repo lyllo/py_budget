@@ -1,12 +1,12 @@
 [x] Cartão BTG (copy/paste do site em txt)
-[ ] Cartão XP (2 excels)
-[ ] Cartão GPA (digitação/ 2 excels)
+[ ] Cartão XP (2 xlsx)
+[x] Cartão GPA (digitação / xls)
 [x] Cartão Flash (copy/paste do site em txt)
-[ ] CC Itaú (1 excel)
+[x] CC Itaú (1 xks)
 [x] CI BTG (copy/paste do site em txt)
 [ ] CI Sofisa (digitação)
-[ ] CI XP (1 excel)
-[ ] CI Rico (1 excel)
+[ ] CI XP (1 xlsx)
+[ ] CI Rico (1 xlsx)
 
 # BTG
 
