@@ -44,7 +44,7 @@ def ler_arquivo(nome_arquivo):
             linhas.append(linha.strip())
     return linhas
 
-
+# Carregar arquivo xlsx
 def ler_arquivo_xlsx(nome_arquivo, nome_planilha):
     # Carregar o arquivo Excel
     workbook = load_workbook(nome_arquivo)
@@ -55,6 +55,7 @@ def ler_arquivo_xlsx(nome_arquivo, nome_planilha):
     # Iterar sobre as linhas da planilha
     return (row for row in sheet.iter_rows(values_only=True))
 
+# Carregar arquivo xls
 def ler_arquivo_xls(nome_arquivo):
     # Carregar o arquivo Excel
     workbook = xlrd.open_workbook(nome_arquivo)

@@ -8,13 +8,13 @@
 [ ] CI XP (1 xlsx)
 [ ] CI Rico (1 xlsx)
 
-# BTG
+# BTG (ORIGINAL)
 
 [x] 1. Transformar tipo da Coluna A de texto em data
-        Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime
+        Obs. Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime (SUPERADO)
 
 [x] 2. Transformar tipo da Coluna C de texto em moeda
-        Não tive sucesso com a NumberFormat de numbers de opepyxl, que precisa ser chamada após a célula ter sido criada
+        Obs. Não tive sucesso com a NumberFormat de numbers de opepyxl, que precisa ser chamada após a célula ter sido criada (SUPERADO)
 
 [x] 3. Preencher campos de CARTAO
 
@@ -34,4 +34,19 @@
         [x]  5.4. jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
                 => Não necessário pois nos testes preliminares vi que a IA tem assertividade de 21%. Precisaria fazer algum fine tuning.
 
-[ ] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
+[ ] 9. Verificar status da transação (se negada) para não exportá-la para o xlsx.
+
+[ ] 10. Quando for uma transação parcelada, já criar as parcelas dela nos meses seguintes, pintando a fonte de cinza.
+
+[ ] 11. Remover transações de valor igual a zero para não poluir o consolidado.
+
+[-] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
+        -> Não é possível em Python fechar uma planilha aberta por outro processo.
+
+GERAL
+
+[x] 7. Criar main que chama todos os módulos
+        [x] 7.1. Verificando se existe o arquivo de entrada
+        [ ] 7.2. Concatenando todos os resultados em um mesmo arquivo? (Conflito, pois BUDGET.xlsx é separado por Worksheets)
+
+[ ] 8. Gerar uma GUI para receber arquivos de entrada
