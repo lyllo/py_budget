@@ -92,6 +92,11 @@ def init(input_file, output_file):
         # Encontra uma linha de status
         if linha.find("Compra ") != -1:
 
+            if linha.find("não autorizada") == -1:
+                unnautorized = True
+            else:
+                unnautorized = False
+
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
                             'item': '', 
@@ -126,8 +131,8 @@ def init(input_file, output_file):
             # Definir o valor da chave 'valor' com o valor encontrado
             novo_registro['valor'] = limpar_valor(linha)
 
-            # Verifica se valor é zerado
-            if novo_registro['valor'] != 0:
+            # Verifica se valor é zerado e status é autorizado
+            if novo_registro['valor'] != 0 and unnautorized != False:
 
                 # Armazenar o novo registro na lista de registros
                 lista_de_registros.append(novo_registro)

@@ -36,7 +36,7 @@
 
 [x] 9. Verificar valor da transação (se igual a zero) para não exportá-la para o xlsx.
 
-[ ] 10. Verificar status da transação (se negada) para não exportá-la para o xlsx.
+[x] 10. Verificar status da transação (se negada) para não exportá-la para o xlsx.
 
 [ ] 11. Quando for  primeira parcela de uma transação parcelada, já criar as parcelas dela nos meses seguintes, pintando a fonte de cinza.
 
