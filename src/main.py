@@ -1,7 +1,6 @@
 import btg, xp, gpa, flash
 import itau_cc
-import btg_ci, sofisa_ci
-#import xp_ci, rico_ci
+import btg_ci, sofisa_ci, xp_ci, rico_ci
 import os
 import configparser
 
@@ -28,6 +27,10 @@ PATH_TO_BTG_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_ci.txt')
 PATH_TO_BTG_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_ci.xlsx')
 PATH_TO_SOFISA_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\sofisa_ci.txt')
 PATH_TO_SOFISA_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\sofisa_ci.xlsx')
+PATH_TO_XP_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp_ci.xlsx')
+PATH_TO_XP_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp_ci.xlsx')
+PATH_TO_RICO_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\rico_ci.xlsx')
+PATH_TO_RICO_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\rico_ci.xlsx')
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -79,6 +82,10 @@ if toggle_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
     print("\nIniciando processo do SOFISA_CI...")
     sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
-# sofisa_ci.init()
-# xp_ci.init()
-# rico_ci.init()
+if toggle_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
+    print("\nIniciando processo do XP_CI...")
+    xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
+
+if toggle_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
+    print("\nIniciando processo do RICO_CI...")
+    rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
