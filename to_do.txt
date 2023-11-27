@@ -4,7 +4,7 @@
 [x] Cartão Flash (copy/paste do site em txt)
 [x] CC Itaú (1 xls)
 [x] CI BTG (copy/paste do site em txt)
-[ ] CI Sofisa (digitação)
+[ ] CI Sofisa (copy/paste do site em txt)
 [ ] CI XP (1 xlsx)
 [ ] CI Rico (1 xlsx)
 
