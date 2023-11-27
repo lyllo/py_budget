@@ -126,8 +126,11 @@ def init(input_file, output_file):
             # Definir o valor da chave 'valor' com o valor encontrado
             novo_registro['valor'] = limpar_valor(linha)
 
-            # Armazenar o novo registro na lista de registros
-            lista_de_registros.append(novo_registro)
+            # Verifica se valor é zerado
+            if novo_registro['valor'] != 0:
+
+                # Armazenar o novo registro na lista de registros
+                lista_de_registros.append(novo_registro)
 
         num_linha += 1
 

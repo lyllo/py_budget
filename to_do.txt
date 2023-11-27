@@ -34,11 +34,11 @@
         [x]  5.4. jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
                 => Não necessário pois nos testes preliminares vi que a IA tem assertividade de 21%. Precisaria fazer algum fine tuning.
 
-[ ] 9. Verificar status da transação (se negada) para não exportá-la para o xlsx.
+[x] 9. Verificar valor da transação (se igual a zero) para não exportá-la para o xlsx.
 
-[ ] 10. Verificar valor da transação (se igual a zero) para não exportá-la para o xlsx.
+[ ] 10. Verificar status da transação (se negada) para não exportá-la para o xlsx.
 
-[ ] 11. Quando for uma transação parcelada, já criar as parcelas dela nos meses seguintes, pintando a fonte de cinza.
+[ ] 11. Quando for  primeira parcela de uma transação parcelada, já criar as parcelas dela nos meses seguintes, pintando a fonte de cinza.
 
 [-] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
         -> Não é possível em Python fechar uma planilha aberta por outro processo.
