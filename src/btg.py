@@ -52,6 +52,12 @@ def limpar_valor(linha):
     valor_string = str(valor_float).replace(".",",")
     return float(valor_float)
 
+def encontra_linha_de_data(linha):
+    if linha.find("/Jan") != -1 or linha.find("/Fev") != -1 or linha.find("/Mar") != -1 or linha.find("/Abr") != -1 or linha.find("/Mai") != -1 or linha.find("/Jun") != -1 or linha.find("/Jul") != -1 or linha.find("/Ago") != -1 or linha.find("/Set") != -1 or linha.find("/Out") != -1 or linha.find("/Nov") != -1 or linha.find("/Dez") != -1:
+        return True
+    else:
+        return False
+
 """
 
   _____       __     _             _          _____           _       _   
@@ -76,11 +82,9 @@ def init(input_file, output_file):
 
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
-
-        # [ ] Tornar a busca por data mais abrangente
-        
+       
         # Encontra uma linha de data em Outubro ou Novembro
-        if (linha.find("/Out") != -1 or linha.find("/Nov") != -1):
+        if encontra_linha_de_data(linha):
             
             # Armazenar o valor da última data encontrada
             data = limpar_data(linha)

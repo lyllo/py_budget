@@ -54,12 +54,12 @@ def init(input_file, output_file):
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
 
-        # [ ] Tornar a busca por data mais abrangente
+        # [x] Tornar a busca por data mais abrangente
         
         data = ''
 
-        # Encontra uma linha de data em Outubro ou Novembro
-        if linha.find("2023") != -1:
+        # Encontra uma linha de data
+        if linha.find(" às ") != -1:
             
             # Armazenar o valor da última data encontrada
             data = linha[:10]
