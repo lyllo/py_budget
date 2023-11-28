@@ -1,6 +1,24 @@
 from datetime import datetime
 import category
 import files
+import db
+import os
+import configparser
+
+# Configura os paths dos arquivos que serão utilizados
+ROOT_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
+# Lê as feature toggles do arquivo de configuração
+config = configparser.ConfigParser()
+config.read(PATH_TO_CONFIG_FILE)
+
+toggle_db = config.get('Toggle', 'toggle_db')
 
 """
   ______                /\/|                                _ _ _                     
@@ -76,13 +94,13 @@ def init(input_file, output_file):
 
             # Cria um novo registro com valores nulos
             novo_registro = {'data': '', 
-                                'item': '', 
-                                'valor': '',
-                                'cartao': '',
-                                'parcelas': '', 
-                                'categoria': '',
-                                'tag': '',
-                                'source': ''}
+                            'item': '', 
+                            'valor': '', 
+                            'cartao': '', 
+                            'parcelas': '',
+                            'categoria': '',
+                            'tag': '',
+                            'source': ''}
 
             # Busca a posição dos separadores
             posicoes = encontrar_todas_ocorrencias(linha, ';')
@@ -132,6 +150,10 @@ def init(input_file, output_file):
 
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
+
+    # Salva dados no banco
+    if(toggle_db == "true"):
+        db.salva(lista_de_registros, "Cartao_XP")
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
     lista_de_listas = [list(item.values()) for item in lista_de_registros]

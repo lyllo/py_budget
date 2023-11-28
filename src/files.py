@@ -2,6 +2,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl import load_workbook
 import xlrd
+from datetime import datetime
+from datetime import date
 
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, linhas):
@@ -18,6 +20,14 @@ def incluir_linhas_em_excel(nome_arquivo, linhas):
     for linha in linhas:
         sheet.append(linha)
         
+        # Pintar a fonte das linhas que contêm transações no futuro de cinza
+        if isinstance(linha[0], date):
+            data_linha = linha[0]
+            data_hoje = datetime.now().date()
+            if data_linha > data_hoje:
+                for cell in sheet[num_linha_excel]:
+                    cell.font = Font(color="808080")
+
         # Formata como moeda em BRL a coluna C (3) do VALOR
         for cell in sheet[num_linha_excel]:
             if cell.column == 3:

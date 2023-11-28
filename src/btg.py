@@ -1,6 +1,25 @@
 from datetime import datetime
 import category
 import files
+import db
+import os
+import configparser
+import installments
+
+# Configura os paths dos arquivos que serão utilizados
+ROOT_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
+# Lê as feature toggles do arquivo de configuração
+config = configparser.ConfigParser()
+config.read(PATH_TO_CONFIG_FILE)
+
+toggle_db = config.get('Toggle', 'toggle_db')
 
 """
   ______                /\/|                                _ _ _                     
@@ -30,7 +49,13 @@ def obter_numero_mes(mes):
         'dez': 12
     }
     return meses.get(mes.lower(), None)
-    
+
+# Obter o número de parcelas de uma transação
+def obter_numero_parcelas(linha):
+    posicao_x = linha.find('x', 21)
+    parcelas = linha[21:posicao_x]
+    return parcelas
+   
 # Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
     data_string = linha
@@ -105,7 +130,7 @@ def init(input_file, output_file):
                             'parcelas': '',
                             'categoria': '',
                             'tag': '',
-                            'source': 'minha_fonte'}
+                            'source': ''}
 
             # Define o valor da chave 'data' com a última data encontrada
             novo_registro['data'] = data
@@ -113,34 +138,59 @@ def init(input_file, output_file):
             # Define o valor da chave 'item' com o item encontrado (linha anterior)
             novo_registro['item'] = linhas_arquivo[num_linha-1]
 
-            # Define o valor da chave 'cartao' com o nome do portador
+            # Define o valor da chave 'cartao' com o nome do portador (igual o da XP)
             if linha.find("CINTHIA") != -1:
-                novo_registro['cartao'] = 'CINTHIA'
+                novo_registro['cartao'] = 'CINTHIA ROSA'
             else:
-                novo_registro['cartao'] = 'PHILIPPE'
+                novo_registro['cartao'] = 'PHILIPPE Q ROSA'
 
-            # Define o valor da chave 'parcelas' com o número de parcelas da compra
+            # Armazena o número de parcelas da compra para posterior criação dos registros de forma separada
             if linha.find("Compra no crédito em ") != -1:
-                novo_registro['parcelas'] = "1/" + linha[21]
+                parcelas = int(obter_numero_parcelas(linha))
             else:
+                parcelas = 1
                 novo_registro['parcelas'] = "1/1"
             
         # Encontra uma linha de valor
         if linha.find("- R$", 0, 4) != -1:
 
             # Definir o valor da chave 'valor' com o valor encontrado
-            novo_registro['valor'] = limpar_valor(linha)
+            novo_registro['valor'] = limpar_valor(linha)/parcelas
 
             # Verifica se valor é zerado e status é autorizado
             if novo_registro['valor'] != 0 and unnautorized != False:
 
-                # Armazenar o novo registro na lista de registros
-                lista_de_registros.append(novo_registro)
+                if parcelas == 1:
+                    # Armazenar o novo registro de parcela única na lista de registros
+                    lista_de_registros.append(novo_registro)
+
+                else:
+                    # Armazena os registros referentes a todas as parcelas na lista de registros
+                    for parcela in range (1, parcelas+1):
+                        # Armazena a data da primeira parcela
+                        if (parcela == 1):
+                            data_base = novo_registro['data']
+                        data_parcela = installments.calcula_data_parcela(data_base, parcela)
+                        nova_parcela = {'data': novo_registro['data'], 
+                                        'item': novo_registro['item'], 
+                                        'valor': novo_registro['valor'],  
+                                        'cartao': novo_registro['cartao'],  
+                                        'parcelas': '',
+                                        'categoria': '',
+                                        'tag': '',
+                                        'source': ''}
+                        nova_parcela['data'] = data_parcela
+                        nova_parcela['parcelas'] = str(parcela) + "/" + str(parcelas)
+                        lista_de_registros.append(nova_parcela)
 
         num_linha += 1
 
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
+
+    # Salva dados no banco
+    if(toggle_db == "true"):
+        db.salva(lista_de_registros, "Cartao_BTG")
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
     lista_de_listas = [list(item.values()) for item in lista_de_registros]

@@ -19,9 +19,11 @@
 [x] 3. Preencher campos de CARTAO
 
 [x] 4. Preencher campos de PARCELAS
-        Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
-        Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
-        Eu deveria estar dividindo o valor da compra pelo número de parcelas.
+        [-] Consigo determinar o número de parcelas da compra, mas ainda não a qual parcela se refere aquela transação.
+                => No cartão XP vem a informação sobre qual parcela se refere a transação
+                => No cartão BTG vem apenas apenas o lançamento da transação total com o número de parcelas
+        [x] Estou tratando apenas 1 dígito de parcelas, ou seja, compras em 10x por exemplo, aparecerão com 0 parcelas.
+        [x] Eu deveria estar dividindo o valor da compra pelo número de parcelas.
 
 [x] 5. Preencher campos de CATEGORIA (expectativa de que 50% dos registros sejam automaticamente categorizados)
         [x] 5.1. Carregar dicionário de nomes de Estabelecimentos e suas Categorias a partir do BUDGET.xlsx
@@ -29,8 +31,8 @@
         [x] 5.3. Aumentar velocidade do carregamento do dicionário (pre-carregar em um arquivo mais leve?)
         [x]     5.3.1. buscando nome exato (SW 1.0) => consegui 41,22% de eficiência aqui
         [x]     5.3.2. depois por similaridade (SW 1.0) => consegui 9,16% de eficiência aqui
-        [x]     5.3.3 deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
-                        5.3.3.1. Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
+        [x]     5.3.3. deixando os últimos pra AI (SW 3.0) => consegui fazer para 1 registro, próximo passo é implementar para lista a fim de otimizar chamadas
+        [x]          5.3.3.1. Configurar a cor do texto preenchido por AI em vermelho para forçar conferência
         [x]  5.4. jogar tudo pra AI, mesmo sabendo que ficará aprox. 2x mais caro para validar assertividade
                 => Não necessário pois nos testes preliminares vi que a IA tem assertividade de 21%. Precisaria fazer algum fine tuning.
 
@@ -38,7 +40,8 @@
 
 [x] 10. Verificar status da transação (se negada) para não exportá-la para o xlsx.
 
-[ ] 11. Quando for  primeira parcela de uma transação parcelada, já criar as parcelas dela nos meses seguintes, pintando a fonte de cinza.
+[x] 11. Quando for  primeira parcela de uma transação parcelada, já criar as parcelas dela nos meses seguintes.
+        [x] 11.1. Pintando a fonte de cinza.
 
 [-] 6. Verificar se o arquivo de OUTPUT está aberto antes de tentar fazer operações no mesmo e fechá-lo para o programa não dar erro.
         -> Não é possível em Python fechar uma planilha aberta por outro processo.
@@ -50,3 +53,7 @@ GERAL
         [ ] 7.2. Concatenando todos os resultados em um mesmo arquivo? (Conflito, pois BUDGET.xlsx é separado por Worksheets)
 
 [ ] 8. Gerar uma GUI para receber arquivos de entrada
+
+[x] 12. Salvar registros em banco de dados
+
+[ ] 13. Implementar installments para os demais Cartões
