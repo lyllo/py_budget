@@ -57,3 +57,9 @@ GERAL
 [x] 12. Salvar registros em banco de dados
 
 [ ] 13. Implementar installments para os demais Cartões
+
+SEGURANÇA
+
+[ ] Remover chave de API da OpenAI do código
+[ ] Remover credenciais do MariaDB do código
+        => You can also set them up as environment variables in a .env file for better key and password management
