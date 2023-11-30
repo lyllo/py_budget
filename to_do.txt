@@ -1,3 +1,5 @@
+PARSERS
+
 [x] Cartão BTG (copy/paste do site em txt)
 [x] Cartão XP (2 csv)
 [x] Cartão GPA (digitação / xls)
@@ -8,7 +10,7 @@
 [x] CI XP (1 xlsx)
 [x] CI Rico (1 xlsx)
 
-# BTG (ORIGINAL)
+BTG (ORIGINAL)
 
 [x] 1. Transformar tipo da Coluna A de texto em data
         Obs. Por acaso a openpyxl chega a funcionar quando o tipo do dado é datetime (SUPERADO)
@@ -39,6 +41,7 @@
 [x] 9. Verificar valor da transação (se igual a zero) para não exportá-la para o xlsx.
 
 [x] 10. Verificar status da transação (se negada) para não exportá-la para o xlsx.
+        => Passou uma da XP esses dias, que impedia concilar com a fatura
 
 [x] 11. Quando for  primeira parcela de uma transação parcelada, já criar as parcelas dela nos meses seguintes.
         [x] 11.1. Pintando a fonte de cinza.
@@ -50,13 +53,20 @@ GERAL
 
 [x] 7. Criar main que chama todos os módulos
         [x] 7.1. Verificando se existe o arquivo de entrada
-        [ ] 7.2. Concatenando todos os resultados em um mesmo arquivo? (Conflito, pois BUDGET.xlsx é separado por Worksheets)
+        [ ] 7.2. Criar rotina de importação dos dados históricos do BUDGET
+        [ ] 7.3. Levar os resultados para o arquivo de BUDGET
+        [ ] 7.4. Calcular valor das faturas com bases nas datas de melhor compra (corte + 1)
 
 [ ] 8. Gerar uma GUI para receber arquivos de entrada
 
 [x] 12. Salvar registros em banco de dados
 
 [ ] 13. Implementar installments para os demais Cartões
+
+[ ] 14. Criar parser para Holerite (PDF) pois há despesas de SAÚDE, por exemplo lá dentro.
+        [ ] 14.1. Lembrar de remover a transação de pagamento de salário
+
+[ ] 15. Criar mecanismo para abrir transações, como a do pagamento do condomínio, para separar seus componentes (ex: ÁGUA e LUZ).
 
 SEGURANÇA
 

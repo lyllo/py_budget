@@ -32,7 +32,7 @@ def registro_existente(registro, cursor):
     return cursor.fetchone()[0]
 
 # Insere registros no banco de dados
-def salva(lista_de_registros, categoria_fonte):
+def salva(lista_de_registros, meio):
 
     # Connect to MariaDB Platform
     try:
@@ -56,7 +56,7 @@ def salva(lista_de_registros, categoria_fonte):
             try:
                 cursor.execute(
                     "INSERT INTO transactions (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                    (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['source'], registro['tag'], categoria_fonte, gera_hash_md5(registro)))
+                    (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['source'], registro['tag'], meio, gera_hash_md5(registro)))
                 conn.commit()
             except mariadb.Error as e:
                 print(f"Error: {e}")
