@@ -53,6 +53,9 @@ def salva(lista_de_registros, meio):
 
     for registro in lista_de_registros:
         if not registro_existente(registro, cursor):
+            if ('cartao' not in registro):
+                registro['cartao'] = ''
+                registro['parcelas'] = ''
             try:
                 cursor.execute(
                     "INSERT INTO transactions (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 

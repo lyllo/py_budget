@@ -93,8 +93,6 @@ def init(input_file, output_file):
         novo_registro = {'data': '', 
                             'item': '', 
                             'valor': '', 
-                            'cartao': '', 
-                            'parcelas': '',
                             'categoria': '',
                             'tag': '',
                             'source': ''}

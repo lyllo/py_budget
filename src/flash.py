@@ -42,9 +42,11 @@ def limpar_data(linha):
     return data_datetime
 
 # Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
-def limpar_valor(linha):
-    valor_float = "{:.2f}".format(-1 * float(linha[4:].replace(".","").replace(",",".")))
-    valor_string = str(valor_float).replace(".",",")
+def limpar_valor(valor, item):
+    multiplicador = -1
+    if item == 'Depósito De Refeição E Alimentação':
+        multiplicador = 1
+    valor_float = "{:.2f}".format(multiplicador * float(valor[4:].replace(".","").replace(",",".")))
     return float(valor_float)
 
 """
@@ -86,8 +88,6 @@ def init(input_file, output_file):
             novo_registro = {'data': '', 
                             'item': '', 
                             'valor': '', 
-                            'cartao': '', 
-                            'parcelas': '',
                             'categoria': '',
                             'tag': '',
                             'source': ''}
@@ -98,7 +98,7 @@ def init(input_file, output_file):
             # Define o valor da chave 'item' com o item encontrado (linha anterior)
             novo_registro['item'] = linhas_arquivo[num_linha-2]
                 
-            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+2])
+            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+2], novo_registro['item'])
 
             # Armazenar o novo registro na lista de registros
             lista_de_registros.append(novo_registro)

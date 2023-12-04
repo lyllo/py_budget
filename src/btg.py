@@ -74,7 +74,6 @@ def limpar_data(linha):
 # Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
 def limpar_valor(linha):
     valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
-    valor_string = str(valor_float).replace(".",",")
     return float(valor_float)
 
 def encontra_linha_de_data(linha):
