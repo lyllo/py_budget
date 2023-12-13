@@ -1,3 +1,8 @@
+from langchain.sql_database import SQLDatabase
+from langchain.chat_models import ChatOpenAI
+from langchain_experimental.sql import SQLDatabaseChain
+from langchain.callbacks import get_openai_callback
+
 import openai
 
 #
@@ -56,3 +61,31 @@ def preenche_categorias_com_respostas_da_ai(lista_de_registros, resposta):
         if "categoria" not in registro:
             registro['categoria'] = resposta[indice]
             registro['source'] = 'ai_gpt'
+
+#
+# CONECTA O BD AO LLM VIA LANGCHAIN
+#
+
+username = "root"
+password = "9!nT$u9!XZm3O#nE"
+host = "127.0.0.1"
+port = 3306
+mydatabase = "db_budget"
+md_uri = f"mariadb+mariadbconnector://{username}:{password}@{host}:{port}/{mydatabase}"
+db = SQLDatabase.from_uri(md_uri)
+
+OPENAI_API_KEY = "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"
+
+llm = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model='gpt-3.5-turbo')
+
+db_chain = SQLDatabaseChain(llm=llm, database=db, verbose=True)
+
+prompt = "Remova os valores armazenados na coluna categoria quando o valor for igual a categoria1"
+# prompt = "Quais são os 10 apartamentos que mais consomem água e qual foi o gasto médio deles no período?"
+
+with get_openai_callback() as cb:
+    response = db_chain.run(prompt)
+    print(f"Total Tokens: {cb.total_tokens}")
+    print(f"Prompt Tokens: {cb.prompt_tokens}")
+    print(f"Completion Tokens: {cb.completion_tokens}")
+    print(f"Total Cost (USD): ${cb.total_cost}")
