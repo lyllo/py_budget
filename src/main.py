@@ -1,6 +1,7 @@
 import btg, xp, gpa, flash
 import itau_cc
 import btg_ci, sofisa_ci, xp_ci, rico_ci
+import db
 import os
 import configparser
 
@@ -32,6 +33,8 @@ PATH_TO_XP_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp_ci.xlsx')
 PATH_TO_RICO_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\rico_ci.xlsx')
 PATH_TO_RICO_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\rico_ci.xlsx')
 
+PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
+
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
@@ -46,6 +49,8 @@ toggle_btg_ci = config.get('Toggle', 'toggle_btg_ci')
 toggle_sofisa_ci = config.get('Toggle', 'toggle_sofisa_ci')
 toggle_xp_ci = config.get('Toggle', 'toggle_xp_ci')
 toggle_rico_ci = config.get('Toggle', 'toggle_rico_ci')
+
+toggle_load_history = config.get('Toggle', 'toggle_load_history')
 
 # Verifica a existência de um arquivo
 def file_exists(file_path):
@@ -89,3 +94,7 @@ if toggle_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
 if toggle_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
     print("\nIniciando processo do RICO_CI...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
+
+if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
+    print("\nIniciando carregamento do histórico...")
+    db.carrega_historico(PATH_TO_HISTORY_FILE)

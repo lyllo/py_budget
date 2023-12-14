@@ -134,7 +134,7 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-        db.salva(lista_de_registros, "CI_Sofisa")
+        db.salva_registros(lista_de_registros, "CI_Sofisa")
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
     lista_de_listas = [list(item.values()) for item in lista_de_registros]

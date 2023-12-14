@@ -35,9 +35,9 @@ def carrega_dicionario():
     # Cria um dicionário vazio
     dicionario = {}
 
-    if(load_xlsx == "true"):
+    if(load_xlsx == "true"): # [ ] Está sendo chamado para todas as fontes de dados que estejam com toggle ativo
 
-        # Carrega o arquivo Excel BUDGET_SET23 com transações até o mês passado
+        # Carrega o arquivo Excel history com transações até o mês passado
         workbook = load_workbook(PATH_TO_HISTORY_FILE)
 
         # Seleciona a planilha Summary desejada
@@ -100,7 +100,7 @@ def busca_categoria_com_ai(lista_de_registros):
             resposta = ai.interagir_com_llm(prompt)
             resposta_limpa = limpa_resposta(resposta)
             registro['categoria'] = resposta_limpa
-            registro['source'] = "ai_gpt"
+            registro['categoria_fonte'] = "ai_gpt"
             if(verbose == "true"):
                 print("[GPT] Encontrei a categoria " + resposta_limpa + " para o estabelecimento " + registro_para_ai)
 
@@ -129,7 +129,7 @@ def fill(lista_de_registros):
             # Faz a busca exata
             if registro['item'] in lista_de_categorias:
                 registro['categoria'] = lista_de_categorias[registro['item']]
-                registro['source'] = 'history_exact'
+                registro['categoria_fonte'] = 'history_exact'
                 num_simple_matches += 1
             
             # Faz a busca por similaridade
@@ -144,7 +144,7 @@ def fill(lista_de_registros):
                     if len(palavras_parecidas) == 1:
                         
                         registro['categoria'] = lista_de_categorias[palavras_parecidas[0]]
-                        registro['source'] = 'history_similar'
+                        registro['categoria_fonte'] = 'history_similar'
                         num_similar_matches += 1
 
         if (simple_match == "true"):
