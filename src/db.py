@@ -30,6 +30,7 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
+toggle_duplicates = config.get('Toggle', 'toggle_duplicates')
 
 REGISTROS_DUPLICADOS = []
 NUM_REGISTROS_SALVOS = 0
@@ -166,8 +167,6 @@ def carrega_historico(input_file):
 
         num_registros_lidos += 1
 
-    salva_duplicados(REGISTROS_DUPLICADOS)
-
     if verbose == "true":
 
         # Remove a linha do cabeçalho
@@ -176,3 +175,7 @@ def carrega_historico(input_file):
             Registros salvos: {NUM_REGISTROS_SALVOS}
             Registros duplicados: {len(REGISTROS_DUPLICADOS)}
             """)
+        
+    if toggle_duplicates == "true":
+        
+        salva_duplicados(REGISTROS_DUPLICADOS)
