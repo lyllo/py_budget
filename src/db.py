@@ -110,6 +110,39 @@ def salva_registros(lista_de_registros, source):
     # Close Connection
     conn.close()
 
+def salva_duplicado(registro, conn):
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Pula a linha de cabeçalho
+    if(registro['data'] != 'DATA'):
+
+        # Verifica se transação é de cartão
+        if ('cartao' not in registro):
+            registro['cartao'] = ''
+            registro['parcelas'] = ''
+        try:
+            cursor.execute(
+                "INSERT INTO duplicates (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['categoria_fonte'], registro['tag'], registro['meio'], gera_hash_md5(registro)))
+            conn.commit()
+
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
+# Insere registros no banco de dados
+def salva_duplicados(lista_de_registros):
+
+    # Conecta ao banco
+    conn = conecta_bd()
+
+    for registro in lista_de_registros:
+        salva_duplicado(registro, conn)
+    
+    # Close Connection
+    conn.close()
+
 def carrega_historico(input_file):
 
     num_registros_lidos = 0
@@ -129,12 +162,15 @@ def carrega_historico(input_file):
                         'meio': linha[5],
                         'categoria_fonte': ''}
         
-        salva_registro (novo_registro, conn, linha[5])
+        salva_registro(novo_registro, conn, linha[5])
 
         num_registros_lidos += 1
 
+    salva_duplicados(REGISTROS_DUPLICADOS)
+
     if verbose == "true":
 
+        # Remove a linha do cabeçalho
         print(f"""
             Registros lidos: {num_registros_lidos-1}
             Registros salvos: {NUM_REGISTROS_SALVOS}
