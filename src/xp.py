@@ -100,7 +100,7 @@ def init(input_file, output_file):
                             'parcelas': '',
                             'categoria': '',
                             'tag': '',
-                            'source': ''}
+                            'categoria_fonte': ''}
 
             # Busca a posição dos separadores
             posicoes = encontrar_todas_ocorrencias(linha, ';')

@@ -95,7 +95,7 @@ def init(input_file, output_file):
                             'valor': '', 
                             'categoria': '',
                             'tag': '',
-                            'source': ''}
+                            'categoria_fonte': ''}
 
         # Busca a posição do primeiro separador
         posicoes = encontrar_todas_ocorrencias(linha, '\t')

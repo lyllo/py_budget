@@ -51,7 +51,7 @@ def init(input_file, output_file):
                             'valor': '', 
                             'categoria': '',
                             'tag': '',
-                            'source': ''}
+                            'categoria_fonte': ''}
 
             # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna B]
             date_data = linha[1]

@@ -90,7 +90,7 @@ def init(input_file, output_file):
                             'valor': '', 
                             'categoria': '',
                             'tag': '',
-                            'source': ''}
+                            'categoria_fonte': ''}
 
             # Define o valor da chave 'data' com a última data encontrada
             novo_registro['data'] = limpar_data(data)

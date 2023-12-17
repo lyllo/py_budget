@@ -2,6 +2,8 @@ import mariadb
 import sys
 import hashlib
 import files
+import os
+import configparser
 
 # Query the database
 # cur.execute(
@@ -13,6 +15,24 @@ import files
 #     print("Data: " + str(data) + "\n" +
 #           "Item: " + item + "\n" +
 #           "Valor: " + str(valor) + "\n")
+
+# Configura os paths dos arquivos que serão utilizados
+ROOT_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
+# Lê as feature toggles do arquivo de configuração
+config = configparser.ConfigParser()
+config.read(PATH_TO_CONFIG_FILE)
+
+verbose = config.get('Toggle', 'verbose')
+
+REGISTROS_DUPLICADOS = []
+NUM_REGISTROS_SALVOS = 0
 
 # Gera o hash MD5 do registro
 def gera_hash_md5(registro):
@@ -49,22 +69,34 @@ def conecta_bd():
 
     return conn
 
-def salva_registro(registro, conn, source):
+def salva_registro(registro, conn, meio):
 
     # Pega o cursor
     cursor = conn.cursor()
 
-    if not registro_existente(registro, cursor):
-        if ('cartao' not in registro):
-            registro['cartao'] = ''
-            registro['parcelas'] = ''
-        try:
-            cursor.execute(
-                "INSERT INTO transactions (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['categoria_fonte'], registro['tag'], source, gera_hash_md5(registro)))
-            conn.commit()
-        except mariadb.Error as e:
-            print(f"Error: {e}")
+    # Pula a linha de cabeçalho
+    if(registro['data'] != 'DATA'):
+
+        # Verifica se já existe tupla (data, item, valor) antes de salvar
+        if not registro_existente(registro, cursor):
+
+            # Verifica se transação é de cartão
+            if ('cartao' not in registro):
+                registro['cartao'] = ''
+                registro['parcelas'] = ''
+            try:
+                cursor.execute(
+                    "INSERT INTO transactions (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                    (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, gera_hash_md5(registro)))
+                conn.commit()
+                global NUM_REGISTROS_SALVOS
+                NUM_REGISTROS_SALVOS += 1
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+        else:
+
+            REGISTROS_DUPLICADOS.append(registro)
 
 # Insere registros no banco de dados
 def salva_registros(lista_de_registros, source):
@@ -80,6 +112,8 @@ def salva_registros(lista_de_registros, source):
 
 def carrega_historico(input_file):
 
+    num_registros_lidos = 0
+
     #Conecta ao banco
     conn = conecta_bd()
 
@@ -92,6 +126,17 @@ def carrega_historico(input_file):
                         'valor': linha[2], 
                         'categoria': linha[3],
                         'tag': linha[4],
-                        'source': linha[5]}
+                        'meio': linha[5],
+                        'categoria_fonte': ''}
         
         salva_registro (novo_registro, conn, linha[5])
+
+        num_registros_lidos += 1
+
+    if verbose == "true":
+
+        print(f"""
+            Registros lidos: {num_registros_lidos-1}
+            Registros salvos: {NUM_REGISTROS_SALVOS}
+            Registros duplicados: {len(REGISTROS_DUPLICADOS)}
+            """)

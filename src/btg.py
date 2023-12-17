@@ -177,7 +177,7 @@ def init(input_file, output_file):
                                         'parcelas': '',
                                         'categoria': '',
                                         'tag': '',
-                                        'source': ''}
+                                        'categoria_fonte': ''}
                         nova_parcela['data'] = data_parcela
                         nova_parcela['parcelas'] = str(parcela) + "/" + str(parcelas)
                         lista_de_registros.append(nova_parcela)
