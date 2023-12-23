@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 import os
+import configparser
 
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
@@ -15,6 +16,13 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
 PATH_TO_BTG_SCRAPPED_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
 
+# Lê as feature toggles do arquivo de configuração
+config = configparser.ConfigParser()
+config.read(PATH_TO_CONFIG_FILE)
+
+verbose = config.get('Toggle', 'verbose')
+
+# [ ] Ler esse driver_path das variáveis de ambiente 
 # Caminho para o seu chromedriver
 driver_path = '"C:\\Users\\lyllo\\AppData\\Local\\chromedriver-win64\\chromedriver.exe"'
 
@@ -29,10 +37,17 @@ senha = os.getenv('BTG_pass')
 token_acesso = input("Digite o token de acesso: ")
 
 # Configuração do driver do Chrome
+# É preciso deixar javascript desabilitado pois o BTG usa ele pra identificar se é robô
+# De tempos em tempos vale também alterar o user-agent para não ser bloqueado
+# [ ] Gerar dinamicamente o user-agent para evitar ser bloqueado
+
 os.environ['webdriver.chrome.driver'] = driver_path
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+chrome_options.add_argument('--disable-javascript')
+chrome_options.add_argument('--headless')
 
 # Constrói o driver do Chrome
 driver = webdriver.Chrome(options=chrome_options)
@@ -51,7 +66,7 @@ campo_usuario.send_keys(usuario)
 campo_senha.send_keys(senha)
 
 # Submete o formulário
-botao_submit = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+botao_submit = driver.find_element(By.CSS_SELECTOR, 'btg-button[type="submit"]')
 botao_submit.click()
 
 # Aguarda um tempo para a possível resposta da ação de login
@@ -70,22 +85,25 @@ campo_token.submit()
 # Aguarda um tempo para a possível resposta após a entrada do token
 time.sleep(10)
 
-# [ ] Acertar o scroll para baixo (no elemnto da timeline) até encontrar o texto do mês anterior
+# [x] Acertar o scroll para baixo (no elemnto da timeline) até encontrar o texto do mês anterior
 
+# [ ] Ajustar para gerar dinamicamente a string do mês anterior
 # String desejada a ser encontrada na página
 string_desejada = '/Nov'
 
 # Identifica o elemento dentro do qual você deseja rolar
-elemento_alvo = driver.find_element(By.XPATH, '//div[@class="timeline"]')
+elemento_contenedor = driver.find_element(By.XPATH, '//div[@class="timeline"]')
 
 # Loop para rolar a página e verificar se a string está presente
 encontrou_string = False
 while not encontrou_string:
     # Rola a página para baixo
-    driver.execute_script("arguments[0].scrollIntoView(true);", elemento_alvo)
+    # driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", elemento_alvo)
+    # driver.execute_script("window.scrollBy(0, arguments[0].getBoundingClientRect().top);", elemento_alvo)
+    driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight;", elemento_contenedor)
     
     # Espera um curto período para a página ser renderizada
-    driver.implicitly_wait(2)
+    # driver.implicitly_wait(2)
     
     # Verifica se a string está presente na página
     encontrou_string = string_desejada in driver.page_source
