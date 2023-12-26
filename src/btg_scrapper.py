@@ -7,6 +7,7 @@ from fake_useragent import UserAgent
 import random
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
@@ -25,10 +26,6 @@ config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
 
-# [ ] Ler esse driver_path das variáveis de ambiente 
-# Caminho para o seu chromedriver
-driver_path = '"C:\\Users\\lyllo\\AppData\\Local\\chromedriver-win64\\chromedriver.exe"'
-
 # URL de login do BTG Pactual
 url_login = 'https://app.banking.btgpactual.com/login'
 
@@ -39,11 +36,6 @@ senha = os.getenv('BTG_pass')
 # Solicita o token de acesso
 token_acesso = input("Digite o token de acesso: ")
 
-# Configuração do driver do Chrome
-# É preciso deixar javascript desabilitado pois o BTG usa ele pra identificar se é robô
-# De tempos em tempos vale também alterar o user-agent para não ser bloqueado
-# [x] Gerar dinamicamente o user-agent para evitar ser bloqueado
-
 # Cria uma instância da classe UserAgent
 ua = UserAgent()
 
@@ -51,28 +43,19 @@ ua = UserAgent()
 user_agent = ua.random
 
 if verbose == "true":
-    print(f"Configurando user-agent: {user_agent}")
+   print(f"Configurando user-agent: {user_agent}")
 
-os.environ['webdriver.chrome.driver'] = driver_path
+# Configura;óes do driver do Chrome
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
 chrome_options.add_argument(f"user-agent={user_agent}")
 chrome_options.add_argument('--disable-javascript')
+chrome_options.add_argument('--incognito')
 chrome_options.add_argument('--headless') # Não carrega a GUI
 
 # Constrói o driver do Chrome
 driver = webdriver.Chrome(options=chrome_options)
-
-# Imprime o endereço IP utilizado pelo Selenium para a navegação
-if verbose == "true":
-    
-    # Abre a página do httpbin para obter o endereço IP
-    driver.get("https://httpbin.org/ip")
-
-    # Agora, você pode analisar a resposta para obter o endereço IP
-    response = driver.find_element(By.TAG_NAME, 'pre').text
-    print("Endereço IP do navegador:", response)
 
 if verbose == "true":
     print("Acessando a página de login...")
@@ -111,14 +94,15 @@ if verbose == "true":
     print(f"Aguardando {wait_time:.2f}s...")
 
 # Espera alguns segundos para o elemento com a classe "modal-error" aparecer
-elemento_modal_error = WebDriverWait(driver, wait_time).until(
-    EC.presence_of_element_located((By.CLASS_NAME, "modal-error"))
-)
+try:
+    elemento_modal_error = WebDriverWait(driver, wait_time).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "modal-error"))
+    )
+    if elemento_modal_error.is_displayed():
+        print("O elemento com class 'modal-error' apareceu na tela.")
+        driver.quit()
 
-if elemento_modal_error.is_displayed():
-    print("O elemento com class 'modal-error' apareceu na tela.")
-    driver.quit()
-else:
+except TimeoutException:
     if verbose == "true":
         print("Preenchendo dados do token...")
 
