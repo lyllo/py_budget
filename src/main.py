@@ -1,6 +1,7 @@
 import btg, xp, gpa, flash
 import itau_cc
 import btg_ci, sofisa_ci, xp_ci, rico_ci
+import btg_scrapper
 import db
 import os
 import configparser
@@ -14,7 +15,8 @@ ROOT_DIR = os.path.dirname(
 
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
-PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
+# [ ] Tratar caso de quando input não é scrapped
+PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
 PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
 PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
 PATH_TO_FLASH_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\flash.xlsx')
@@ -49,6 +51,7 @@ toggle_btg_ci = config.get('Toggle', 'toggle_btg_ci')
 toggle_sofisa_ci = config.get('Toggle', 'toggle_sofisa_ci')
 toggle_xp_ci = config.get('Toggle', 'toggle_xp_ci')
 toggle_rico_ci = config.get('Toggle', 'toggle_rico_ci')
+toggle_btg_scrapper = config.get('Toggle', 'toggle_btg_scrapper')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
 
@@ -57,9 +60,17 @@ def file_exists(file_path):
     return os.path.exists(file_path)
 
 # Cartões
-if toggle_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
-    print("\nIniciando processo do cartão BTG...")
-    btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+if toggle_btg == "true":
+    if toggle_btg_scrapper == "true":
+        btg_scrapper.init()
+        PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
+        PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_scrapped.xlsx')
+        print("\nIniciando processo do cartão BTG...")
+        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+   
+    elif file_exists(PATH_TO_BTG_INPUT_FILE):
+        print("\nIniciando processo do cartão BTG...")
+        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
 if toggle_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
     print("\nIniciando processo do cartão XP...")

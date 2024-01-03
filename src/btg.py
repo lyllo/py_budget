@@ -58,16 +58,36 @@ def obter_numero_parcelas(linha):
    
 # Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
+
     data_string = linha
-    if len(data_string) != 6:
-        data_string = linha[-6:]
+
+    # [x] Habilitar virada de 1 ano
+    ano_atual = True
+    if data_string.count('/') == 2:
+        ano_atual = False
+
+    if ano_atual:
+        if len(data_string) != 6:
+            data_string = linha[-6:]
+        else:
+            data_string = linha # 26/Dez
+        
+        ano = datetime.now().year
+        mes = obter_numero_mes(data_string[3:].lower())
+        dia = int(data_string[:2])
+
     else:
-        data_string = linha
+        if len(data_string) != 11:
+            data_string = linha[-11:]
+        else:
+            data_string = linha # 26/Dez/2023
 
-    mes = obter_numero_mes(data_string[-3:].lower())
+        ano = datetime.now().year - 1
+        mes = obter_numero_mes(data_string[3:6].lower())   
+        dia = int(data_string[:2])
 
-    # [ ] Permitir outros anos, além de 2023
-    data_datetime = datetime(2023, mes, int(data_string[:2])).date()
+    # [x] Permitir outros anos, além de 2023
+    data_datetime = datetime(ano, mes, dia).date()
 
     return data_datetime
 
