@@ -56,8 +56,9 @@ def gera_hash_md5(registro):
     valor = registro['valor']
     ocorrencia_dia = registro['ocorrencia_dia']
 
-    if registro['detalhe'] == 'PRESENTE MARIANA' and verbose == "true":
-        print("Breakpoint")
+    # Used to debug hashing_issues that turned out to be about strings with spaces on the right
+    # if registro['detalhe'] == 'PRESENTE MARIANA' and verbose == "true":
+    #     print("Breakpoint")
 
     # Se data for do tipo datetime e não date, é porque estamos lendo de history.xlsx, portanto precisamos normalizar
     if isinstance(data, datetime):
@@ -169,7 +170,7 @@ def salva_registros(lista_de_registros, meio, fonte):
         ocorrencias_dia = busca_simples(registro, buffer)
 
         if  ocorrencias_dia == 0:
-            registro['ocorrencia_dia'] = None
+            registro['ocorrencia_dia'] = 1 # Vai começar a popular mesmo as transações unitárias com 1, o que não é nada demais (ocupa um pouco mais de espaço em disco)
             buffer.append(registro)
        
         else:
@@ -191,8 +192,7 @@ def carrega_historico(input_file):
     conn = conecta_bd()
 
     # Lista de sheets do workbook, que são organizadas por meio de pagamento (IMPORTANTE: Existem outros meios que foram usados no passado e que estão ocultos)
-    # sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
-    sheets = ['CC Itau']
+    sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
 
     # Itera pelas sheets do workbook (Lembrando que apenas as 3 primeiras têm 'CARTÃO' e 'PARCELA')
     for sheet in sheets:

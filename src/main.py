@@ -105,7 +105,7 @@ if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE
     print("\nIniciando 'transform' do RICO_CI...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
-# SIDE LOAD
+# HISTORY LOAD
 
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
     print("\nIniciando 'load' do histórico em BD...")
