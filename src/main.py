@@ -16,7 +16,7 @@ ROOT_DIR = os.path.dirname(
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
 # [ ] Tratar caso de quando input não é scrapped
-PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
+PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
 PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
 PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
 PATH_TO_FLASH_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\flash.xlsx')
@@ -42,16 +42,18 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
-toggle_btg = config.get('Toggle', 'toggle_btg')
-toggle_xp = config.get('Toggle', 'toggle_xp')
-toggle_gpa = config.get('Toggle', 'toggle_gpa')
-toggle_flash = config.get('Toggle', 'toggle_flash')
-toggle_itau_cc = config.get('Toggle', 'toggle_itau_cc')
-toggle_btg_ci = config.get('Toggle', 'toggle_btg_ci')
-toggle_sofisa_ci = config.get('Toggle', 'toggle_sofisa_ci')
-toggle_xp_ci = config.get('Toggle', 'toggle_xp_ci')
-toggle_rico_ci = config.get('Toggle', 'toggle_rico_ci')
-toggle_btg_scrapper = config.get('Toggle', 'toggle_btg_scrapper')
+
+toggle_transform_btg = config.get('Toggle', 'toggle_transform_btg')
+toggle_transform_xp = config.get('Toggle', 'toggle_transform_xp')
+toggle_transform_gpa = config.get('Toggle', 'toggle_transform_gpa')
+toggle_transform_flash = config.get('Toggle', 'toggle_transform_flash')
+toggle_transform_itau_cc = config.get('Toggle', 'toggle_transform_itau_cc')
+toggle_transform_btg_ci = config.get('Toggle', 'toggle_transform_btg_ci')
+toggle_transform_sofisa_ci = config.get('Toggle', 'toggle_transform_sofisa_ci')
+toggle_transform_xp_ci = config.get('Toggle', 'toggle_transform_xp_ci')
+toggle_transform_rico_ci = config.get('Toggle', 'toggle_transform_rico_ci')
+
+toggle_extract_btg = config.get('Toggle', 'toggle_extract_btg')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
 
@@ -60,52 +62,51 @@ def file_exists(file_path):
     return os.path.exists(file_path)
 
 # Cartões
-if toggle_btg == "true":
-    if toggle_btg_scrapper == "true":
-        btg_scrapper.init()
-        PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
-        PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_scrapped.xlsx')
-        print("\nIniciando processo do cartão BTG...")
-        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+if toggle_transform_btg == "true":
+    if toggle_extract_btg == "true":
+        print("\nIniciando 'extract' do cartão BTG...")       
+        btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
    
-    elif file_exists(PATH_TO_BTG_INPUT_FILE):
-        print("\nIniciando processo do cartão BTG...")
+    if file_exists(PATH_TO_BTG_INPUT_FILE):
+        print("\nIniciando 'transform' do cartão BTG...")
         btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
-if toggle_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
-    print("\nIniciando processo do cartão XP...")
+if toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
+    print("\nIniciando 'transform' do cartão XP...")
     xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
 
-if toggle_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
-    print("\nIniciando processo do cartão GPA...")
+if toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
+    print("\nIniciando 'transform' do cartão GPA...")
     gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
 
-if toggle_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
-    print("\nIniciando processo do cartão Flash...")
+if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
+    print("\nIniciando 'transform' do cartão Flash...")
     flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
 
 # Contas
-if toggle_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
-    print("\nIniciando processo do ITAU_CC...")
+if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
+    print("\nIniciando 'transform' do ITAU_CC...")
     itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
 
 # Investimentos
-if toggle_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
-    print("\nIniciando processo do BTG_CI...")
+if toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
+    print("\nIniciando 'transform' do BTG_CI...")
     btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
 
-if toggle_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
-    print("\nIniciando processo do SOFISA_CI...")
+if toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
+    print("\nIniciando 'transform' do SOFISA_CI...")
     sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
-if toggle_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
-    print("\nIniciando processo do XP_CI...")
+if toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
+    print("\nIniciando 'transform' do XP_CI...")
     xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
 
-if toggle_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
-    print("\nIniciando processo do RICO_CI...")
+if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
+    print("\nIniciando 'transform' do RICO_CI...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
+# SIDE LOAD
+
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
-    print("\nIniciando carregamento do histórico...")
+    print("\nIniciando 'load' do histórico em BD...")
     db.carrega_historico(PATH_TO_HISTORY_FILE)

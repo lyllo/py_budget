@@ -209,7 +209,8 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-        db.salva_registros(lista_de_registros, "Cartao_BTG")
+        print("\nIniciando 'load' do cartão BTG em db...")
+        db.salva_registros(lista_de_registros, "Cartao BTG", os.path.basename(input_file))
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
     lista_de_listas = [list(item.values()) for item in lista_de_registros]
@@ -218,5 +219,6 @@ def init(input_file, output_file):
     lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG', 'SOURCE'])
 
     # Salva as informações em um arquivo Excel
-    nome_arquivo = output_file		
+    nome_arquivo = output_file
+    print("\nIniciando 'load' do cartão BTG em xlsx...")		
     files.incluir_linhas_em_excel(nome_arquivo, lista_de_listas)

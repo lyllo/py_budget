@@ -4,6 +4,7 @@ import hashlib
 import files
 import os
 import configparser
+from datetime import datetime
 
 # Query the database
 # cur.execute(
@@ -30,28 +31,6 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
-toggle_duplicates = config.get('Toggle', 'toggle_duplicates')
-
-REGISTROS_DUPLICADOS = []
-NUM_REGISTROS_SALVOS = 0
-
-# Gera o hash MD5 do registro
-def gera_hash_md5(registro):
-    data = registro['data']
-    item = registro['item']
-    valor = registro['valor']
-    input_string = str(data) + item + str(valor)
-    input_bytes = input_string.encode('utf-8')
-    md5_hash = hashlib.md5(input_bytes)
-    return md5_hash.hexdigest()
-
-# Verifica se registro existe no banco de dados
-def registro_existente(registro, cursor):
-    hash_do_registro = gera_hash_md5(registro)
-    # Consulta SQL para verificar a existência do registro
-    query = "SELECT EXISTS(SELECT 1 FROM transactions WHERE hash = %s)"
-    cursor.execute(query, (hash_do_registro,))
-    return cursor.fetchone()[0]
 
 def conecta_bd():
     # Connect to MariaDB Platform
@@ -70,48 +49,70 @@ def conecta_bd():
 
     return conn
 
-def salva_registro(registro, conn, meio):
+# Gera o hash MD5 do registro
+def gera_hash_md5(registro):
+    data = registro['data']
+    item = registro['item']
+    valor = registro['valor']
+    ocorrencia_dia = registro['ocorrencia_dia']
 
-    # Pega o cursor
-    cursor = conn.cursor()
+    if registro['detalhe'] == 'PRESENTE MARIANA' and verbose == "true":
+        print("Breakpoint")
 
-    # Pula a linha de cabeçalho
-    if(registro['data'] != 'DATA'):
-
-        # Verifica se já existe tupla (data, item, valor) antes de salvar
-        if not registro_existente(registro, cursor):
-
-            # Verifica se transação é de cartão
-            if ('cartao' not in registro):
-                registro['cartao'] = ''
-                registro['parcelas'] = ''
-            try:
-                cursor.execute(
-                    "INSERT INTO transactions (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                    (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, gera_hash_md5(registro)))
-                conn.commit()
-                global NUM_REGISTROS_SALVOS
-                NUM_REGISTROS_SALVOS += 1
-            except mariadb.Error as e:
-                print(f"Error: {e}")
-
-        else:
-
-            REGISTROS_DUPLICADOS.append(registro)
-
-# Insere registros no banco de dados
-def salva_registros(lista_de_registros, source):
-
-    # Conecta ao banco
-    conn = conecta_bd()
-
-    for registro in lista_de_registros:
-        salva_registro(registro, conn, source)
+    # Se data for do tipo datetime e não date, é porque estamos lendo de history.xlsx, portanto precisamos normalizar
+    if isinstance(data, datetime):
+        std_data = data.date()
+    else:
+        std_data = data
     
-    # Close Connection
-    conn.close()
+    std_item = item.rstrip() # remove todos os espaços em branco à direita da string
+    std_valor = round(valor + 0.0005, 2) # dica pra manter 2 decimais, mesmo que zero
+    std_ocorrencia_dia = ocorrencia_dia
+    
+    # input_string = str(data) + item + str(valor)
+    # input_bytes = input_string.encode('utf-8')
+    # md5_hash = hashlib.md5(input_bytes)
+    # return md5_hash.hexdigest()
 
-def salva_duplicado(registro, conn):
+    if data is not None and item is not None and valor is not None:
+        str_data = str(std_data)
+        str_item = std_item
+        str_valor = str(std_valor)
+        str_ocorrencia_dia = str(std_ocorrencia_dia)
+
+        input_string = str_data + str_item + str_valor + str_ocorrencia_dia
+
+        input_bytes = input_string.encode('utf-8')
+        md5_hash = hashlib.md5(input_bytes)
+        return md5_hash.hexdigest()
+    
+    else:
+        if verbose == "true":
+            print("Erro: alguma variável é NoneType.")
+        return None
+
+def busca_simples(registro, buffer):
+    # [x] Buscar apenas olhando para 3 chaves (data, item, valor)
+    # [ ] Otimizar busca fazendo dump do buffer quando registro for em nova data
+    # [ ] Tratar caso de transações feitas no mesmo dia para mesmo EC e valor, mas com portadores ('CARTAO') diferentes
+      
+    # Chaves a serem mantidas
+    chaves_desejadas = ['data', 'item', 'valor']
+
+    # Criar novo registro mantendo apenas as chaves desejadas
+    novo_registro = {'data': registro['data'], 
+                     'item': registro['item'],
+                     'valor': registro['valor']}
+
+    # Criar novos dicionários mantendo apenas as chaves desejadas
+    nova_lista_de_dicionarios = [{chave: dicionario[chave] for chave in chaves_desejadas} for dicionario in buffer]
+
+    if novo_registro in nova_lista_de_dicionarios:
+        return nova_lista_de_dicionarios.count(novo_registro)
+    else:
+        return 0
+
+def salva_registro(registro, conn, meio, fonte):
 
     # Pega o cursor
     cursor = conn.cursor()
@@ -123,59 +124,160 @@ def salva_duplicado(registro, conn):
         if ('cartao' not in registro):
             registro['cartao'] = ''
             registro['parcelas'] = ''
+
+        # Verifica se transação já tem detalhe (apenas terá em caso de carregamento em lote de histórico)
+        if ('detalhe' not in registro):
+            registro['detalhe'] = ''
+        
+        hash = gera_hash_md5(registro)
+
         try:
             cursor.execute(
-                "INSERT INTO duplicates (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'], registro['valor'], registro['cartao'], registro['parcelas'], registro['categoria'], registro['categoria_fonte'], registro['tag'], registro['meio'], gera_hash_md5(registro)))
+                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcelas'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash))
             conn.commit()
-
+            return 1
+        
         except mariadb.Error as e:
-            print(f"Error: {e}")
+
+            # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
+            if (e.errno == 1062):
+                salva_duplicado(registro, conn, meio, fonte)
+
+            else:
+                if verbose == "true":
+                    print(f"Error em salva_registro: {e}")
+
+            return 0
+        
+    return 0
 
 # Insere registros no banco de dados
-def salva_duplicados(lista_de_registros):
+def salva_registros(lista_de_registros, meio, fonte):
 
     # Conecta ao banco
     conn = conecta_bd()
 
+    # Inicializa o buffer do dia para identificação de transações duplicadas que não são falsos positivos
+    buffer = []
+
     for registro in lista_de_registros:
-        salva_duplicado(registro, conn)
+        
+        if ('ocorrencia_dia' not in registro):
+            registro['ocorrencia_dia'] = None
+
+        ocorrencias_dia = busca_simples(registro, buffer)
+
+        if  ocorrencias_dia == 0:
+            registro['ocorrencia_dia'] = None
+            buffer.append(registro)
+       
+        else:
+            if verbose == "true":
+                print(f"O item {registro['item']} já ocorreu {ocorrencias_dia} vez(es) neste arquivo de entrada.")
+            
+            registro['ocorrencia_dia'] = ocorrencias_dia + 1
+            
+            buffer.append(registro)
+    
+        salva_registro(registro, conn, meio, fonte)
     
     # Close Connection
     conn.close()
 
 def carrega_historico(input_file):
 
-    num_registros_lidos = 0
-
     #Conecta ao banco
     conn = conecta_bd()
 
-    # Itera nas linhas do arqauivo de histórico
-    for linha in files.ler_arquivo_xlsx(input_file, "Summary"):
-        
-        # Criar um novo registro
-        novo_registro = {'data': linha[0], 
-                        'item': linha[1], 
-                        'valor': linha[2], 
-                        'categoria': linha[3],
-                        'tag': linha[4],
-                        'meio': linha[5],
-                        'categoria_fonte': ''}
-        
-        salva_registro(novo_registro, conn, linha[5])
+    # Lista de sheets do workbook, que são organizadas por meio de pagamento (IMPORTANTE: Existem outros meios que foram usados no passado e que estão ocultos)
+    # sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
+    sheets = ['CC Itau']
 
-        num_registros_lidos += 1
+    # Itera pelas sheets do workbook (Lembrando que apenas as 3 primeiras têm 'CARTÃO' e 'PARCELA')
+    for sheet in sheets:
 
-    if verbose == "true":
+        num_registros_lidos = 0
+        num_registros_salvos = 0
 
-        # Remove a linha do cabeçalho
-        print(f"""
-            Registros lidos: {num_registros_lidos-1}
-            Registros salvos: {NUM_REGISTROS_SALVOS}
-            Registros duplicados: {len(REGISTROS_DUPLICADOS)}
-            """)
-        
-    if toggle_duplicates == "true":
-        
-        salva_duplicados(REGISTROS_DUPLICADOS)
+        if verbose == "true":
+            print(f"Iniciando 'load' do {sheet} em BD...")
+
+        # Itera nas linhas do arquivo de histórico
+        for linha in files.ler_arquivo_xlsx(input_file, sheet):
+            
+            if sheet in ['Cartao BTG', 'Cartao XP', 'Cartao GPA']:
+
+                # Carrega um novo registro de CARTÃO, contendo as chaves 'CARTÃO' (Portador) e 'PARCELAS' (Que poderia estar no singular)
+                novo_registro = {'data': linha[0], 
+                                 'item': linha[1],
+                                 'detalhe': linha[2],
+                                 'ocorrencia_dia': linha[3],
+                                 'valor': linha[4],
+                                 'cartao': linha[5],
+                                 'parcelas': linha [6], 
+                                 'categoria': linha[7],
+                                 'tag': linha[8],
+                                 'meio': sheet,
+                                 'categoria_fonte': ''}
+
+            else:
+
+                # Carrega um novo registro que não seja de CARTÃO
+                novo_registro = {'data': linha[0], 
+                                'item': linha[1],
+                                'detalhe': linha[2],
+                                'ocorrencia_dia': linha[3], 
+                                'valor': linha[4], 
+                                'categoria': linha[5],
+                                'tag': linha[6],
+                                'meio': sheet,
+                                'categoria_fonte': ''}
+            
+            # Verifica se chegou a um registro vazio antes de salvar
+            if linha[0] is not None:
+                num_registros_salvos += salva_registro(novo_registro, conn, sheet, os.path.basename(input_file))
+
+            num_registros_lidos += 1
+
+        if verbose == "true":
+
+            # O -1 é para remover a linha do cabeçalho
+            registros_lidos = num_registros_lidos - 1
+            registros_salvos = num_registros_salvos
+
+            # Considera que a diferença entre registros lidos e registros salvos se dá pelo número de duplicados (deverá ser ZERO com a implentação da lógica que considera PORTADOR e OCORRÊNCIA)
+            registros_duplicados = registros_lidos - registros_salvos
+            
+            print(f"""
+                Registros lidos ({sheet}): {registros_lidos}
+                Registros salvos ({sheet}): {registros_salvos}
+                Registros duplicados ({sheet}): {registros_duplicados}
+                """)
+            
+# [ ] Verificar se o registro duplicado já não existe na tabela de duplicado, se não em uma repetida rodada do script, todos os registros que são verdadeiros positivos, cairão na tabela de duplicados repetidas vezes
+def salva_duplicado(registro, conn, meio, fonte):
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Pula a linha de cabeçalho
+    if(registro['data'] != 'DATA'):
+
+        # Verifica se transação é de cartão
+        if ('cartao' not in registro):
+            registro['cartao'] = ''
+            registro['parcelas'] = ''
+
+        # Verifica se transação já tem detalhe (apenas terá em caso de carregamento em lote de histórico)
+        if ('detalhe' not in registro):
+            registro['detalhe'] = ''
+
+        try:
+            cursor.execute(
+                "INSERT INTO duplicates (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'], registro['detalhe'], registro['valor'], registro['cartao'], registro['parcelas'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, gera_hash_md5(registro)))
+            conn.commit()
+
+        except mariadb.Error as e:
+            print(f"Error em salva_duplicado: {e}")

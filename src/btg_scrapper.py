@@ -18,8 +18,6 @@ ROOT_DIR = os.path.dirname(
 
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
-PATH_TO_BTG_SCRAPPED_FILE = os.path.join(ROOT_DIR, 'in\\btg_scrapped.txt')
-
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
@@ -33,7 +31,7 @@ url_login = 'https://app.banking.btgpactual.com/login'
 usuario = os.getenv('BTG_user')
 senha = os.getenv('BTG_pass')
 
-def init():
+def init(PATH_TO_BTG_INPUT_FILE):
 
     # Solicita o token de acesso
     token_acesso = input("Digite o token de acesso: ")
@@ -162,7 +160,7 @@ def init():
             print("Salvando as transações em arquivo texto...")
 
         # Abre o arquivo para escrita e cola o texto
-        with open(PATH_TO_BTG_SCRAPPED_FILE, 'w', encoding='utf-8') as arquivo:
+        with open(PATH_TO_BTG_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
             arquivo.write(texto_para_copiar)
 
         # Finalmente, feche o navegador quando terminar todas as operações

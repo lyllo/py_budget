@@ -79,7 +79,7 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-      db.salva_registros(lista_de_registros, "CI_XP")
+      db.salva_registros(lista_de_registros, "CI XP", os.path.basename(input_file))
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
     lista_de_listas = [list(item.values()) for item in lista_de_registros]
