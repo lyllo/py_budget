@@ -15,7 +15,6 @@ ROOT_DIR = os.path.dirname(
 
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
-# [ ] Tratar caso de quando input não é scrapped
 PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
 PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
 PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
@@ -62,15 +61,19 @@ def file_exists(file_path):
     return os.path.exists(file_path)
 
 # Cartões
-if toggle_transform_btg == "true":
-    if toggle_extract_btg == "true":
-        print("\nIniciando 'extract' do cartão BTG...")       
-        btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
-   
-    if file_exists(PATH_TO_BTG_INPUT_FILE):
-        print("\nIniciando 'transform' do cartão BTG...")
-        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
+# BTG
+if toggle_extract_btg == "true":
+
+    print("\nIniciando 'extract' do cartão BTG...")       
+    btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
+
+if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
+
+    print("\nIniciando 'transform' do cartão BTG...")
+    btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+
+# XP
 if toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
     print("\nIniciando 'transform' do cartão XP...")
     xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)

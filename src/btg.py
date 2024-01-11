@@ -20,6 +20,7 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 toggle_db = config.get('Toggle', 'toggle_db')
+toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 
 """
   ______                /\/|                                _ _ _                     
@@ -143,13 +144,15 @@ def init(input_file, output_file):
 
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
-                            'item': '', 
-                            'valor': '', 
-                            'cartao': '', 
-                            'parcelas': '',
-                            'categoria': '',
-                            'tag': '',
-                            'source': ''}
+                             'item': '',
+                             'detalhe': '',
+                             'ocorrencia_dia': '', 
+                             'valor': '',  
+                             'cartao': '',  
+                             'parcela': '',
+                             'categoria': '',
+                             'tag': '',
+                             'categoria_fonte': ''}
 
             # Define o valor da chave 'data' com a última data encontrada
             novo_registro['data'] = data
@@ -168,7 +171,7 @@ def init(input_file, output_file):
                 parcelas = int(obter_numero_parcelas(linha))
             else:
                 parcelas = 1
-                novo_registro['parcelas'] = "1/1"
+                novo_registro['parcela'] = "1/1"
             
         # Encontra uma linha de valor
         if linha.find("- R$", 0, 4) != -1:
@@ -186,20 +189,26 @@ def init(input_file, output_file):
                 else:
                     # Armazena os registros referentes a todas as parcelas na lista de registros
                     for parcela in range (1, parcelas+1):
+                        
                         # Armazena a data da primeira parcela
                         if (parcela == 1):
                             data_base = novo_registro['data']
+                        
                         data_parcela = installments.calcula_data_parcela(data_base, parcela)
+                        
                         nova_parcela = {'data': novo_registro['data'], 
-                                        'item': novo_registro['item'], 
+                                        'item': novo_registro['item'],
+                                        'detalhe': '',
+                                        'ocorrencia_dia': '', 
                                         'valor': novo_registro['valor'],  
                                         'cartao': novo_registro['cartao'],  
-                                        'parcelas': '',
+                                        'parcela': '',
                                         'categoria': '',
                                         'tag': '',
                                         'categoria_fonte': ''}
+                        
                         nova_parcela['data'] = data_parcela
-                        nova_parcela['parcelas'] = str(parcela) + "/" + str(parcelas)
+                        nova_parcela['parcela'] = str(parcela) + "/" + str(parcelas)
                         lista_de_registros.append(nova_parcela)
 
         num_linha += 1
@@ -210,15 +219,11 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print("\nIniciando 'load' do cartão BTG em db...")
-        db.salva_registros(lista_de_registros, "Cartao BTG", os.path.basename(input_file))
+        timestamp = db.salva_registros(lista_de_registros, "Cartao BTG", os.path.basename(input_file))
 
-    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in lista_de_registros]
+    # Salva as informações em um arquivo Excel temporário
+    if(toggle_temp_sheet == "true"):
 
-    # Adiciona o cabeçalho à lista de listas
-    lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CARTAO', 'PARCELAS', 'CATEGORIA', 'TAG', 'SOURCE'])
-
-    # Salva as informações em um arquivo Excel
-    nome_arquivo = output_file
-    print("\nIniciando 'load' do cartão BTG em xlsx...")		
-    files.incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
+        nome_arquivo = output_file
+        print("\nIniciando 'load' do cartão BTG em xlsx...")		
+        files.salva_excel_temporario(nome_arquivo, "Cartao BTG", timestamp)

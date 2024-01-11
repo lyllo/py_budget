@@ -6,17 +6,6 @@ import os
 import configparser
 from datetime import datetime
 
-# Query the database
-# cur.execute(
-#     "SELECT * FROM transactions WHERE item=?", 
-#     ("UBER",))
-
-# Print Result-set
-# for (data, item, valor, cartao, parcela, categoria, categoria_fonte, tag, meio) in cur:
-#     print("Data: " + str(data) + "\n" +
-#           "Item: " + item + "\n" +
-#           "Valor: " + str(valor) + "\n")
-
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
     os.path.dirname(
@@ -26,11 +15,15 @@ ROOT_DIR = os.path.dirname(
 
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
+TIMESTAMP = int(datetime.timestamp(datetime.now()))
+
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
+toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
+toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 def conecta_bd():
     # Connect to MariaDB Platform
@@ -124,9 +117,9 @@ def salva_registro(registro, conn, meio, fonte):
         # Verifica se transação é de cartão
         if ('cartao' not in registro):
             registro['cartao'] = ''
-            registro['parcelas'] = ''
+            registro['parcela'] = ''
 
-        # Verifica se transação já tem detalhe (apenas terá em caso de carregamento em lote de histórico)
+        # Verifica se transação já tem detalhe (apenas teria em caso de carregamento em lote de histórico)
         if ('detalhe' not in registro):
             registro['detalhe'] = ''
         
@@ -134,15 +127,17 @@ def salva_registro(registro, conn, meio, fonte):
 
         try:
             cursor.execute(
-                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcelas'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash))
+                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash, TIMESTAMP))
             conn.commit()
+
             return 1
         
         except mariadb.Error as e:
 
             # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
             if (e.errno == 1062):
+                # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
                 salva_duplicado(registro, conn, meio, fonte)
 
             else:
@@ -186,6 +181,9 @@ def salva_registros(lista_de_registros, meio, fonte):
     # Close Connection
     conn.close()
 
+    # Return timestamp
+    return TIMESTAMP
+
 def carrega_historico(input_file):
 
     #Conecta ao banco
@@ -215,7 +213,7 @@ def carrega_historico(input_file):
                                  'ocorrencia_dia': linha[3],
                                  'valor': linha[4],
                                  'cartao': linha[5],
-                                 'parcelas': linha [6], 
+                                 'parcela': linha [6], 
                                  'categoria': linha[7],
                                  'tag': linha[8],
                                  'meio': sheet,
@@ -267,7 +265,7 @@ def salva_duplicado(registro, conn, meio, fonte):
         # Verifica se transação é de cartão
         if ('cartao' not in registro):
             registro['cartao'] = ''
-            registro['parcelas'] = ''
+            registro['parcela'] = ''
 
         # Verifica se transação já tem detalhe (apenas terá em caso de carregamento em lote de histórico)
         if ('detalhe' not in registro):
@@ -275,9 +273,46 @@ def salva_duplicado(registro, conn, meio, fonte):
 
         try:
             cursor.execute(
-                "INSERT INTO duplicates (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'], registro['detalhe'], registro['valor'], registro['cartao'], registro['parcelas'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, gera_hash_md5(registro)))
+                "INSERT INTO duplicates (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'], registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, gera_hash_md5(registro), TIMESTAMP))
             conn.commit()
 
         except mariadb.Error as e:
             print(f"Error em salva_duplicado: {e}")
+
+def fetch_transactions(timestamp):
+
+    transactions = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Query the database
+    cursor.execute(
+        "SELECT * FROM transactions WHERE timestamp=?", 
+        (f"{timestamp}",))
+
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) in cursor:
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'categoria': categoria,
+                       'tag': tag}
+                    #    'categoria_fonte': categoria_fonte,
+                    #    'meio': meio,
+                    #    'arquivo_fonte': fonte,
+                    #    'hash': hash,
+                    #    'timestamp': timestamp}
+        transactions.append(transaction)
+
+    return transactions
+
+# def fetch_duplicates(timestamp):

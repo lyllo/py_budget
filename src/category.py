@@ -105,7 +105,6 @@ def busca_categoria_com_ai(lista_de_registros):
                 print("[GPT] Encontrei a categoria " + resposta_limpa + " para o estabelecimento " + registro_para_ai)
 
 def fill(lista_de_registros):
-    
 
     # Busca por categorias
     if (simple_match == "true"):
@@ -125,6 +124,8 @@ def fill(lista_de_registros):
         num_similar_matches = 0
 
         for registro in lista_de_registros:
+
+            registro['categoria_fonte'] = ''
             
             # Faz a busca exata
             if registro['item'] in lista_de_categorias:
