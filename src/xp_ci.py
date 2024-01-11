@@ -18,6 +18,7 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 toggle_db = config.get('Toggle', 'toggle_db')
+toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 
 """
 
@@ -45,47 +46,48 @@ def init(input_file, output_file):
 
         if ((linha[5] != None) and (linha[5] != '') and (linha[5] != 'Valor (R$)')):
 
-            # Cria um novo registro com valores nulos
-            novo_registro = {'data': '', 
-                            'item': '', 
-                            'valor': '', 
-                            'categoria': '',
-                            'tag': '',
-                            'categoria_fonte': ''}
+          # Criar um novo registro com valores padrões
+          novo_registro = {'data': '', 
+                          'item': '',
+                          'detalhe': '',
+                          'ocorrencia_dia': '', 
+                          'valor': '',  
+                          'categoria': '',
+                          'tag': '',
+                          'categoria_fonte': ''}
 
-            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna B]
-            date_data = linha[1]
-            
-            # Armazena os caracteres que representam a descrição da transação (= item) [Coluna D]
-            str_item = linha[3]
-            
-            # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna F]
-            float_valor = linha[5]
+          # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna B]
+          date_data = linha[1]
+          
+          # Armazena os caracteres que representam a descrição da transação (= item) [Coluna D]
+          str_item = linha[3]
+          
+          # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna F]
+          float_valor = linha[5]
 
-            # Armazena o valor da chave 'data' com a data já no tipo 'date'
-            novo_registro['data'] = date_data.date()
+          # Armazena o valor da chave 'data' com a data já no tipo 'date'
+          novo_registro['data'] = date_data.date()
 
-            # Armazena o valor da chave 'item' com o item já no tipo 'string'
-            novo_registro['item'] = str_item
+          # Armazena o valor da chave 'item' com o item já no tipo 'string'
+          novo_registro['item'] = str_item
 
-            # Armazena o valor da chave 'valor' com o valor já no tipo 'float'
-            novo_registro['valor'] = float_valor
+          # Armazena o valor da chave 'valor' com o valor já no tipo 'float'
+          novo_registro['valor'] = float_valor
 
-            # Armazenar o novo registro na lista de registros
-            lista_de_registros.append(novo_registro)
+          # Armazenar o novo registro na lista de registros
+          lista_de_registros.append(novo_registro)
 
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
 
     # Salva dados no banco
     if(toggle_db == "true"):
-      db.salva_registros(lista_de_registros, "CI XP", os.path.basename(input_file))
+        print("\nIniciando 'load' do XP investimentos em db...")
+        timestamp = db.salva_registros(lista_de_registros, "CI XP", os.path.basename(input_file))
 
-    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in lista_de_registros]
+    # Salva as informações em um arquivo Excel temporário
+    if(toggle_temp_sheet == "true"):
 
-    # Adiciona o cabeçalho à lista de listas
-    lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CATEGORIA', 'TAG', 'SOURCE'])
-
-    # Salva as informações em um arquivo Excel	
-    files.incluir_linhas_em_excel(output_file, lista_de_listas)
+        nome_arquivo = output_file
+        print("\nIniciando 'load' do XP investimentos em xlsx...")		
+        files.salva_excel_temporario(nome_arquivo, "CI XP", timestamp)

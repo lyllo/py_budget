@@ -70,42 +70,42 @@ if toggle_extract_btg == "true":
 
 if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
 
-    print("\nIniciando 'transform' do cartão BTG...")
+    print("\nIniciando 'transform' do Cartão BTG...")
     btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
 # XP
 if toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
-    print("\nIniciando 'transform' do cartão XP...")
+    print("\nIniciando 'transform' do Cartão XP...")
     xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
 
 if toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
-    print("\nIniciando 'transform' do cartão GPA...")
+    print("\nIniciando 'transform' doc Cartão GPA...")
     gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
 
 if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
-    print("\nIniciando 'transform' do cartão Flash...")
+    print("\nIniciando 'transform' do Cartão Flash...")
     flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
 
 # Contas
 if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
-    print("\nIniciando 'transform' do ITAU_CC...")
+    print("\nIniciando 'transform' da Conta Itaú...")
     itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
 
 # Investimentos
 if toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do BTG_CI...")
+    print("\nIniciando 'transform' do BTG investimentos...")
     btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
 
 if toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do SOFISA_CI...")
+    print("\nIniciando 'transform' do Sofisa investimentos...")
     sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
 if toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do XP_CI...")
+    print("\nIniciando 'transform' do XP investimentos...")
     xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
 
 if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do RICO_CI...")
+    print("\nIniciando 'transform' do Rico investimentos...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
 # HISTORY LOAD

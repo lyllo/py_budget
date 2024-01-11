@@ -19,6 +19,7 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 toggle_db = config.get('Toggle', 'toggle_db')
+toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 
 """
   ______                /\/|                                _ _ _                     
@@ -89,13 +90,15 @@ def init(input_file, output_file):
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
 
-        # Cria um novo registro com valores nulos
+        # Criar um novo registro com valores padrões
         novo_registro = {'data': '', 
-                            'item': '', 
-                            'valor': '', 
-                            'categoria': '',
-                            'tag': '',
-                            'categoria_fonte': ''}
+                         'item': '',
+                         'detalhe': '',
+                         'ocorrencia_dia': '', 
+                         'valor': '',  
+                         'categoria': '',
+                         'tag': '',
+                         'categoria_fonte': ''}
 
         # Busca a posição do primeiro separador
         posicoes = encontrar_todas_ocorrencias(linha, '\t')
@@ -137,14 +140,12 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-        db.salva_registros(lista_de_registros, "CI BTG", os.path.basename(input_file))
+        print("\nIniciando 'load' do BTG investimentos em db...")
+        timestamp = db.salva_registros(lista_de_registros, "CI BTG", os.path.basename(input_file))
 
-    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in lista_de_registros]
+    # Salva as informações em um arquivo Excel temporário
+    if(toggle_temp_sheet == "true"):
 
-    # Adiciona o cabeçalho à lista de listas
-    lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CATEGORIA', 'TAG', 'SOURCE'])
-
-    # Salva as informações em um arquivo Excel
-    nome_arquivo = output_file		
-    files.incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
+        nome_arquivo = output_file
+        print("\nIniciando 'load' do BTG investimentos em xlsx...")		
+        files.salva_excel_temporario(nome_arquivo, "CI BTG", timestamp)
