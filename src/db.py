@@ -278,7 +278,8 @@ def salva_duplicado(registro, conn, meio, fonte):
             conn.commit()
 
         except mariadb.Error as e:
-            print(f"Error em salva_duplicado: {e}")
+            if verbose == "true":
+                print(f"Error em salva_duplicado: {e}")
 
 def fetch_transactions(timestamp):
 

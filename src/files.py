@@ -16,8 +16,8 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     except FileNotFoundError:
         # Se o arquivo não existe, cria um novo
         wb = Workbook()
-        # Adiciona uma planilha padrão (você pode remover ou modificar conforme necessário)
-        wb.create_sheet(title=nome_planilha)
+        sheet = wb.active
+        sheet.title = nome_planilha
     
     # Verificar se a planilha já existe ou criá-la se não existir
     if nome_planilha in wb.sheetnames:
@@ -95,18 +95,20 @@ def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
     transactions = db.fetch_transactions(timestamp)
 
-    # Função de chave para a ordenação
-    def chave_de_ordenacao(dic):
-        return dic['data']
+    if (len(transactions) > 0):
 
-    # Ordenar a lista de dicionários pela chave 'data'
-    lista_ordenada = sorted(transactions, key=chave_de_ordenacao)
+        # Função de chave para a ordenação
+        def chave_de_ordenacao(dic):
+            return dic['data']
 
-    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in lista_ordenada]
+        # Ordenar a lista de dicionários pela chave 'data'
+        lista_ordenada = sorted(transactions, key=chave_de_ordenacao)
 
-    # Adiciona o cabeçalho à lista de listas
-    lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG'])
+        # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
+        lista_de_listas = [list(item.values()) for item in lista_ordenada]
 
-    # Salva os dados em arquivo excel
-    incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
+        # Adiciona o cabeçalho à lista de listas
+        lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG'])
+
+        # Salva os dados em arquivo excel
+        incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
