@@ -93,7 +93,7 @@ def ler_arquivo_xls(nome_arquivo):
 
 def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
-    transactions = db.fetch_transactions(timestamp)
+    transactions = db.fetch_transactions(nome_planilha, timestamp)
 
     if (len(transactions) > 0):
 

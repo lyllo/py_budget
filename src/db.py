@@ -266,7 +266,7 @@ def salva_duplicado(registro, conn, meio, fonte):
             if verbose == "true":
                 print(f"Error em salva_duplicado: {e}")
 
-def fetch_transactions(timestamp):
+def fetch_transactions(nome_planilha, timestamp):
 
     transactions = []
 
@@ -278,8 +278,8 @@ def fetch_transactions(timestamp):
 
     # Query the database
     cursor.execute(
-        "SELECT * FROM transactions WHERE timestamp=?", 
-        (f"{timestamp}",))
+        "SELECT * FROM transactions WHERE meio=? AND timestamp=?", 
+        (f"{nome_planilha}",f"{timestamp}",))
 
     # Print Result-set
     for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) in cursor:

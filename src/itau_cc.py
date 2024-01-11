@@ -109,11 +109,11 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print("\nIniciando 'load' da conta Itaú em db...")
-        timestamp = db.salva_registros(lista_de_registros, "CC Itaú", os.path.basename(input_file))
+        timestamp = db.salva_registros(lista_de_registros, "CC Itau", os.path.basename(input_file))
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):
 
         nome_arquivo = output_file
         print("\nIniciando 'load' da conta Itaú em xlsx...")		
-        files.salva_excel_temporario(nome_arquivo, "CC Itaú", timestamp)
+        files.salva_excel_temporario(nome_arquivo, "CC Itau", timestamp)

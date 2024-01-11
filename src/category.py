@@ -16,6 +16,9 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
 PATH_TO_BIN_FILE = os.path.join(ROOT_DIR, 'data\\dados.bin')
 
+# limite de similaridade, valor de 75 encontrado por inspeção manual
+limite = 75
+
 # Le as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
@@ -137,8 +140,6 @@ def fill(lista_de_registros):
             else:
                 if(similar_match == "true"):
                     
-                    # limite de similaridade, valor de 75 encontrado por inspeção manual
-                    limite = 75
                     palavras_parecidas = busca_palavras_parecidas(registro['item'], lista_de_categorias.keys(), limite)
                     
                     # só estamos interessados quando a busca encontra apenas 1 elemento e não mais de 1
