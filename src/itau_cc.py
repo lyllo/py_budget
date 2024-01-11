@@ -19,6 +19,7 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 toggle_db = config.get('Toggle', 'toggle_db')
+toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 
 """
   ______                /\/|                                _ _ _                     
@@ -66,13 +67,17 @@ def init(input_file, output_file):
 
         if ((linha[3] != '') and (linha[3] != 'valor (R$)')):
 
-            # Cria um novo registro com valores nulos
+            # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
-                            'item': '', 
-                            'valor': '', 
-                            'categoria': '',
-                            'tag': '',
-                            'categoria_fonte': ''}
+                             'item': '',
+                             'detalhe': '',
+                             'ocorrencia_dia': '', 
+                             'valor': '',  
+                             'cartao': '',  
+                             'parcela': '',
+                             'categoria': '',
+                             'tag': '',
+                             'categoria_fonte': ''}
 
             # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna A]
             str_data = linha[0]
@@ -103,14 +108,12 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-      db.salva_registros(lista_de_registros, "CC Itau", os.path.basename(input_file))
+        print("\nIniciando 'load' da conta Itaú em db...")
+        timestamp = db.salva_registros(lista_de_registros, "CC Itaú", os.path.basename(input_file))
 
-    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in lista_de_registros]
+    # Salva as informações em um arquivo Excel temporário
+    if(toggle_temp_sheet == "true"):
 
-    # Adiciona o cabeçalho à lista de listas
-    lista_de_listas.insert(0, ['DATA', 'ITEM', 'VALOR', 'CATEGORIA', 'TAG', 'SOURCE'])
-
-    # Salva as informações em um arquivo Excel
-    nome_arquivo = output_file		
-    files.incluir_linhas_em_excel(nome_arquivo, lista_de_listas)
+        nome_arquivo = output_file
+        print("\nIniciando 'load' da conta Itaú em xlsx...")		
+        files.salva_excel_temporario(nome_arquivo, "CC Itaú", timestamp)

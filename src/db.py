@@ -203,34 +203,19 @@ def carrega_historico(input_file):
 
         # Itera nas linhas do arquivo de histórico
         for linha in files.ler_arquivo_xlsx(input_file, sheet):
-            
-            if sheet in ['Cartao BTG', 'Cartao XP', 'Cartao GPA']:
 
-                # Carrega um novo registro de CARTÃO, contendo as chaves 'CARTÃO' (Portador) e 'PARCELAS' (Que poderia estar no singular)
-                novo_registro = {'data': linha[0], 
-                                 'item': linha[1],
-                                 'detalhe': linha[2],
-                                 'ocorrencia_dia': linha[3],
-                                 'valor': linha[4],
-                                 'cartao': linha[5],
-                                 'parcela': linha [6], 
-                                 'categoria': linha[7],
-                                 'tag': linha[8],
-                                 'meio': sheet,
-                                 'categoria_fonte': ''}
-
-            else:
-
-                # Carrega um novo registro que não seja de CARTÃO
-                novo_registro = {'data': linha[0], 
-                                'item': linha[1],
-                                'detalhe': linha[2],
-                                'ocorrencia_dia': linha[3], 
-                                'valor': linha[4], 
-                                'categoria': linha[5],
-                                'tag': linha[6],
-                                'meio': sheet,
-                                'categoria_fonte': ''}
+            # Carrega um novo registro do arquivo Excel
+            novo_registro = {'data': linha[0], 
+                             'item': linha[1],
+                             'detalhe': linha[2],
+                             'ocorrencia_dia': linha[3],
+                             'valor': linha[4],
+                             'cartao': linha[5],
+                             'parcela': linha [6], 
+                             'categoria': linha[7],
+                             'tag': linha[8],
+                             'meio': sheet,
+                             'categoria_fonte': ''}
             
             # Verifica se chegou a um registro vazio antes de salvar
             if linha[0] is not None:
