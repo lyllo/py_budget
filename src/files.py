@@ -90,7 +90,6 @@ def ler_arquivo_xls(nome_arquivo):
         yield sheet.row_values(row)
 
 # Salvar dados recém carregados em excel temporário
-
 def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
     transactions = db.fetch_transactions(nome_planilha, timestamp)
@@ -107,8 +106,31 @@ def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
         # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
         lista_de_listas = [list(item.values()) for item in lista_ordenada]
 
+        # [ ] Oportunidade de matar os 2 métodos de salvar em excel temporário e final, fazendo condicional apenas desta linha, quando temp
         # Adiciona o cabeçalho à lista de listas
-        lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG'])
+        lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+
+        # Salva os dados em arquivo excel
+        incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
+
+# Salvar dados recém carregados em excel final
+def salva_excel_final(nome_arquivo, nome_planilha, timestamp):
+
+    transactions = db.fetch_transactions(nome_planilha, timestamp)
+
+    if (len(transactions) > 0):
+
+        # Função de chave para a ordenação
+        def chave_de_ordenacao(dic):
+            return dic['data']
+
+        # Ordenar a lista de dicionários pela chave 'data'
+        lista_ordenada = sorted(transactions, key=chave_de_ordenacao)
+
+        # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
+        lista_de_listas = [list(item.values()) for item in lista_ordenada]
+
+        nome_planilha = "Summary"
 
         # Salva os dados em arquivo excel
         incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)

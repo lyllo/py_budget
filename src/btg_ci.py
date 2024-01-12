@@ -13,6 +13,9 @@ ROOT_DIR = os.path.dirname(
 )
 
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
+
+MEIO = "BTG Investimentos"
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -20,6 +23,7 @@ config.read(PATH_TO_CONFIG_FILE)
 
 toggle_db = config.get('Toggle', 'toggle_db')
 toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
+toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 """
   ______                /\/|                                _ _ _                     
@@ -140,12 +144,19 @@ def init(input_file, output_file):
 
     # Salva dados no banco
     if(toggle_db == "true"):
-        print("\nIniciando 'load' do BTG investimentos em db...")
-        timestamp = db.salva_registros(lista_de_registros, "CI BTG", os.path.basename(input_file))
+        print(f"\nIniciando 'load' do {MEIO} em db...")
+        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file))
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):
 
         nome_arquivo = output_file
-        print("\nIniciando 'load' do BTG investimentos em xlsx...")		
-        files.salva_excel_temporario(nome_arquivo, "CI BTG", timestamp)
+        print(f"\nIniciando 'load' do {MEIO} em xlsx...")		
+        files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
+
+    # Salva as informações em um arquivo Excel final
+    if(toggle_final_sheet == "true"):
+
+        nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
+        print(f"\nIniciando 'load' do {MEIO} em xlsx final...")
+        files.salva_excel_final(nome_arquivo, MEIO, timestamp)

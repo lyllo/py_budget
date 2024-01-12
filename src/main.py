@@ -65,7 +65,7 @@ def file_exists(file_path):
 # BTG
 if toggle_extract_btg == "true":
 
-    print("\nIniciando 'extract' do cartão BTG...")       
+    print("\nIniciando 'extract' do Cartão BTG...")       
     btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
 
 if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
@@ -93,19 +93,19 @@ if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE
 
 # Investimentos
 if toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do BTG investimentos...")
+    print("\nIniciando 'transform' do BTG Investimentos...")
     btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
 
 if toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do Sofisa investimentos...")
+    print("\nIniciando 'transform' do Sofisa Investimentos...")
     sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
 if toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do XP investimentos...")
+    print("\nIniciando 'transform' do XP Investimentos...")
     xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
 
 if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do Rico investimentos...")
+    print("\nIniciando 'transform' do Rico Investimentos...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
 # HISTORY LOAD

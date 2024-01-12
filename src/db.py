@@ -291,7 +291,8 @@ def fetch_transactions(nome_planilha, timestamp):
                        'cartao': cartao,
                        'parcela': parcela,
                        'categoria': categoria,
-                       'tag': tag}
+                       'tag': tag,
+                       'meio': meio}
                     #    'categoria_fonte': categoria_fonte,
                     #    'meio': meio,
                     #    'arquivo_fonte': fonte,
