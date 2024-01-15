@@ -341,3 +341,39 @@ def fetch_transactions():
         transactions.append(transaction)
 
     return transactions
+
+def fetch_uncategorized_transactions():
+
+    transactions = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Query the database
+    cursor.execute(
+        "SELECT * FROM transactions WHERE categoria = ''")
+
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'categoria': categoria,
+                       'tag': tag,
+                       'meio': meio}
+                    #    'categoria_fonte': categoria_fonte,
+                    #    'meio': meio,
+                    #    'arquivo_fonte': fonte,
+                    #    'hash': hash,
+                    #    'timestamp': timestamp,
+                    #    'file_timestamp': file_timestamp}
+        transactions.append(transaction)
+
+    return transactions

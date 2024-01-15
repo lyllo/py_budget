@@ -1,16 +1,21 @@
-from datetime import datetime
-import category
-import load.files as files
-import load.db as db
 import os
+import sys
 import configparser
-import installments
+from datetime import datetime
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
 
 # Caminho da raiz do projeto
 ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+sys.path.append(ROOT_DIR)
+
+from imports import *
+import category
+import load.files as files
+import load.db as db
+import installments
 
 # Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')

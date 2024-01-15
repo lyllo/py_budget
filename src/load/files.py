@@ -1,9 +1,9 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-import xlrd
 from datetime import datetime
 from datetime import date
+import xlrd
 import load.db as db
 import os, platform
 
