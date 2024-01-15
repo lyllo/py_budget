@@ -9,13 +9,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
 # Lê as feature toggles do arquivo de configuração

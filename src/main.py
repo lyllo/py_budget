@@ -1,8 +1,18 @@
-import btg, xp, gpa, flash
-import itau_cc
-import btg_ci, sofisa_ci, xp_ci, rico_ci
-import btg_scrapper
-import db
+import extract.btg_scrapper as btg_scrapper
+
+import transform.btg as btg
+import transform.xp as xp
+import transform.gpa as gpa
+import transform.flash as flash
+import transform.itau_cc as itau_cc
+import transform.btg_ci as btg_ci
+import transform.sofisa_ci as sofisa_ci
+import transform.xp_ci as xp_ci
+import transform.rico_ci as rico_ci
+
+import load.db as db
+import load.files as files
+
 import os
 import configparser
 
@@ -55,6 +65,8 @@ toggle_transform_rico_ci = config.get('Toggle', 'toggle_transform_rico_ci')
 toggle_extract_btg = config.get('Toggle', 'toggle_extract_btg')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
+toggle_dump_history = config.get('Toggle', 'toggle_dump_history')
+toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 # Verifica a existência de um arquivo
 def file_exists(file_path):
@@ -113,3 +125,9 @@ if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
     print("\nIniciando 'load' do histórico em BD...")
     db.carrega_historico(PATH_TO_HISTORY_FILE)
+
+# DUMP HISTORY
+    
+if toggle_dump_history == "true":
+    print("\nIniciando 'dump' do histórico em XLSX...")
+    files.dump_history()

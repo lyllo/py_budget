@@ -1,21 +1,21 @@
 from datetime import datetime
 import category
-import files
-import db
+import load.files as files
+import load.db as db
 import os
 import configparser
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
-MEIO = "Cartão Flash"
+MEIO = "Conta Itaú"
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -35,24 +35,16 @@ toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
                     )_)                                                               
 
 """
-    
+
 # Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
-def limpar_data(linha):
-    dia = int(linha[0:2])
-    mes = int(linha[3:5])
-    ano = int(linha[6:10])
+def limpar_data(str_data):
+    dia = int(str_data[0:2])
+    mes = int(str_data[3:5])
+    ano = int(str_data[6:10])
 
     data_datetime = datetime(ano, mes, dia).date()
 
     return data_datetime
-
-# Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
-def limpar_valor(valor, item):
-    multiplicador = -1
-    if item == 'Depósito De Refeição E Alimentação':
-        multiplicador = 1
-    valor_float = "{:.2f}".format(multiplicador * float(valor[4:].replace(".","").replace(",",".")))
-    return float(valor_float)
 
 """
 
@@ -69,25 +61,15 @@ def limpar_valor(valor, item):
 
 def init(input_file, output_file):
 
-    # Carrega o arquivo de entrada com as transações de cartões do BTG
-    linhas_arquivo = files.ler_arquivo(input_file)
-
     # Declara contador de linha e lista de registros
-    num_linha = 0
     lista_de_registros = []
 
     # Lê as linhas do arquivo para tratamento dos dados
-    for linha in linhas_arquivo:
+    for linha in files.ler_arquivo_xls(input_file):
 
-        # [x] Tornar a busca por data mais abrangente
-        
-        data = ''
+        # Verifica se a linha se trata de uma transação (Coluna D não está sem valor ou com o título)
 
-        # Encontra uma linha de data
-        if linha.find(" às ") != -1:
-            
-            # Armazenar o valor da última data encontrada
-            data = linha[:10]
+        if ((linha[3] != '') and (linha[3] != 'valor (R$)')):
 
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
@@ -101,18 +83,29 @@ def init(input_file, output_file):
                              'tag': '',
                              'categoria_fonte': ''}
 
-            # Define o valor da chave 'data' com a última data encontrada
-            novo_registro['data'] = limpar_data(data)
+            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna A]
+            str_data = linha[0]
+            
+            # Armazena os caracteres que representam a descrição da transação (= item) [Coluna B]
+            str_item = linha[1]
+            
+            # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna D]
+            float_valor = linha[3]
 
-            # Define o valor da chave 'item' com o item encontrado (linha anterior)
-            novo_registro['item'] = linhas_arquivo[num_linha-2]
-                
-            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+2], novo_registro['item'])
+            # Transforma a data do tipo 'string' para o tipo 'date'
+            date_data = limpar_data(str_data)
+
+            # Armazena o valor da chave 'data' com a data já no tipo 'date'
+            novo_registro['data'] = date_data
+
+            # Armazena o valor da chave 'item' com o item já no tipo 'string'
+            novo_registro['item'] = str_item
+
+            # Armazena o valor da chave 'valor' com o valor já no tipo 'float'
+            novo_registro['valor'] = float_valor
 
             # Armazenar o novo registro na lista de registros
             lista_de_registros.append(novo_registro)
-
-        num_linha += 1
 
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
@@ -120,7 +113,8 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print(f"\nIniciando 'load' do {MEIO} em db...")
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file))
+        file_timestamp = files.get_modification_time(input_file)
+        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):

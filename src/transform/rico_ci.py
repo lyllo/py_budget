@@ -1,21 +1,20 @@
-from datetime import datetime
 import category
-import files
-import db
+import load.files as files
+import load.db as db
 import os
 import configparser
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
-MEIO = "Conta Itaú"
+MEIO = "Rico Investimentos"
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -24,27 +23,6 @@ config.read(PATH_TO_CONFIG_FILE)
 toggle_db = config.get('Toggle', 'toggle_db')
 toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
-
-"""
-  ______                /\/|                                _ _ _                     
- |  ____|              |/\/                 /\             (_) (_)                    
- | |__ _   _ _ __   ___ ___   ___  ___     /  \  _   ___  ___| |_  __ _ _ __ ___  ___ 
- |  __| | | | '_ \ / __/ _ \ / _ \/ __|   / /\ \| | | \ \/ / | | |/ _` | '__/ _ \/ __|
- | |  | |_| | | | | (_| (_) |  __/\__ \  / ____ \ |_| |>  <| | | | (_| | | |  __/\__ \
- |_|   \__,_|_| |_|\___\___/ \___||___/ /_/    \_\__,_/_/\_\_|_|_|\__,_|_|  \___||___/
-                    )_)                                                               
-
-"""
-
-# Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
-def limpar_data(str_data):
-    dia = int(str_data[0:2])
-    mes = int(str_data[3:5])
-    ano = int(str_data[6:10])
-
-    data_datetime = datetime(ano, mes, dia).date()
-
-    return data_datetime
 
 """
 
@@ -64,12 +42,13 @@ def init(input_file, output_file):
     # Declara contador de linha e lista de registros
     lista_de_registros = []
 
+    # [ ] Tirar o nome da Worksheet hardcoded dessa parte do código
     # Lê as linhas do arquivo para tratamento dos dados
-    for linha in files.ler_arquivo_xls(input_file):
+    for linha in files.ler_arquivo_xlsx(input_file, "Planilha1"):
 
-        # Verifica se a linha se trata de uma transação (Coluna D não está sem valor ou com o título)
+        # Verifica se a linha se trata de uma transação (Coluna F não está sem valor ou com o título)
 
-        if ((linha[3] != '') and (linha[3] != 'valor (R$)')):
+        if ((linha[5] != None) and (linha[5] != '')  and (linha[5] != 'Extrato da conta') and (linha[5] != 'Valor (R$)')):
 
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
@@ -83,20 +62,17 @@ def init(input_file, output_file):
                              'tag': '',
                              'categoria_fonte': ''}
 
-            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna A]
-            str_data = linha[0]
+            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna B]
+            date_data = linha[1]
             
-            # Armazena os caracteres que representam a descrição da transação (= item) [Coluna B]
-            str_item = linha[1]
+            # Armazena os caracteres que representam a descrição da transação (= item) [Coluna D]
+            str_item = linha[3]
             
-            # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna D]
-            float_valor = linha[3]
-
-            # Transforma a data do tipo 'string' para o tipo 'date'
-            date_data = limpar_data(str_data)
+            # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna F]
+            float_valor = linha[5]
 
             # Armazena o valor da chave 'data' com a data já no tipo 'date'
-            novo_registro['data'] = date_data
+            novo_registro['data'] = date_data.date()
 
             # Armazena o valor da chave 'item' com o item já no tipo 'string'
             novo_registro['item'] = str_item
@@ -113,7 +89,8 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print(f"\nIniciando 'load' do {MEIO} em db...")
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file))
+        file_timestamp = files.get_modification_time(input_file)
+        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):

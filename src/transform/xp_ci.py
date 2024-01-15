@@ -1,16 +1,16 @@
 import category
-import files
-import db
+import load.files as files
+import load.db as db
 import os
 import configparser
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
@@ -87,7 +87,8 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print(f"\nIniciando 'load' do {MEIO} em db...")
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file))
+        file_timestamp = files.get_modification_time(input_file)
+        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):

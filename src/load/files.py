@@ -4,7 +4,15 @@ from openpyxl import load_workbook
 import xlrd
 from datetime import datetime
 from datetime import date
-import db
+import load.db as db
+import os, platform
+
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
+
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
@@ -18,6 +26,9 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         wb = Workbook()
         sheet = wb.active
         sheet.title = nome_planilha
+        
+        # Insere o cabeçalho
+        linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
     
     # Verificar se a planilha já existe ou criá-la se não existir
     if nome_planilha in wb.sheetnames:
@@ -92,7 +103,7 @@ def ler_arquivo_xls(nome_arquivo):
 # Salvar dados recém carregados em excel temporário
 def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
-    transactions = db.fetch_transactions(nome_planilha, timestamp)
+    transactions = db.fetch_transactions_where(nome_planilha, timestamp)
 
     if (len(transactions) > 0):
 
@@ -116,7 +127,7 @@ def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 # Salvar dados recém carregados em excel final
 def salva_excel_final(nome_arquivo, nome_planilha, timestamp):
 
-    transactions = db.fetch_transactions(nome_planilha, timestamp)
+    transactions = db.fetch_transactions_where(nome_planilha, timestamp)
 
     if (len(transactions) > 0):
 
@@ -134,3 +145,31 @@ def salva_excel_final(nome_arquivo, nome_planilha, timestamp):
 
         # Salva os dados em arquivo excel
         incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
+
+def get_modification_time(file_path):
+    if platform.system() == 'Windows':
+        modification_time = os.path.getmtime(file_path)
+        return modification_time
+    else:
+        print("Este exemplo funciona apenas no Windows, a obtenção da data de criação pode variar em outros sistemas operacionais.")
+
+def dump_history():
+
+    transactions = db.fetch_transactions()
+
+    if (len(transactions) > 0):
+
+        # Função de chave para a ordenação
+        def chave_de_ordenacao(dic):
+            return dic['data']
+
+        # Ordenar a lista de dicionários pela chave 'data'
+        lista_ordenada = sorted(transactions, key=chave_de_ordenacao)
+
+        # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
+        lista_de_listas = [list(item.values()) for item in lista_ordenada]
+
+        nome_planilha = "Summary"
+
+        # Salva os dados em arquivo excel
+        incluir_linhas_em_excel(PATH_TO_FINAL_OUTPUT_FILE, nome_planilha, lista_de_listas)

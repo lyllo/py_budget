@@ -1,18 +1,18 @@
 import mariadb
 import sys
 import hashlib
-import files
+import load.files as files
 import os
 import configparser
 from datetime import datetime
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 
 TIMESTAMP = int(datetime.timestamp(datetime.now()))
@@ -22,8 +22,6 @@ config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
 verbose = config.get('Toggle', 'verbose')
-toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
-toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 def conecta_bd():
     # Connect to MariaDB Platform
@@ -106,7 +104,7 @@ def busca_simples(registro, buffer):
     else:
         return 0
 
-def salva_registro(registro, conn, meio, fonte):
+def salva_registro(registro, conn, meio, fonte, file_timestamp):
 
     # Pega o cursor
     cursor = conn.cursor()
@@ -127,8 +125,8 @@ def salva_registro(registro, conn, meio, fonte):
 
         try:
             cursor.execute(
-                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash, TIMESTAMP))
+                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash, TIMESTAMP, file_timestamp))
             conn.commit()
 
             return 1
@@ -138,7 +136,7 @@ def salva_registro(registro, conn, meio, fonte):
             # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
             if (e.errno == 1062):
                 # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
-                salva_duplicado(registro, conn, meio, fonte)
+                salva_duplicado(registro, conn, meio, fonte, file_timestamp)
 
             else:
                 if verbose == "true":
@@ -149,7 +147,7 @@ def salva_registro(registro, conn, meio, fonte):
     return 0
 
 # Insere registros no banco de dados
-def salva_registros(lista_de_registros, meio, fonte):
+def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
 
     # Conecta ao banco
     conn = conecta_bd()
@@ -176,7 +174,7 @@ def salva_registros(lista_de_registros, meio, fonte):
             
             buffer.append(registro)
     
-        salva_registro(registro, conn, meio, fonte)
+        salva_registro(registro, conn, meio, fonte, file_timestamp)
     
     # Close Connection
     conn.close()
@@ -190,56 +188,61 @@ def carrega_historico(input_file):
     conn = conecta_bd()
 
     # Lista de sheets do workbook, que são organizadas por meio de pagamento (IMPORTANTE: Existem outros meios que foram usados no passado e que estão ocultos)
-    sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
+    # sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
+
+    sheet = 'Summary'
+
+    # Obtém o timestamp de criação do arquivo
+    file_timestamp = files.get_modification_time(input_file)
 
     # Itera pelas sheets do workbook (Lembrando que apenas as 3 primeiras têm 'CARTÃO' e 'PARCELA')
-    for sheet in sheets:
+    # for sheet in sheets:
 
-        num_registros_lidos = 0
-        num_registros_salvos = 0
+    num_registros_lidos = 0
+    num_registros_salvos = 0
 
-        if verbose == "true":
-            print(f"Iniciando 'load' do {sheet} em BD...")
+    if verbose == "true":
+        print(f"Iniciando 'load' do {sheet} em BD...")
 
-        # Itera nas linhas do arquivo de histórico
-        for linha in files.ler_arquivo_xlsx(input_file, sheet):
+    # Itera nas linhas do arquivo de histórico
+    for linha in files.ler_arquivo_xlsx(input_file, sheet):
 
-            # Carrega um novo registro do arquivo Excel
-            novo_registro = {'data': linha[0], 
-                             'item': linha[1],
-                             'detalhe': linha[2],
-                             'ocorrencia_dia': linha[3],
-                             'valor': linha[4],
-                             'cartao': linha[5],
-                             'parcela': linha [6], 
-                             'categoria': linha[7],
-                             'tag': linha[8],
-                             'meio': sheet,
-                             'categoria_fonte': ''}
-            
-            # Verifica se chegou a um registro vazio antes de salvar
-            if linha[0] is not None:
-                num_registros_salvos += salva_registro(novo_registro, conn, sheet, os.path.basename(input_file))
+        # Carrega um novo registro do arquivo Excel
+        novo_registro = {'data': linha[0], 
+                         'item': linha[1],
+                         'detalhe': linha[2],
+                         'ocorrencia_dia': linha[3],
+                         'valor': linha[4],
+                         'cartao': linha[5],
+                         'parcela': linha [6], 
+                         'categoria': linha[7],
+                         'tag': linha[8],
+                         'meio': linha[9],
+                         'categoria_fonte': ''}
+        
+        # Verifica se chegou a um registro vazio antes de salvar
+        if linha[0] is not None:
+            num_registros_salvos += salva_registro(novo_registro, conn, novo_registro['meio'], os.path.basename(input_file), file_timestamp)
 
-            num_registros_lidos += 1
+        num_registros_lidos += 1
 
-        if verbose == "true":
+    if verbose == "true":
 
-            # O -1 é para remover a linha do cabeçalho
-            registros_lidos = num_registros_lidos - 1
-            registros_salvos = num_registros_salvos
+        # O -1 é para remover a linha do cabeçalho
+        registros_lidos = num_registros_lidos - 1
+        registros_salvos = num_registros_salvos
 
-            # Considera que a diferença entre registros lidos e registros salvos se dá pelo número de duplicados (deverá ser ZERO com a implentação da lógica que considera PORTADOR e OCORRÊNCIA)
-            registros_duplicados = registros_lidos - registros_salvos
-            
-            print(f"""
-                Registros lidos ({sheet}): {registros_lidos}
-                Registros salvos ({sheet}): {registros_salvos}
-                Registros duplicados ({sheet}): {registros_duplicados}
-                """)
+        # Considera que a diferença entre registros lidos e registros salvos se dá pelo número de duplicados (deverá ser ZERO com a implentação da lógica que considera PORTADOR e OCORRÊNCIA)
+        registros_duplicados = registros_lidos - registros_salvos
+        
+        print(f"""
+            Registros lidos ({sheet}): {registros_lidos}
+            Registros salvos ({sheet}): {registros_salvos}
+            Registros duplicados ({sheet}): {registros_duplicados}
+            """)
             
 # [ ] Verificar se o registro duplicado já não existe na tabela de duplicado, se não em uma repetida rodada do script, todos os registros que são verdadeiros positivos, cairão na tabela de duplicados repetidas vezes
-def salva_duplicado(registro, conn, meio, fonte):
+def salva_duplicado(registro, conn, meio, fonte, file_timestamp):
 
     # Pega o cursor
     cursor = conn.cursor()
@@ -258,15 +261,15 @@ def salva_duplicado(registro, conn, meio, fonte):
 
         try:
             cursor.execute(
-                "INSERT INTO duplicates (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'], registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, gera_hash_md5(registro), TIMESTAMP))
+                "INSERT INTO duplicates (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (registro['data'], registro['item'], registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, gera_hash_md5(registro), TIMESTAMP, file_timestamp))
             conn.commit()
 
         except mariadb.Error as e:
             if verbose == "true":
                 print(f"Error em salva_duplicado: {e}")
 
-def fetch_transactions(nome_planilha, timestamp):
+def fetch_transactions_where(nome_planilha, timestamp):
 
     transactions = []
 
@@ -282,7 +285,7 @@ def fetch_transactions(nome_planilha, timestamp):
         (f"{nome_planilha}",f"{timestamp}",))
 
     # Print Result-set
-    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp) in cursor:
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
         transaction = {'data': data, 
                        'item': item,
                        'detalhe': detalhe,
@@ -297,9 +300,44 @@ def fetch_transactions(nome_planilha, timestamp):
                     #    'meio': meio,
                     #    'arquivo_fonte': fonte,
                     #    'hash': hash,
-                    #    'timestamp': timestamp}
+                    #    'timestamp': timestamp,
+                    #    'file_timestamp': file_timestamp}
         transactions.append(transaction)
 
     return transactions
 
-# def fetch_duplicates(timestamp):
+def fetch_transactions():
+
+    transactions = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Query the database
+    cursor.execute(
+        "SELECT * FROM transactions")
+
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'categoria': categoria,
+                       'tag': tag,
+                       'meio': meio}
+                    #    'categoria_fonte': categoria_fonte,
+                    #    'meio': meio,
+                    #    'arquivo_fonte': fonte,
+                    #    'hash': hash,
+                    #    'timestamp': timestamp,
+                    #    'file_timestamp': file_timestamp}
+        transactions.append(transaction)
+
+    return transactions

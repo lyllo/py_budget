@@ -1,21 +1,21 @@
 from datetime import datetime
 import category
-import files
-import db
+import load.files as files
+import load.db as db
 import os
 import configparser
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+# Caminho do arquivo atual
+current_file_path = os.path.abspath(__file__)
 
+# Caminho da raiz do projeto
+ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
-MEIO = "Cartão XP"
+MEIO = "Cartão GPA"
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -46,29 +46,6 @@ def limpar_data(str_data):
 
     return data_datetime
 
-# Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
-def limpar_valor(str_valor):
-    valor_float = "{:.2f}".format(-1 * float(str_valor[3:].replace(".","").replace(",",".")))
-    return float(valor_float)
-
-def limpar_parcelas(str_parcelas):
-        if (str_parcelas == '-'):
-            str_parcelas_limpa = '1/1'
-        else:
-            str_parcelas_limpa = str_parcelas.replace(' de ', '/')
-        return str_parcelas_limpa
-
-# Encontrar posições de uma string dentro de outra string, armazenando os resultados em uma lista
-def encontrar_todas_ocorrencias(s, sub):
-    start = 0
-    positions = []  # Lista para armazenar as posições
-    while True:
-        start = s.find(sub, start)
-        if start == -1: 
-            return positions  # Retorna a lista de posições
-        positions.append(start)
-        start += len(sub)  # use start += 1 to find overlapping matches
-
 """
 
   _____       __     _             _          _____           _       _   
@@ -84,18 +61,14 @@ def encontrar_todas_ocorrencias(s, sub):
 
 def init(input_file, output_file):
 
-    # Carrega o arquivo de entrada com as transações de cartões do BTG
-    linhas_arquivo = files.ler_arquivo(input_file)
-
     # Declara contador de linha e lista de registros
-    num_linha = 0
     lista_de_registros = []
+    offset = False
 
     # Lê as linhas do arquivo para tratamento dos dados
-    for linha in linhas_arquivo:
+    for linha in files.ler_arquivo_xls(input_file):
 
-        # Verifica se é a primeira linha, de cabeçalho
-        if (num_linha != 0):
+        if (offset == True) and (linha[3] != ''):
 
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
@@ -109,25 +82,14 @@ def init(input_file, output_file):
                              'tag': '',
                              'categoria_fonte': ''}
 
-            # Busca a posição dos separadores
-            posicoes = encontrar_todas_ocorrencias(linha, ';')
-
-            # Máscara: Data;Estabelecimento;Portador;Valor;Parcela
-
-            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa
-            str_data = linha[:posicoes[0]]
+            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa [Coluna A]
+            str_data = linha[0]
             
-            # Armazena os caracteres que representam a descrição da transação (= item)
-            str_item = linha[posicoes[0]+1:posicoes[1]]
+            # Armazena os caracteres que representam a descrição da transação (= item) [Coluna B]
+            str_item = linha[1]
             
-            # Armazena os caracteres que representam o portador do cartão (= cartao)
-            str_cartao = linha[posicoes[1]+1:posicoes[2]]
-
-            # Armazena os caracteres que representam o valor da transação no formato R$ xxx.xxx,xx
-            str_valor = linha[posicoes[2]+1:posicoes[3]]
-
-            # Armazena os caracteres que representam o número da parcela da transação
-            str_parcelas = linha[posicoes[3]+1:]
+            # Armazena os caracteres que representam o valor da transação no formato xxx.xxx,xx [Coluna D]
+            float_valor = linha[3]
 
             # Transforma a data do tipo 'string' para o tipo 'date'
             date_data = limpar_data(str_data)
@@ -138,22 +100,19 @@ def init(input_file, output_file):
             # Armazena o valor da chave 'item' com o item já no tipo 'string'
             novo_registro['item'] = str_item
 
-            # Transforma o valor do tipo 'string' para o tipo 'float'
-            float_valor = limpar_valor(str_valor)  
-
             # Armazena o valor da chave 'valor' com o valor já no tipo 'float'
-            novo_registro['valor'] = float_valor
-
-            # Armazena o valor, já limpo, da chave 'cartao'
-            novo_registro['cartao'] = str_cartao
-
-            # Armazena o valor, já limpo, da chave 'parcelas'
-            novo_registro['parcelas'] = limpar_parcelas(str_parcelas)
+            novo_registro['valor'] = float_valor * -1
 
             # Armazenar o novo registro na lista de registros
             lista_de_registros.append(novo_registro)
 
-        num_linha += 1
+        # Encontra a linha que antecede as transações (Coluna D = 'valor')
+        if (linha[3] == 'valor'):
+            offset = True
+
+        # Encontra a linha que procede as transações (Coluna D = '')
+        if (offset == True) and (linha[3] == ''):
+            offset = False
 
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
@@ -161,7 +120,8 @@ def init(input_file, output_file):
     # Salva dados no banco
     if(toggle_db == "true"):
         print(f"\nIniciando 'load' do {MEIO} em db...")
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file))
+        file_timestamp = files.get_modification_time(input_file)
+        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):
