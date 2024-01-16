@@ -2,6 +2,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
+from openpyxl.styles import PatternFill
 from datetime import datetime
 from datetime import date
 import xlrd
@@ -106,10 +107,8 @@ def formata_planilha(sheet):
         for cell in sheet[coluna]:
             cell.alignment = cell.alignment.copy(horizontal='center')
 
-    # Centreliza as células da primeira linha
+    # Centraliza as células da primeira linha
     numero_da_linha = 1
-
-    # Defina o alinhamento centralizado
     alinhamento = Alignment(horizontal='center', vertical='center')
 
     # Defina o estilo de fonte como negrito
@@ -119,6 +118,16 @@ def formata_planilha(sheet):
     for coluna in range(1, sheet.max_column + 1):
         sheet.cell(row=numero_da_linha, column=coluna).alignment = alinhamento
         sheet.cell(row=numero_da_linha, column=coluna).font = fonte_negrito
+
+    # Definir o padrão de preenchimento com fundo branco
+    padrao_preenchimento = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+
+    # [ ] Pintar o fundo das células da primeira linha entre as colunas A e J de cinza
+
+    # Iterar sobre todas as células da planilha e aplicar o preenchimento
+    for linha in sheet.iter_rows():
+        for celula in linha:
+            celula.fill = padrao_preenchimento
 
     # Ative o filtro na primeira linha
     sheet.auto_filter.ref = sheet.dimensions
