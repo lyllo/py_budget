@@ -1,5 +1,5 @@
-import extract.btg_scrapper as btg_scrapper
-import extract.itau_scrapper as itau_scrapper
+import extract.btg_scraper as btg_scraper
+import extract.itau_scraper as itau_scraper
 
 import transform.btg as btg
 import transform.xp as xp
@@ -81,7 +81,7 @@ def file_exists(file_path):
 # BTG
 if toggle_extract_btg == "true":
     print("\nIniciando 'extract' do Cartão BTG...")       
-    btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
+    btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
 
 if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
     print("\nIniciando 'transform' do Cartão BTG...")
@@ -103,7 +103,7 @@ if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
 # Contas
 if toggle_extract_itau_cc == "true":
     print("\nIniciando 'extract' da Conta Itaú...")       
-    itau_scrapper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
+    itau_scraper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
 
 if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
     print("\nIniciando 'transform' da Conta Itaú...")
