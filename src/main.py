@@ -1,4 +1,5 @@
 import extract.btg_scrapper as btg_scrapper
+import extract.itau_scrapper as itau_scrapper
 
 import transform.btg as btg
 import transform.xp as xp
@@ -33,8 +34,10 @@ PATH_TO_GPA_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\gpa.xls')
 PATH_TO_GPA_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\gpa.xlsx')
 PATH_TO_XP_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp.csv')
 PATH_TO_XP_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp.xlsx')
+
 PATH_TO_ITAU_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\itau_cc.xls')
 PATH_TO_ITAU_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\itau_cc.xlsx')
+
 PATH_TO_BTG_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_ci.txt')
 PATH_TO_BTG_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_ci.xlsx')
 PATH_TO_SOFISA_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\sofisa_ci.txt')
@@ -63,6 +66,7 @@ toggle_transform_xp_ci = config.get('Toggle', 'toggle_transform_xp_ci')
 toggle_transform_rico_ci = config.get('Toggle', 'toggle_transform_rico_ci')
 
 toggle_extract_btg = config.get('Toggle', 'toggle_extract_btg')
+toggle_extract_itau_cc = config.get('Toggle', 'toggle_extract_itau_cc')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
 toggle_dump_history = config.get('Toggle', 'toggle_dump_history')
@@ -76,12 +80,10 @@ def file_exists(file_path):
 
 # BTG
 if toggle_extract_btg == "true":
-
     print("\nIniciando 'extract' do Cartão BTG...")       
     btg_scrapper.init(PATH_TO_BTG_INPUT_FILE)
 
 if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
-
     print("\nIniciando 'transform' do Cartão BTG...")
     btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
@@ -99,6 +101,10 @@ if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
     flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
 
 # Contas
+if toggle_extract_itau_cc == "true":
+    print("\nIniciando 'extract' da Conta Itaú...")       
+    itau_scrapper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
+
 if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
     print("\nIniciando 'transform' da Conta Itaú...")
     itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
