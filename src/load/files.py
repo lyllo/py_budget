@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl import load_workbook
+from openpyxl.styles import Alignment
 from datetime import datetime
 from datetime import date
 import xlrd
@@ -26,18 +27,19 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         wb = Workbook()
         sheet = wb.active
         sheet.title = nome_planilha
-        
-        # Insere o cabeçalho
-        linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
     
     # Verificar se a planilha já existe ou criá-la se não existir
     if nome_planilha in wb.sheetnames:
-        sheet = wb[nome_planilha]
-    else:
-        sheet = wb.create_sheet(title=nome_planilha)
+        sheet_to_remove = wb[nome_planilha]
+        wb.remove_sheet(sheet_to_remove)
+
+    sheet = wb.create_sheet(title=nome_planilha)
 
     # Inicializa o contador de linhas da planilha
     num_linha_excel = 1
+
+    # Insere o cabeçalho
+    linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
     # Inclui as linhas no arquivo do Excel
     for linha in linhas:
@@ -66,8 +68,63 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
 
         num_linha_excel += 1
 
+    formata_planilha(sheet)
+
     # Salva o arquivo do Excel
     wb.save(nome_arquivo)
+
+# Formata a planilha
+def formata_planilha(sheet):
+    
+    # Configura o tamanho das colunas
+    colunas_menores = ['A', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+    largura_menor = 20
+
+    for coluna in colunas_menores:
+        sheet.column_dimensions[coluna].width = largura_menor
+
+    colunas_maiores = ['B', 'C']
+    largura_maior = 40
+
+    for coluna in colunas_maiores:
+        sheet.column_dimensions[coluna].width = largura_maior
+
+    # Habilita a quebra de texto nas colunas maiores
+    for coluna in colunas_maiores:
+        for cell in sheet[coluna]:
+            cell.alignment = Alignment(wrap_text=True)
+
+    # Defina a altura desejada para todas as linhas
+    altura_desejada = 15
+
+    for linha in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
+        for cell in linha:
+            sheet.row_dimensions[cell.row].height = altura_desejada
+    
+    # Centraliza as células das colunas menores
+    for coluna in colunas_menores:
+        for cell in sheet[coluna]:
+            cell.alignment = cell.alignment.copy(horizontal='center')
+
+    # Centreliza as células da primeira linha
+    numero_da_linha = 1
+
+    # Defina o alinhamento centralizado
+    alinhamento = Alignment(horizontal='center', vertical='center')
+
+    # Defina o estilo de fonte como negrito
+    fonte_negrito = Font(bold=True)
+
+    # Percorra todas as células na linha e defina o alinhamento centralizado
+    for coluna in range(1, sheet.max_column + 1):
+        sheet.cell(row=numero_da_linha, column=coluna).alignment = alinhamento
+        sheet.cell(row=numero_da_linha, column=coluna).font = fonte_negrito
+
+    # Ative o filtro na primeira linha
+    sheet.auto_filter.ref = sheet.dimensions
+
+    # Congela a primeira linha
+    sheet.freeze_panes = sheet['A2']
 
 # Carregar arquivo de texto
 def ler_arquivo(nome_arquivo):
