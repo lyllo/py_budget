@@ -172,6 +172,3 @@ def init(PATH_TO_FLASH_INPUT_FILE):
         
     # Finalmente, feche o navegador quando terminar todas as operações
     driver.quit()
-
-PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
-init(PATH_TO_FLASH_INPUT_FILE)

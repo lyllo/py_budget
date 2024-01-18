@@ -51,8 +51,9 @@ def init(PATH_TO_BTG_INPUT_FILE):
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument(f"user-agent={user_agent}")
     chrome_options.add_argument('--disable-javascript')
+    chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless') # Não carrega a GUI
+    # chrome_options.add_argument('--headless') # Não carrega a GUI
 
     # Constrói o driver do Chrome
     driver = webdriver.Chrome(options=chrome_options)
@@ -137,6 +138,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
             print("Rolando as transações até encontrar o mês anterior...")
 
         # Loop para rolar a página e verificar se a string está presente
+        # [ ] Tratar o caso em que a timeline tem só a carcaça carregada, mas sem as transações
         encontrou_string = False
         while not encontrou_string:
             # Rola a página para baixo

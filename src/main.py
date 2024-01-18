@@ -68,6 +68,8 @@ toggle_transform_xp_ci = config.get('Toggle', 'toggle_transform_xp_ci')
 toggle_transform_rico_ci = config.get('Toggle', 'toggle_transform_rico_ci')
 
 toggle_extract_btg = config.get('Toggle', 'toggle_extract_btg')
+toggle_extract_flash = config.get('Toggle', 'toggle_extract_flash')
+toggle_extract_gpa = config.get('Toggle', 'toggle_extract_gpa')
 toggle_extract_itau_cc = config.get('Toggle', 'toggle_extract_itau_cc')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
@@ -106,7 +108,7 @@ if toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
 
 # Flash
 
-if toggle_extract_btg == "true":
+if toggle_extract_flash == "true":
     print("\nIniciando 'extract' do Cartão Flash...")       
     flash_scraper.init(PATH_TO_FLASH_INPUT_FILE)
 

@@ -31,10 +31,10 @@ url_login = 'https://www.itau.com.br/'
 agencia = '9155'
 conta = '145692'
 
-def init(PATH_TO_ITAU_CC_INPUT_FILE):
+def init(PATH_TO_GPA_CC_INPUT_FILE):
 
     # Nome do arquivo de entrada
-    nome_arquivo_entrada = os.path.basename(PATH_TO_ITAU_CC_INPUT_FILE)
+    nome_arquivo_entrada = os.path.basename(PATH_TO_GPA_CC_INPUT_FILE)
 
     # Cria uma instância da classe UserAgent
     ua = UserAgent()
@@ -181,9 +181,9 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     driver.quit()
 
     # Remove o arquivo de entrada, caso exista
-    if os.path.exists(nome_arquivo_entrada):
+    if os.path.exists(PATH_TO_GPA_CC_INPUT_FILE):
         # Remover o arquivo
-        os.remove(nome_arquivo_entrada)
+        os.remove(PATH_TO_GPA_CC_INPUT_FILE)
 
     # Renomeia o arquivo baixado para o padrão
     rename_file(PATH_TO_INPUT_FILES, nome_arquivo_entrada)
