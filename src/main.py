@@ -1,5 +1,6 @@
 import extract.btg_scraper as btg_scraper
 import extract.itau_scraper as itau_scraper
+import extract.flash_scraper as flash_scraper
 
 import transform.btg as btg
 import transform.xp as xp
@@ -92,9 +93,17 @@ if toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
     print("\nIniciando 'transform' do Cartão XP...")
     xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
 
+# GPA
+
 if toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
     print("\nIniciando 'transform' doc Cartão GPA...")
     gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
+
+# Flash
+
+if toggle_extract_btg == "true":
+    print("\nIniciando 'extract' do Cartão Flash...")       
+    flash_scraper.init(PATH_TO_FLASH_INPUT_FILE)
 
 if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
     print("\nIniciando 'transform' do Cartão Flash...")

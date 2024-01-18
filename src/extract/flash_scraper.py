@@ -53,7 +53,7 @@ def init(PATH_TO_FLASH_INPUT_FILE):
     chrome_options.add_argument(f"user-agent={user_agent}")
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument('--incognito')
-    # chrome_options.add_argument('--headless') # Não carrega a GUI
+    chrome_options.add_argument('--headless') # Não carrega a GUI
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-gpu")
@@ -119,6 +119,8 @@ def init(PATH_TO_FLASH_INPUT_FILE):
 
     campo_otp.send_keys(otp)
 
+    # [ ] Dá pra capturar a string de Código Inválido para tratar o cenário 'não feliz'
+
     # Aguarda carregamento da home logada
     wait_time = random.uniform(5000,10000) / 1000
     time.sleep(wait_time)
@@ -137,11 +139,36 @@ def init(PATH_TO_FLASH_INPUT_FILE):
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s pelo carregamento do extrato...")
 
-    # Faz scroll até aparecer transações do mês anterior
-    
-    # Seleciona o texto
-        
-    # Salva o texto no input
+        # [ ] Ajustar para gerar dinamicamente a string do mês anterior
+        # String desejada a ser encontrada na página
+        string_desejada = '/12/2023'
+        encontrou_string = False
+
+        if verbose == "true":
+            print("Rolando as transações até encontrar o mês anterior...")
+
+        # Loop para rolar a página e verificar se a string está presente
+        while not encontrou_string:
+            # Rola a página para baixo
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            
+            # Verifica se a string está presente na página
+            encontrou_string = string_desejada in driver.page_source
+
+        # Localiza o elemento de texto na página usando XPath (substitua pelo seu seletor)
+        elemento_texto = driver.find_element(By.CLASS_NAME, 'sc-bWOGAC')
+
+        # Obtém o texto do elemento
+        texto_para_copiar = elemento_texto.text
+
+        # [x] Acertar o encoding do arquivo para crédito aparecer com é e não 'Compra no cr�dito autorizada'
+
+        if verbose == "true":
+            print("Salvando as transações em arquivo texto...")
+
+        # Abre o arquivo para escrita e cola o texto
+        with open(PATH_TO_FLASH_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
+            arquivo.write(texto_para_copiar)
         
     # Finalmente, feche o navegador quando terminar todas as operações
     driver.quit()
