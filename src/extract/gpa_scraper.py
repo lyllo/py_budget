@@ -108,7 +108,7 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
 
     # Verificar se deu erro
 
-    wait_time = random.uniform(7500,10000) / 1000
+    wait_time = random.uniform(10000,12000) / 1000
 
     time.sleep(wait_time)
 
@@ -137,62 +137,39 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     botao_acessar.click()
 
     # Aguarda carregamento da home logada
-    wait_time = random.uniform(10000,15000) / 1000
+    wait_time = random.uniform(10000,12000) / 1000
     time.sleep(wait_time)
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s pelo carregamento da home logada...")
 
     # Localiza o elemento pelo texto do link (neste caso, 'menu')
-    card_saldo_e_extrato = driver.find_element(By.ID, 'pf-saldo-card')
+    card_saldo_e_extrato = driver.find_element(By.ID, 'pf-cartao-card')
     card_saldo_e_extrato.click()
 
-    # Aguarda carregamento do card de saldo e extrato
-    wait_time = random.uniform(5000,7500) / 1000
+    # Aguarda carregamento do card de cartões
+    wait_time = random.uniform(4000,5000) / 1000
     time.sleep(wait_time)
     if verbose == "true":
-        print(f"Aguardando {wait_time:.2f}s pelo carregamento do card de saldo e extrato...")
+        print(f"Aguardando {wait_time:.2f}s pelo carregamento do card de cartões...")
 
-    # Localiza o botão para abrir a página de saldo e extrato
-    botao_ver_extrato = driver.find_element(By.XPATH, "//button[@aria-label='ver extrato']")
-    botao_ver_extrato.click()
+    # Localiza o botão para abrir a página de cartões
+    link_element = driver.find_element(By.CSS_SELECTOR, 'a.voxel-link[title="ver fatura cartão"]')
+    link_element.click()
 
     # Aguarda carregamento da página de saldo e extrato
     wait_time = random.uniform(7500,10000) / 1000
     time.sleep(wait_time)
     if verbose == "true":
-        print(f"Aguardando {wait_time:.2f}s pelo carregamento da página de saldo e extrato...")
+        print(f"Aguardando {wait_time:.2f}s pelo carregamento da página de cartões...")
 
     # Localiza o botão para salvar o extrato
     botao_salvar = driver.find_element(By.ID, 'botao-opcoes-lancamentos')
     botao_salvar.click()
     
     # Localiza o botão para salvar o extrato em Excel
-    botao_salvar_excel = driver.find_element(By.XPATH, "//a[@onclick=\"javascript:abrirExportarExcel('#botao-opcoes-lancamentos');\"]")
-    botao_salvar_excel.click()
-
-    # Aguarda um curto período (ajuste conforme necessário)
-    wait_time = random.uniform(1000,2000) / 1000
-    time.sleep(wait_time)
-
-    # Localiza o checkbox para desmarcar posição consolidada
-    checkbox_posicao_consolidada = driver.find_element(By.XPATH, '//*[@id="opcao-posicao-consolidada"]/label')
-    checkbox_posicao_consolidada.click()
-
-    # Aguarda um curto período (ajuste conforme necessário)
-    wait_time = random.uniform(1000,2000) / 1000
-    time.sleep(wait_time)
-
-    # Localiza o checkbox para desmarcar limites
-    checkbox_limites = driver.find_element(By.XPATH, '//*[@id="opcao-limites"]/label')
-    checkbox_limites.click()
     
-    # Aguarda um curto período (ajuste conforme necessário)
-    wait_time = random.uniform(1000,2000) / 1000
-    time.sleep(wait_time)
-
-     # Localiza o botão para confirmar salvar o extrato em Excel
-    salvar_excel_botao = driver.find_element(By.ID, 'salvar-excel-botao')
-    salvar_excel_botao.click()
+    botao_salvar_excel = driver.find_element(By.LINK_TEXT, 'salvar em Excel')
+    botao_salvar_excel.click()
 
     # Aguarda o download do arquivo
     wait_time = random.uniform(2500,5000) / 1000
