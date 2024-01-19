@@ -105,9 +105,9 @@ def init(input_file, output_file):
             novo_registro['data'] = limpar_data(data)
 
             # Define o valor da chave 'item' com o item encontrado (linha anterior)
-            novo_registro['item'] = linhas_arquivo[num_linha-2]
+            novo_registro['item'] = linhas_arquivo[num_linha-1]
                 
-            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+2], novo_registro['item'])
+            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+1], novo_registro['item'])
 
             # Armazenar o novo registro na lista de registros
             lista_de_registros.append(novo_registro)

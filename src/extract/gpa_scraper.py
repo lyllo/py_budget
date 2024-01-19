@@ -108,12 +108,12 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
 
     # Verificar se deu erro
 
-    wait_time = random.uniform(10000,12000) / 1000
+    wait_time = random.uniform(15000,20000) / 1000
 
     time.sleep(wait_time)
 
     if verbose == "true":
-        print(f"Aguardando {wait_time:.2f}s pelo carregamento da página de login...")
+        print(f"Aguardando {wait_time:.2f}s pelo carregamento do teclado virtual...")
 
     # Senha para inserir
     senha = os.getenv('Itau_pass')
