@@ -139,36 +139,46 @@ def init(PATH_TO_FLASH_INPUT_FILE):
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s pelo carregamento do extrato...")
 
-        # [ ] Ajustar para gerar dinamicamente a string do mês anterior
-        # String desejada a ser encontrada na página
-        string_desejada = '/12/2023'
-        encontrou_string = False
+    # [ ] Ajustar para gerar dinamicamente a string do mês anterior
+    # String desejada a ser encontrada na página
+    string_desejada = '/12/2023'
+    encontrou_string = False
 
-        if verbose == "true":
-            print("Rolando as transações até encontrar o mês anterior...")
+    if verbose == "true":
+        print("Rolando as transações até encontrar o mês anterior...")
 
-        # Loop para rolar a página e verificar se a string está presente
-        while not encontrou_string:
-            # Rola a página para baixo
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            
-            # Verifica se a string está presente na página
-            encontrou_string = string_desejada in driver.page_source
+    # Loop para rolar a página e verificar se a string está presente
+    while not encontrou_string:
+        # Rola a página para baixo
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        
+        # Verifica se a string está presente na página
+        encontrou_string = string_desejada in driver.page_source
 
-        # Localiza o elemento de texto na página usando XPath (substitua pelo seu seletor)
-        elemento_texto = driver.find_element(By.CLASS_NAME, 'sc-bWOGAC')
+    # Aguarda um momento para selecionar o elemento que contém as transações
+    wait_time = random.uniform(1000,2000) / 1000
+    time.sleep(wait_time)
+    if verbose == "true":
+        print(f"Aguardando {wait_time:.2f}s para selecionar texto...")
 
-        # Obtém o texto do elemento
-        texto_para_copiar = elemento_texto.text
+    # Localiza o elemento de texto na página usando XPath (substitua pelo seu seletor)
+    elemento_texto = driver.find_element(By.CLASS_NAME, 'sc-bWOGAC')
+    
+    # Obtém o texto do elemento
+    texto_para_copiar = elemento_texto.text
 
-        # [x] Acertar o encoding do arquivo para crédito aparecer com é e não 'Compra no cr�dito autorizada'
+    # [x] Acertar o encoding do arquivo para crédito aparecer com é e não 'Compra no cr�dito autorizada'
 
-        if verbose == "true":
-            print("Salvando as transações em arquivo texto...")
+    if verbose == "true":
+        print("Salvando as transações em arquivo texto...")
 
-        # Abre o arquivo para escrita e cola o texto
-        with open(PATH_TO_FLASH_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
-            arquivo.write(texto_para_copiar)
+    # Abre o arquivo para escrita e cola o texto
+    with open(PATH_TO_FLASH_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
+        arquivo.write(texto_para_copiar)
         
     # Finalmente, feche o navegador quando terminar todas as operações
     driver.quit()
+
+# For debugging
+# PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
+# init(PATH_TO_FLASH_INPUT_FILE)
