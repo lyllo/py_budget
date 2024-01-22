@@ -5,12 +5,16 @@ import load.files as files
 import os
 import configparser
 from datetime import datetime
+import io
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
 
 # Caminho da raiz do projeto
 ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
+
+# Caminho do diretório com scripts SQL
+SQL_DIR = os.path.abspath(os.path.join(ROOT_DIR, "src/sql"))
 
 # Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
@@ -377,3 +381,32 @@ def fetch_uncategorized_transactions():
         transactions.append(transaction)
 
     return transactions
+
+def fetch_stats():
+
+    stats = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    sql_filepath = os.path.abspath(os.path.join(SQL_DIR, "STATS.sql"))
+    with io.open(sql_filepath, 'r', encoding='utf-8') as file:
+        consulta_sql = file.read()
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    # Print Result-set
+    for (meio, last_transaction, last_update, total_transactions) in cursor:
+        stat = {'meio': meio, 
+                'last_transaction': last_transaction,
+                'last_update': last_update,
+                'total_transactions': total_transactions
+               }
+        stats.append(stat)
+
+    return stats
