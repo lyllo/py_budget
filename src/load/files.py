@@ -215,9 +215,11 @@ def salva_excel_final(nome_arquivo, nome_planilha, timestamp):
 def get_modification_time(file_path):
     if platform.system() == 'Windows':
         modification_time = os.path.getmtime(file_path)
+        db.update_mtime(file_path, modification_time)
         return modification_time
     else:
         print("Este exemplo funciona apenas no Windows, a obtenção da data de criação pode variar em outros sistemas operacionais.")
+
 
 def dump_history():
 

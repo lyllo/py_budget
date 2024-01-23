@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import load.db as db
 
-st.set_page_config(layout="centered")
+st.set_page_config(layout="wide")
 
 # Título da página
 st.title('Stats')

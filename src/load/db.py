@@ -393,7 +393,7 @@ def fetch_stats():
     cursor = conn.cursor()
 
     # Carrega a query
-    sql_filepath = os.path.abspath(os.path.join(SQL_DIR, "STATS.sql"))
+    sql_filepath = os.path.abspath(os.path.join(SQL_DIR, "STATS_V2.sql"))
     with io.open(sql_filepath, 'r', encoding='utf-8') as file:
         consulta_sql = file.read()
 
@@ -401,12 +401,33 @@ def fetch_stats():
     cursor.execute(consulta_sql)
 
     # Print Result-set
-    for (meio, last_transaction, last_update, total_transactions) in cursor:
-        stat = {'meio': meio, 
+    for (meio, last_transaction, last_update, last_file, total_transactions) in cursor:
+        stat = {'method': meio, 
                 'last_transaction': last_transaction,
                 'last_update': last_update,
+                'last_file_update': last_file,
                 'total_transactions': total_transactions
                }
         stats.append(stat)
 
     return stats
+
+def update_mtime(file_path, modification_time):
+    file_name = os.path.basename(file_path)
+    
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Query the database
+    cursor.execute(
+        "UPDATE files SET mtime = ? WHERE nome = ?",
+        (f"{modification_time}",f"{file_name}",))
+
+    # Commita a transação
+    conn.commit()
+    
+    # Close Connection
+    conn.close()
