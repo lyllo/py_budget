@@ -14,7 +14,12 @@ from imports import *
 
 import load.db as db
 
-st.set_page_config(layout="centered", page_title="Categorizer",)
+def save_categorized_transactions(df):
+
+    dict = df.to_dict(orient='records')
+    db.update_uncategorized_records(dict)
+
+st.set_page_config(layout="wide", page_title="Categorizer",)
 
 # Título da página
 st.title('Categories')
@@ -29,7 +34,7 @@ if df.size == 0:
 else:
     df.categoria = df.categoria.astype("category")
     df.categoria = df.categoria.cat.set_categories(('ÁGUA', 'ALIMENTAÇÃO', 'ALUGUEL', 'BEBÊ', 'BEBÊ INVESTIMENTO', 'CARRO', 'CASA', 'COMPRAS', 'DOMÉSTICA', 
-    'GÁS', 'INTERNET', 'INVESTIMENTO', 'LAZER', 'LUZ', 'MERCADO', 'PET', 'PROVENTOS', 'SAÚDE', 'SERVIÇOS', 'STREAMING', 'TARIFA', 'TRANSPORTE'))
+    'GÁS', 'INTERNET', 'INVESTIMENTO', 'LAZER', 'LUZ', 'MERCADO', 'OUTROS', 'PET', 'PROVENTOS', 'SAÚDE', 'SERVIÇOS', 'STREAMING', 'TARIFA', 'TRANSPORTE', 'VIAGENS'))
 
     ColumnConfigMappingInput = {'data': 'DATA', 
                                 'item': 'ITEM',
@@ -40,10 +45,11 @@ else:
                                 'parcela': 'PARCELA',
                                 'categoria': 'CATEGORIA',
                                 'tag': 'TAG',
-                                'meio': 'MEIO'}
+                                'meio': 'MEIO',
+                                'hash': None}
 
-    annotated = st.data_editor(df, hide_index=True, use_container_width=True, disabled=['data', 'item', 'valor', 'parcela', 'meio'], column_config=ColumnConfigMappingInput )
+    categorized_df = st.data_editor(df, hide_index=True, use_container_width=True, disabled=['data', 'item', 'valor', 'parcela', 'meio', 'hash'], column_config=ColumnConfigMappingInput, on_change=None)
 
-    st.download_button(
-        "⬇️ Download annotations as .csv", annotated.to_csv(), "annotated.csv", use_container_width=True
+    st.button(
+        "Save", on_click=save_categorized_transactions, args=(categorized_df,), use_container_width=True
     )

@@ -371,11 +371,11 @@ def fetch_uncategorized_transactions():
                        'parcela': parcela,
                        'categoria': categoria,
                        'tag': tag,
-                       'meio': meio}
+                       'meio': meio,
                     #    'categoria_fonte': categoria_fonte,
                     #    'meio': meio,
                     #    'arquivo_fonte': fonte,
-                    #    'hash': hash,
+                       'hash': hash}
                     #    'timestamp': timestamp,
                     #    'file_timestamp': file_timestamp}
         transactions.append(transaction)
@@ -429,5 +429,31 @@ def update_mtime(file_path, modification_time):
     # Commita a transação
     conn.commit()
     
+    # Close Connection
+    conn.close()
+
+def update_uncategorized_records(records):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    for record in records:
+
+        detalhe = record['detalhe']
+        categoria =record['categoria']
+        tag = record['tag']
+        hash = record['hash']
+
+        # Query the database
+        cursor.execute(
+            "UPDATE transactions SET detalhe = ?, categoria = ?, tag = ? WHERE hash = ?",
+            (f"{detalhe}",f"{categoria}",f"{tag}",f"{hash}",))
+        
+        # Commita a transação
+        conn.commit()
+
     # Close Connection
     conn.close()
