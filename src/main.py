@@ -18,6 +18,7 @@ import load.files as files
 
 import os
 import configparser
+from datetime import datetime
 
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
@@ -84,72 +85,87 @@ def file_exists(file_path):
 
 # BTG
 if toggle_extract_btg == "true":
-    print("\nIniciando 'extract' do Cartão BTG...")       
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão BTG...")       
     btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
 
 if toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
-    print("\nIniciando 'transform' do Cartão BTG...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão BTG...")
     btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
 # XP
 if toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
-    print("\nIniciando 'transform' do Cartão XP...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão XP...")
     xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
 
 # GPA
 
 if toggle_extract_gpa == "true":
-    print("\nIniciando 'extract' do Cartão GPA...")       
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão GPA...")       
     gpa_scraper.init(PATH_TO_GPA_INPUT_FILE)
 
 if toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
-    print("\nIniciando 'transform' doc Cartão GPA...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' doc Cartão GPA...")
     gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
 
 # Flash
 
 if toggle_extract_flash == "true":
-    print("\nIniciando 'extract' do Cartão Flash...")       
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão Flash...")       
     flash_scraper.init(PATH_TO_FLASH_INPUT_FILE)
 
 if toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
-    print("\nIniciando 'transform' do Cartão Flash...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão Flash...")
     flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
 
 # Contas
 if toggle_extract_itau_cc == "true":
-    print("\nIniciando 'extract' da Conta Itaú...")       
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'extract' da Conta Itaú...")       
     itau_scraper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
 
 if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
-    print("\nIniciando 'transform' da Conta Itaú...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' da Conta Itaú...")
     itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
 
 # Investimentos
 if toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do BTG Investimentos...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do BTG Investimentos...")
     btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
 
 if toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do Sofisa Investimentos...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Sofisa Investimentos...")
     sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
 if toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do XP Investimentos...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do XP Investimentos...")
     xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
 
 if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
-    print("\nIniciando 'transform' do Rico Investimentos...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Rico Investimentos...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
 # HISTORY LOAD
 
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
-    print("\nIniciando 'load' do histórico em BD...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'load' do histórico em BD...")
     db.carrega_historico(PATH_TO_HISTORY_FILE)
 
 # DUMP HISTORY
     
 if toggle_dump_history == "true":
-    print("\nIniciando 'dump' do histórico em XLSX...")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'dump' do histórico em XLSX...")
     files.dump_history()
