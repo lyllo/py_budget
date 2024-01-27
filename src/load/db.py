@@ -412,6 +412,113 @@ def fetch_stats():
 
     return stats
 
+def fetch_limits():
+
+    limits = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    sql_filepath = os.path.abspath(os.path.join(SQL_DIR, "LIMITS.sql"))
+    with io.open(sql_filepath, 'r', encoding='utf-8') as file:
+        consulta_sql = file.read()
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    # Print Result-set
+    for (categoria, plan, actual, gap) in cursor:
+        stat = {'categoria': categoria, 
+                'plan': plan,
+                'actual': actual,
+                'gap': gap
+               }
+        limits.append(stat)
+
+    return limits
+
+def fetch_history():
+
+    history = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    sql_filepath = os.path.abspath(os.path.join(SQL_DIR, "HISTORY.sql"))
+    with io.open(sql_filepath, 'r', encoding='utf-8') as file:
+        consulta_sql = file.read()
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    # Print Result-set
+    for (categoria, periodo, total) in cursor:
+        stat = {'categoria': categoria, 
+                'periodo': periodo,
+                'total': total * -1 # Para que o gráfico do histórico faça sentido
+               }
+        history.append(stat)
+
+    return history
+
+def fetch_current_months_transactions(category):
+
+    transactions = []
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    consulta_sql = f"""
+                        SELECT
+                            *
+                        FROM
+                            transactions
+                        WHERE
+                            categoria = '{category}'
+                            AND YEAR(DATA) = YEAR(CURDATE()) AND MONTH(data) = MONTH(CURDATE())
+                        ORDER BY
+                            valor
+                        ASC
+                    """
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    # Print Result-set
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'categoria': categoria,
+                       'tag': tag,
+                       'meio': meio,
+                    #    'categoria_fonte': categoria_fonte,
+                    #    'meio': meio,
+                    #    'arquivo_fonte': fonte,
+                       'hash': hash}
+                    #    'timestamp': timestamp,
+                    #    'file_timestamp': file_timestamp}
+        transactions.append(transaction)
+
+    return transactions
+
 def update_mtime(file_path, modification_time):
     file_name = os.path.basename(file_path)
     
