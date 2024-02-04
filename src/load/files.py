@@ -29,17 +29,17 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         sheet = wb.active
         sheet.title = nome_planilha
     
-    # Verificar se a planilha já existe ou criá-la se não existir
+    # Verificar se a planilha já existe para apagar e criá-la se não existir
     if nome_planilha in wb.sheetnames:
         sheet_to_remove = wb[nome_planilha]
         wb.remove_sheet(sheet_to_remove)
-
     sheet = wb.create_sheet(title=nome_planilha)
 
     # Inicializa o contador de linhas da planilha
     num_linha_excel = 1
 
     # Insere o cabeçalho
+    
     linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
     # Inclui as linhas no arquivo do Excel
@@ -70,6 +70,9 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         num_linha_excel += 1
 
     formata_planilha(sheet)
+
+    # Salva os stats
+    save_stats(wb)
 
     # Salva o arquivo do Excel
     wb.save(nome_arquivo)
@@ -241,3 +244,24 @@ def dump_history():
 
         # Salva os dados em arquivo excel
         incluir_linhas_em_excel(PATH_TO_FINAL_OUTPUT_FILE, nome_planilha, lista_de_listas)
+
+def save_stats(wb):
+
+    stats = db.fetch_stats()
+
+    nome_planilha = 'Stats'
+
+    # Verificar se a planilha já existe para apagar e criá-la se não existir
+    if nome_planilha in wb.sheetnames:
+        sheet_to_remove = wb[nome_planilha]
+        wb.remove_sheet(sheet_to_remove)
+    sheet = wb.create_sheet(title=nome_planilha)
+
+    # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
+    lista_de_listas = [list(item.values()) for item in stats]
+
+    # Insere o cabeçalho
+    lista_de_listas.insert(0, ['MEIO', 'ÚLTIMA TRANSAÇÃO', 'ÚLTIMA ATUALIZAÇÃO', 'ÚLTIMO ARQUIVO', 'TOTAL TRANSAÇÕES'])
+
+    for lista in lista_de_listas:
+        sheet.append(lista)

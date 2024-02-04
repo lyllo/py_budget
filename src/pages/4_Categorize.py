@@ -31,10 +31,13 @@ df = pd.DataFrame(data)
 if df.size == 0:
     st.markdown("Sem transações para categorizar...")
 
+# [ ] Fazer QUERY categories.name para popular dropdown box
+    
 else:
     df.categoria = df.categoria.astype("category")
     df.categoria = df.categoria.cat.set_categories(('ÁGUA', 'ALIMENTAÇÃO', 'ALUGUEL', 'BEBÊ', 'BEBÊ INVESTIMENTO', 'CARRO', 'CASA', 'COMPRAS', 'DOMÉSTICA', 
-    'GÁS', 'INTERNET', 'INVESTIMENTO', 'LAZER', 'LUZ', 'MERCADO', 'OUTROS', 'PET', 'PROVENTOS', 'SAÚDE', 'SERVIÇOS', 'STREAMING', 'TARIFA', 'TRANSPORTE', 'VIAGENS'))
+    'GÁS', 'INTERNET', 'INVESTIMENTO', 'LAZER', 'LUZ', 'MERCADO', 'OUTROS', 'PAGAMENTO', 'PET', 'PROVENTOS', 'PROVENTOS CMC', 'PROVENTOS PQR', 'REALOCAÇÃO', 
+    'RENDIMENTO', 'SAÚDE', 'SERVIÇOS', 'STREAMING', 'TARIFA', 'TRANSFERÊNCIA', 'TRANSPORTE', 'VIAGENS'))
 
     ColumnConfigMappingInput = {'data': 'DATA', 
                                 'item': 'ITEM',

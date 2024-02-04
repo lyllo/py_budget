@@ -80,4 +80,4 @@ final_df = final_df.style.format(
     decimal=',',
 )
 
-st.dataframe(final_df, column_config=ColumnConfigMappingInput, height=702)
+st.dataframe(final_df, column_config=ColumnConfigMappingInput, height=702, hide_index=True)
