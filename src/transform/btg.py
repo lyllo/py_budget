@@ -137,6 +137,9 @@ def init(input_file, output_file):
     num_linha = 0
     lista_de_registros = []
 
+    # Marcador para linhas de pagamento de fatura
+    compra_buffer = False
+
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
        
@@ -148,6 +151,8 @@ def init(input_file, output_file):
 
         # Encontra uma linha de status
         if linha.find("Compra ") != -1:
+
+            compra_buffer = True
 
             if linha.find("não autorizada") == -1:
                 unnautorized = True
@@ -186,7 +191,7 @@ def init(input_file, output_file):
                 novo_registro['parcela'] = "1/1"
             
         # Encontra uma linha de valor
-        if linha.find("- R$", 0, 4) != -1:
+        if linha.find("- R$", 0, 4) != -1 and compra_buffer == True:
 
             # Definir o valor da chave 'valor' com o valor encontrado
             novo_registro['valor'] = limpar_valor(linha)/parcelas
@@ -197,6 +202,7 @@ def init(input_file, output_file):
                 if parcelas == 1:
                     # Armazenar o novo registro de parcela única na lista de registros
                     lista_de_registros.append(novo_registro)
+                    compra_buffer = False
 
                 else:
                     # Armazena os registros referentes a todas as parcelas na lista de registros
@@ -222,6 +228,7 @@ def init(input_file, output_file):
                         nova_parcela['data'] = data_parcela
                         nova_parcela['parcela'] = str(parcela) + "/" + str(parcelas)
                         lista_de_registros.append(nova_parcela)
+                        compra_buffer = False
 
         num_linha += 1
 
@@ -238,7 +245,9 @@ def init(input_file, output_file):
     if(toggle_temp_sheet == "true"):
 
         nome_arquivo = output_file
-        print(f"\nIniciando 'load' do {MEIO} em xlsx...")		
+        print(f"\nIniciando 'load' do {MEIO} em xlsx temporário...")
+        if(toggle_db == "false"):
+            timestamp = int(datetime.timestamp(datetime.now()))
         files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
 
     # Salva as informações em um arquivo Excel final

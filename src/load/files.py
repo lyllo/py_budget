@@ -188,7 +188,7 @@ def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
         # [ ] Oportunidade de matar os 2 métodos de salvar em excel temporário e final, fazendo condicional apenas desta linha, quando temp
         # Adiciona o cabeçalho à lista de listas
-        lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+        # lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
         # Salva os dados em arquivo excel
         incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)

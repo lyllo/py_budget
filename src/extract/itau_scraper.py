@@ -53,7 +53,7 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     chrome_options.add_argument(f"user-agent={user_agent}")
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless') # Não carrega a GUI
+    # chrome_options.add_argument('--headless') # Não carrega a GUI
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-gpu")
@@ -167,7 +167,8 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     botao_salvar.click()
     
     # Localiza o botão para salvar o extrato em Excel
-    botao_salvar_excel = driver.find_element(By.XPATH, "//a[@onclick=\"javascript:abrirExportarExcel('#botao-opcoes-lancamentos');\"]")
+    botao_salvar_excel = driver.find_element(By.XPATH, '//a[text()="salvar em Excel"]')
+
     botao_salvar_excel.click()
 
     # Aguarda um curto período (ajuste conforme necessário)
