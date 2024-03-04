@@ -75,7 +75,6 @@ toggle_extract_itau_cc = config.get('Toggle', 'toggle_extract_itau_cc')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
 toggle_dump_history = config.get('Toggle', 'toggle_dump_history')
-toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 # Verifica a existência de um arquivo
 def file_exists(file_path):
@@ -160,12 +159,12 @@ if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE
 
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'load' do histórico em BD...")
+    print(f"\n[{timestamp}] Iniciando 'load' do XLSX em BD...")
     db.carrega_historico(PATH_TO_HISTORY_FILE)
 
 # DUMP HISTORY
     
 if toggle_dump_history == "true":
     timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'dump' do histórico em XLSX...")
+    print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
     files.dump_history()

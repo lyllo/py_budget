@@ -246,8 +246,6 @@ def init(input_file, output_file):
 
         nome_arquivo = output_file
         print(f"\nIniciando 'load' do {MEIO} em xlsx temporário...")
-        if(toggle_db == "false"):
-            timestamp = int(datetime.timestamp(datetime.now()))
         files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
 
     # Salva as informações em um arquivo Excel final

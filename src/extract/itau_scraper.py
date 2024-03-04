@@ -93,7 +93,7 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     time.sleep(wait_time)
 
     if verbose == "true":
-        print("Preenchendo dados de agencia e conta...")
+        print("Procurando elementos de entrada de agencia e conta...")
 
     # Preenche o usuário e senha
     campo_agencia = driver.find_element(By.ID, 'agencia')
@@ -101,6 +101,9 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
 
     campo_agencia.send_keys(agencia)
     campo_conta.send_keys(conta)
+
+    if verbose == "true":
+        print("Procurando elemento de botão de login...")
 
     # Submete o formulário
     botao_submit = driver.find_element(By.CSS_SELECTOR, '.login_button')
@@ -120,6 +123,9 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
 
     # Itera sobre cada dígito da senha
 
+    if verbose == "true":
+        print("Procurando elemento de tecla de senha...")
+
     for digito in senha:
         # Encontra o elemento da tecla correspondente
         xpath = f"//a[contains(@aria-label, '{digito}')]"
@@ -133,6 +139,10 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
         time.sleep(wait_time)
 
     # Clicar no botão para acessar
+
+    if verbose == "true":
+        print("Procurando elemento de botão acessar...")        
+
     botao_acessar = driver.find_element(By.ID,'acessar')
     botao_acessar.click()
 
@@ -143,6 +153,10 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
         print(f"Aguardando {wait_time:.2f}s pelo carregamento da home logada...")
 
     # Localiza o elemento pelo texto do link (neste caso, 'menu')
+        
+    if verbose == "true":
+        print("Procurando elemento de card de Saldo PF...")  
+
     card_saldo_e_extrato = driver.find_element(By.ID, 'pf-saldo-card')
     card_saldo_e_extrato.click()
 
@@ -153,6 +167,10 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
         print(f"Aguardando {wait_time:.2f}s pelo carregamento do card de saldo e extrato...")
 
     # Localiza o botão para abrir a página de saldo e extrato
+        
+    if verbose == "true":
+        print("Procurando elemento de botão para ver Extrato...")  
+
     botao_ver_extrato = driver.find_element(By.XPATH, "//button[@aria-label='ver extrato']")
     botao_ver_extrato.click()
 
@@ -163,11 +181,17 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
         print(f"Aguardando {wait_time:.2f}s pelo carregamento da página de saldo e extrato...")
 
     # Localiza o botão para salvar o extrato
+    if verbose == "true":
+        print("Procurando elemento de botão Salvar Como...")  
+
     botao_salvar = driver.find_element(By.ID, 'botao-opcoes-lancamentos')
     botao_salvar.click()
     
+    # [ ] Ele até encontra, mas ao clicar dá pau pelo visto por conta de algum interceptador do GA
     # Localiza o botão para salvar o extrato em Excel
-    botao_salvar_excel = driver.find_element(By.XPATH, '//a[text()="salvar em Excel"]')
+    if verbose == "true":
+        print("Procurando elemento de botão Salvar em Excel...")  
+    botao_salvar_excel = driver.find_element(By.LINK_TEXT, 'salvar em Excel')
 
     botao_salvar_excel.click()
 
@@ -176,6 +200,8 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     time.sleep(wait_time)
 
     # Localiza o checkbox para desmarcar posição consolidada
+    if verbose == "true":
+        print("Procurando elemento para desmarcar Posição Consolidada...")  
     checkbox_posicao_consolidada = driver.find_element(By.XPATH, '//*[@id="opcao-posicao-consolidada"]/label')
     checkbox_posicao_consolidada.click()
 
@@ -184,6 +210,8 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     time.sleep(wait_time)
 
     # Localiza o checkbox para desmarcar limites
+    if verbose == "true":
+        print("Procurando elemento para desmarcar Limites...")
     checkbox_limites = driver.find_element(By.XPATH, '//*[@id="opcao-limites"]/label')
     checkbox_limites.click()
     
@@ -192,6 +220,8 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
     time.sleep(wait_time)
 
      # Localiza o botão para confirmar salvar o extrato em Excel
+    if verbose == "true":
+        print("Procurando elemento de botão Salvar...")
     salvar_excel_botao = driver.find_element(By.ID, 'salvar-excel-botao')
     salvar_excel_botao.click()
 
