@@ -19,28 +19,28 @@ PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
 
+    new_file = True
+
     try:
         # Tenta carregar o arquivo existente
         wb = load_workbook(nome_arquivo)
+        new_file = False
 
     except FileNotFoundError:
         # Se o arquivo não existe, cria um novo
         wb = Workbook()
-        sheet = wb.active
-        sheet.title = nome_planilha
-    
-    # Verificar se a planilha já existe para apagar e criá-la se não existir
-    if nome_planilha in wb.sheetnames:
-        sheet_to_remove = wb[nome_planilha]
-        wb.remove_sheet(sheet_to_remove)
-    sheet = wb.create_sheet(title=nome_planilha)
+
+        # Se o arquivo não existe, vamos precisar de um cabeçalho
+        linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+
+    sheet = wb.active
+    sheet.title = nome_planilha
 
     # Inicializa o contador de linhas da planilha
-    num_linha_excel = 1
-
-    # Insere o cabeçalho
-    
-    linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+    if new_file == True:
+        num_linha_excel = 1
+    else:
+        num_linha_excel = sheet.max_row + 1
 
     # Inclui as linhas no arquivo do Excel
     for linha in linhas:
@@ -172,6 +172,7 @@ def ler_arquivo_xls(nome_arquivo):
 # Salvar dados recém carregados em excel temporário
 def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
 
+    # [ ] Sem usar o DB, não é mais possível gerar o arquivo temporário
     transactions = db.fetch_transactions_where(nome_planilha, timestamp)
 
     if (len(transactions) > 0):

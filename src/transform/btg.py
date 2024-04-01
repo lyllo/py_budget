@@ -149,7 +149,8 @@ def init(input_file, output_file):
             # Armazenar o valor da última data encontrada
             data = limpar_data(linha)
 
-        # Encontra uma linha de status
+        # [ ] Evoluir para capturar transações de Conta
+        # Encontra uma linha de transação de Cartão
         if linha.find("Compra ") != -1:
 
             compra_buffer = True
@@ -240,6 +241,9 @@ def init(input_file, output_file):
         print(f"\nIniciando 'load' do {MEIO} em db...")
         file_timestamp = files.get_modification_time(input_file)
         timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
+
+    else:
+        timestamp = int(datetime.timestamp(datetime.now()))
 
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):

@@ -1,9 +1,7 @@
-from datetime import datetime
-import category
-import load.files as files
-import load.db as db
 import os
+import sys
 import configparser
+from datetime import datetime
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -11,11 +9,19 @@ current_file_path = os.path.abspath(__file__)
 # Caminho da raiz do projeto
 ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
 
+sys.path.append(ROOT_DIR)
+
+from imports import *
+import category
+import load.files as files
+import load.db as db
+
 # Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
-MEIO = "Cartão XP"
+MEIO = "Conta BTG"
 
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
@@ -24,6 +30,8 @@ config.read(PATH_TO_CONFIG_FILE)
 toggle_db = config.get('Toggle', 'toggle_db')
 toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
+
+
 
 """
   ______                /\/|                                _ _ _                     
@@ -36,38 +44,75 @@ toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 """
 
-# Converter strings no formato dd/mm/aaaa para variáveis do tipo datetime no formato aaaa-mm-dd
-def limpar_data(str_data):
-    dia = int(str_data[0:2])
-    mes = int(str_data[3:5])
-    ano = int(str_data[6:10])
+# Substituir mes
+def obter_numero_mes(mes):
+    meses = {
+        'jan': 1,
+        'fev': 2,
+        'mar': 3,
+        'abr': 4,
+        'mai': 5,
+        'jun': 6,
+        'jul': 7,
+        'ago': 8,
+        'set': 9,
+        'out': 10,
+        'nov': 11,
+        'dez': 12
+    }
+    return meses.get(mes.lower(), None)
 
+# Obter o número de parcelas de uma transação
+def obter_numero_parcelas(linha):
+    posicao_x = linha.find('x', 21)
+    parcelas = linha[21:posicao_x]
+    return parcelas
+   
+# Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
+def limpar_data(linha):
+
+    data_string = linha
+
+    # [x] Habilitar virada de 1 ano
+    ano_atual = True
+    if data_string.count('/') == 2:
+        ano_atual = False
+
+    if ano_atual:
+        if len(data_string) != 6:
+            data_string = linha[-6:]
+        else:
+            data_string = linha # 26/Dez
+        
+        ano = datetime.now().year
+        mes = obter_numero_mes(data_string[3:].lower())
+        dia = int(data_string[:2])
+
+    else:
+        if len(data_string) != 11:
+            data_string = linha[-11:]
+        else:
+            data_string = linha # 26/Dez/2023
+
+        ano = datetime.now().year - 1
+        mes = obter_numero_mes(data_string[3:6].lower())   
+        dia = int(data_string[:2])
+
+    # [x] Permitir outros anos, além de 2023
     data_datetime = datetime(ano, mes, dia).date()
 
     return data_datetime
 
 # Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
-def limpar_valor(str_valor):
-    valor_float = "{:.2f}".format(-1 * float(str_valor[3:].replace(".","").replace(",",".")))
+def limpar_valor(linha):
+    valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
     return float(valor_float)
 
-def limpar_parcelas(str_parcelas):
-        if (str_parcelas == '-'):
-            str_parcelas_limpa = '1/1'
-        else:
-            str_parcelas_limpa = str_parcelas.replace(' de ', '/')
-        return str_parcelas_limpa
-
-# Encontrar posições de uma string dentro de outra string, armazenando os resultados em uma lista
-def encontrar_todas_ocorrencias(s, sub):
-    start = 0
-    positions = []  # Lista para armazenar as posições
-    while True:
-        start = s.find(sub, start)
-        if start == -1: 
-            return positions  # Retorna a lista de posições
-        positions.append(start)
-        start += len(sub)  # use start += 1 to find overlapping matches
+def encontra_linha_de_data(linha):
+    if linha.find("/Jan") != -1 or linha.find("/Fev") != -1 or linha.find("/Mar") != -1 or linha.find("/Abr") != -1 or linha.find("/Mai") != -1 or linha.find("/Jun") != -1 or linha.find("/Jul") != -1 or linha.find("/Ago") != -1 or linha.find("/Set") != -1 or linha.find("/Out") != -1 or linha.find("/Nov") != -1 or linha.find("/Dez") != -1:
+        return True
+    else:
+        return False
 
 """
 
@@ -91,11 +136,21 @@ def init(input_file, output_file):
     num_linha = 0
     lista_de_registros = []
 
+    # Marcador para linhas de pagamento de fatura
+    compra_buffer = False
+
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
+       
+        # Encontra uma linha de data em Outubro ou Novembro
+        if encontra_linha_de_data(linha):
+            
+            # Armazenar o valor da última data encontrada
+            data = limpar_data(linha)
 
-        # Verifica se é a primeira linha, de cabeçalho
-        if (num_linha != 0):
+        # [ ] Evoluir para capturar transações de Conta
+        # Encontra uma linha de transação de Cartão
+        if linha.find("Pix ") != -1 or linha.find("Pagamento ") != -1:
 
             # Criar um novo registro com valores padrões
             novo_registro = {'data': '', 
@@ -109,51 +164,17 @@ def init(input_file, output_file):
                              'tag': '',
                              'categoria_fonte': ''}
 
-            # Busca a posição dos separadores
-            posicoes = encontrar_todas_ocorrencias(linha, ';')
+            # Define o valor da chave 'data' com a última data encontrada
+            novo_registro['data'] = data
 
-            # Máscara: Data;Estabelecimento;Portador;Valor;Parcela
+            # Define o valor da chave 'item' com o item encontrado (linha anterior)
+            novo_registro['item'] = linhas_arquivo[num_linha-1]
 
-            # Armazena os caracteres que representam a data da tramsação no formato dd/mm/aaaa
-            str_data = linha[:posicoes[0]]
-            
-            # Armazena os caracteres que representam a descrição da transação (= item)
-            str_item = linha[posicoes[0]+1:posicoes[1]]
-            
-            # Armazena os caracteres que representam o portador do cartão (= cartao)
-            str_cartao = linha[posicoes[1]+1:posicoes[2]]
+            # Definir o valor da chave 'valor' com o valor encontrado (próxima linha)
+            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha+1])
 
-            # Armazena os caracteres que representam o valor da transação no formato R$ xxx.xxx,xx
-            str_valor = linha[posicoes[2]+1:posicoes[3]]
-
-            # [ ] FIX: Não está capturando o número de parcelas
-            # Armazena os caracteres que representam o número da parcela da transação
-            str_parcelas = linha[posicoes[3]+1:]
-
-            # Transforma a data do tipo 'string' para o tipo 'date'
-            date_data = limpar_data(str_data)
-
-            # Armazena o valor da chave 'data' com a data já no tipo 'date'
-            novo_registro['data'] = date_data
-
-            # Armazena o valor da chave 'item' com o item já no tipo 'string'
-            novo_registro['item'] = str_item
-
-            # Transforma o valor do tipo 'string' para o tipo 'float'
-            float_valor = limpar_valor(str_valor)  
-
-            # Armazena o valor da chave 'valor' com o valor já no tipo 'float'
-            novo_registro['valor'] = float_valor
-
-            # Armazena o valor, já limpo, da chave 'cartao'
-            novo_registro['cartao'] = str_cartao
-
-            # Armazena o valor, já limpo, da chave 'parcelas'
-            novo_registro['parcelas'] = limpar_parcelas(str_parcelas)
-
-            # Armazenar o novo registro na lista de registros
             lista_de_registros.append(novo_registro)
-
+            
         num_linha += 1
 
     # Preenche as categorias das transações
@@ -165,11 +186,14 @@ def init(input_file, output_file):
         file_timestamp = files.get_modification_time(input_file)
         timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
+    else:
+        timestamp = int(datetime.timestamp(datetime.now()))
+
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):
 
         nome_arquivo = output_file
-        print(f"\nIniciando 'load' do {MEIO} em xlsx...")		
+        print(f"\nIniciando 'load' do {MEIO} em xlsx temporário...")
         files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
 
     # Salva as informações em um arquivo Excel final

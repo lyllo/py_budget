@@ -8,6 +8,7 @@ import transform.xp as xp
 import transform.gpa as gpa
 import transform.flash as flash
 import transform.itau_cc as itau_cc
+import transform.btg_cc as btg_cc
 import transform.btg_ci as btg_ci
 import transform.sofisa_ci as sofisa_ci
 import transform.xp_ci as xp_ci
@@ -40,6 +41,8 @@ PATH_TO_XP_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp.xlsx')
 
 PATH_TO_ITAU_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\itau_cc.xls')
 PATH_TO_ITAU_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\itau_cc.xlsx')
+PATH_TO_BTG_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
+PATH_TO_BTG_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_cc.xlsx')
 
 PATH_TO_BTG_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_ci.txt')
 PATH_TO_BTG_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_ci.xlsx')
@@ -63,6 +66,7 @@ toggle_transform_xp = config.get('Toggle', 'toggle_transform_xp')
 toggle_transform_gpa = config.get('Toggle', 'toggle_transform_gpa')
 toggle_transform_flash = config.get('Toggle', 'toggle_transform_flash')
 toggle_transform_itau_cc = config.get('Toggle', 'toggle_transform_itau_cc')
+toggle_transform_btg_cc = config.get('Toggle', 'toggle_transform_btg_cc')
 toggle_transform_btg_ci = config.get('Toggle', 'toggle_transform_btg_ci')
 toggle_transform_sofisa_ci = config.get('Toggle', 'toggle_transform_sofisa_ci')
 toggle_transform_xp_ci = config.get('Toggle', 'toggle_transform_xp_ci')
@@ -133,6 +137,11 @@ if toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"\n[{timestamp}] Iniciando 'transform' da Conta Itaú...")
     itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
+
+if toggle_transform_btg_cc == "true" and file_exists(PATH_TO_BTG_CC_INPUT_FILE):
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'transform' da Conta BTG...")
+    btg_cc.init(PATH_TO_BTG_CC_INPUT_FILE, PATH_TO_BTG_CC_OUTPUT_FILE)
 
 # Investimentos
 if toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
