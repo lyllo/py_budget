@@ -62,13 +62,14 @@ def gera_hash_md5(registro):
         std_data = data
     
     std_item = item.rstrip() # remove todos os espaços em branco à direita da string
-    std_valor = round(valor + 0.0005, 2) # dica pra manter 2 decimais, mesmo que zero
-    std_ocorrencia_dia = ocorrencia_dia
     
-    # input_string = str(data) + item + str(valor)
-    # input_bytes = input_string.encode('utf-8')
-    # md5_hash = hashlib.md5(input_bytes)
-    # return md5_hash.hexdigest()
+    try:
+        std_valor = round(valor + 0.0005, 2) # dica pra manter 2 decimais, mesmo que zero
+    except TypeError as e:
+        if valor.startswith('='):
+            std_valor = round(eval(valor[1:]) + 0.0005, 2)
+    
+    std_ocorrencia_dia = ocorrencia_dia
 
     if data is not None and item is not None and valor is not None:
         str_data = str(std_data)
@@ -191,16 +192,10 @@ def carrega_historico(input_file):
     #Conecta ao banco
     conn = conecta_bd()
 
-    # Lista de sheets do workbook, que são organizadas por meio de pagamento (IMPORTANTE: Existem outros meios que foram usados no passado e que estão ocultos)
-    # sheets = ['Cartao BTG', 'Cartao XP', 'Cartao GPA', 'Cartao Flash', 'CC Itau', 'CI BTG', 'CI Sofisa', 'CI XP', 'CI Rico']
-
     sheet = 'Summary'
 
     # Obtém o timestamp de criação do arquivo
     file_timestamp = files.get_modification_time(input_file)
-
-    # Itera pelas sheets do workbook (Lembrando que apenas as 3 primeiras têm 'CARTÃO' e 'PARCELA')
-    # for sheet in sheets:
 
     num_registros_lidos = 0
     num_registros_salvos = 0
@@ -244,7 +239,86 @@ def carrega_historico(input_file):
             Registros salvos ({sheet}): {registros_salvos}
             Registros duplicados ({sheet}): {registros_duplicados}
             """)
+
+def atualiza_historico(input_file):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    sheet = 'Summary'
+
+    # Obtém o timestamp de criação do arquivo
+    file_timestamp = files.get_modification_time(input_file)
+
+    # Obtém o nome do arquivo
+    file_name = os.path.basename(input_file)
+
+    num_registros_lidos = 0
+    num_registros_alterados = 0
+    num_registros_inalterados = 0
+
+    # Itera nas linhas do arquivo de histórico
+    for linha in files.ler_arquivo_xlsx(input_file, sheet):
+
+        # Carrega um registro do arquivo Excel
+        registro_excel = {'data': linha[0], 
+                         'item': linha[1],
+                         'detalhe': linha[2],
+                         'ocorrencia_dia': linha[3],
+                         'valor': linha[4],
+                         'cartao': linha[5],
+                         'parcela': linha [6], 
+                         'categoria': linha[7],
+                         'tag': linha[8],
+                         'meio': linha[9],
+                         'categoria_fonte': ''}
+        
+        # Verifica se chegou a um registro vazio antes de salvar
+        if linha[0] is not None and linha[0] != 'DATA':
             
+            # Procura o registro no banco
+            current_hash = gera_hash_md5(registro_excel)
+            registro_bd = fetch_transaction_by_hash(current_hash)
+
+            if registro_bd != None:
+                # Verifica se houve alteração nos demais campos que não compõem a hash, ou seja, DETALHE, CARTÃO, PARCELA, CATEGORIA e TAG.
+                if verifica_alteracao(registro_bd, registro_excel):
+                    # Caso haja alteração atualiza o registro no banco, contabilizando para fins estatísticos
+                    num_registros_alterados += 1
+
+                # Caso contrário, apenas contabiliza para fins estatísticos
+                else:
+                    num_registros_inalterados += 1
+
+        num_registros_lidos += 1
+
+    if verbose == "true":
+
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Fim do 'update' do XLSX em BD...")
+
+        print(f"""
+        Registros lidos ({sheet}): {num_registros_lidos}
+        Registros alterados ({sheet}): {num_registros_alterados}
+        Registros inalterados ({sheet}): {num_registros_inalterados}
+        """)
+
+def verifica_alteracao(registro_bd, registro_excel):
+
+    houve_alteracao = False
+
+    for chave, valor in registro_bd.items():
+        if chave in ['detalhe', 'cartao', 'parcela', 'categoria', 'tag']:
+            if registro_excel[chave] != None and registro_excel[chave] != valor:
+                if verbose == "true":
+                    current_hash = registro_bd['hash']
+                    print(f'Divergência no valor da chave "{chave}" do registro "{current_hash}":\nBD: {registro_bd[chave]}\nEXCEL: {registro_excel[chave]}\n')
+                houve_alteracao = True
+                update_record(registro_excel)
+                return houve_alteracao
+
+    return houve_alteracao
+
 # [ ] Verificar se o registro duplicado já não existe na tabela de duplicado, se não em uma repetida rodada do script, todos os registros que são verdadeiros positivos, cairão na tabela de duplicados repetidas vezes
 def salva_duplicado(registro, conn, meio, fonte, file_timestamp):
 
@@ -497,7 +571,6 @@ def fetch_current_months_transactions(category):
     cursor.execute(consulta_sql)
 
     # Print Result-set
-    # Print Result-set
     for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
         transaction = {'data': data, 
                        'item': item,
@@ -518,6 +591,56 @@ def fetch_current_months_transactions(category):
         transactions.append(transaction)
 
     return transactions
+
+def fetch_transaction_by_hash(hash):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    consulta_sql = f"""
+                        SELECT
+                            *
+                        FROM
+                            transactions
+                        WHERE
+                            hash = '{hash}'
+                    """
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    transaction = None
+
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
+        
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'categoria': categoria,
+                       'categoria_fonte': categoria_fonte,
+                       'tag': tag,
+                       'meio': meio,
+                       'arquivo_fonte': fonte,
+                       'hash': hash,
+                       'timestamp': timestamp,
+                       'file_timestamp': file_timestamp}
+
+    if transaction != None:
+        return transaction
+    else:
+        # [ ] Verificar motivo de divergência de hashes
+        if verbose == "true":
+            print ('Divergência de hash!')
+        return None
 
 def update_mtime(file_path, modification_time):
     file_name = os.path.basename(file_path)
@@ -561,6 +684,32 @@ def update_uncategorized_records(records):
         
         # Commita a transação
         conn.commit()
+
+    # Close Connection
+    conn.close()
+
+def update_record(registro_excel):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    detalhe = registro_excel['detalhe']
+    cartao = registro_excel['cartao']
+    parcela = registro_excel['parcela']
+    categoria = registro_excel['categoria']
+    tag = registro_excel['tag']
+    hash = gera_hash_md5(registro_excel)
+
+    # Query the database
+    cursor.execute(
+        "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ? WHERE hash = ?",
+        (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
+    
+    # Commita a transação
+    conn.commit()
 
     # Close Connection
     conn.close()

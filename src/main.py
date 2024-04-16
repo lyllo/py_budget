@@ -79,6 +79,7 @@ toggle_extract_itau_cc = config.get('Toggle', 'toggle_extract_itau_cc')
 
 toggle_load_history = config.get('Toggle', 'toggle_load_history')
 toggle_dump_history = config.get('Toggle', 'toggle_dump_history')
+toggle_update_data_from_excel = config.get('Toggle', 'toggle_update_data_from_excel')
 
 # Verifica a existência de um arquivo
 def file_exists(file_path):
@@ -177,3 +178,10 @@ if toggle_dump_history == "true":
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
     files.dump_history()
+
+# UPDATE DATA FROM EXCEL
+
+if toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...")
+    db.atualiza_historico(PATH_TO_HISTORY_FILE)
