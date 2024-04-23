@@ -165,21 +165,21 @@ if toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE
     print(f"\n[{timestamp}] Iniciando 'transform' do Rico Investimentos...")
     rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
-# HISTORY LOAD
+# HISTORY LOAD (USED TO CREATE A FRESH NEW DB FROM THE DATA STORED IN AN EXCEL FILE)
 
 if toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"\n[{timestamp}] Iniciando 'load' do XLSX em BD...")
     db.carrega_historico(PATH_TO_HISTORY_FILE)
 
-# DUMP HISTORY
+# DUMP HISTORY (USED TO CREATE A FRESH NEW FILE FROM THE DATA STORED IN THE DB)
     
 if toggle_dump_history == "true":
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
     files.dump_history()
 
-# UPDATE DATA FROM EXCEL
+# UPDATE DATA FROM EXCEL (USED TO UPDATE THE DB WITH THE DETAILS ENTERED IN AN EXCEL FILE)
 
 if toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")

@@ -638,8 +638,8 @@ def fetch_transaction_by_hash(hash):
         return transaction
     else:
         # [ ] Verificar motivo de divergência de hashes
-        if verbose == "true":
-            print ('Divergência de hash!')
+        # if verbose == "true":
+        #    print ('Divergência de hash!')
         return None
 
 def update_mtime(file_path, modification_time):
@@ -697,10 +697,25 @@ def update_record(registro_excel):
     cursor = conn.cursor()
 
     detalhe = registro_excel['detalhe']
+    if detalhe == None:
+        detalhe = ''
+
     cartao = registro_excel['cartao']
+    if cartao == None:
+        cartao = ''
+    
     parcela = registro_excel['parcela']
+    if parcela == None:
+        parcela = ''
+
     categoria = registro_excel['categoria']
+    if categoria == None:
+        categoria = ''
+
     tag = registro_excel['tag']
+    if tag == None:
+        tag = ''
+
     hash = gera_hash_md5(registro_excel)
 
     # Query the database

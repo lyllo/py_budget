@@ -54,6 +54,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--incognito')
     chrome_options.add_argument('--headless') # Não carrega a GUI
+    chrome_options.binary_location = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
 
     # Constrói o driver do Chrome
     driver = webdriver.Chrome(options=chrome_options)

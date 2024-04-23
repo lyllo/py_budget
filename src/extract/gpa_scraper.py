@@ -67,6 +67,7 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
         "safebrowsing.enabled": False,
         "download_restrictions": 3,  # Permite sobregravar o mesmo arquivo
     })
+    chrome_options.binary_location = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
 
     # Constrói o driver do Chrome
     driver = webdriver.Chrome(options=chrome_options)

@@ -33,35 +33,34 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         # Se o arquivo não existe, vamos precisar de um cabeçalho
         linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
-    sheet = wb.active
-    sheet.title = nome_planilha
+    ws = wb[nome_planilha]
 
     # Inicializa o contador de linhas da planilha
     if new_file == True:
         num_linha_excel = 1
     else:
-        num_linha_excel = sheet.max_row + 1
+        num_linha_excel = ws.max_row + 1
 
     # Inclui as linhas no arquivo do Excel
     for linha in linhas:
-        sheet.append(linha)
+        ws.append(linha)
         
         # Pintar a fonte das linhas que contêm transações no futuro de cinza
         if isinstance(linha[0], date):
             data_linha = linha[0]
             data_hoje = datetime.now().date()
             if data_linha > data_hoje:
-                for cell in sheet[num_linha_excel]:
+                for cell in ws[num_linha_excel]:
                     cell.font = Font(color="808080")
 
         # Formata como moeda em BRL a coluna E (5) do VALOR
-        for cell in sheet[num_linha_excel]:
+        for cell in ws[num_linha_excel]:
             if cell.column == 5:
                 cell.number_format = 'R$ #,##0.00'
 
         # Pintar de vermelho a fonte das células das categorias preenchidas por AI
         if 'ai_gpt' in linha:
-            for cell in sheet[num_linha_excel]:
+            for cell in ws[num_linha_excel]:
                 # A coluna F (6) é da CATEGORIA
                 if cell.column == 6:
                     # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
@@ -69,7 +68,72 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
 
         num_linha_excel += 1
 
-    formata_planilha(sheet)
+    formata_planilha(ws)
+
+    # Salva os stats
+    save_stats(wb)
+
+    # Salva o arquivo do Excel
+    wb.save(nome_arquivo)
+
+# Substituir linhas em arquivo Excel (chamado pelo método dump)
+def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
+
+    new_file = True
+
+    try:
+        # Tenta carregar o arquivo existente
+        wb = load_workbook(nome_arquivo)
+
+        ws = wb[nome_planilha]
+        wb.remove(ws)
+
+        new_file = False
+
+    except FileNotFoundError:
+        # Se o arquivo não existe, cria um novo
+        wb = Workbook()
+
+        # Se o arquivo não existe, vamos precisar de um cabeçalho
+        linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+
+    ws = wb.active
+    ws.title = nome_planilha
+
+    # Inicializa o contador de linhas da planilha
+    if new_file == True:
+        num_linha_excel = 1
+    else:
+        num_linha_excel = ws.max_row + 1
+
+    # Inclui as linhas no arquivo do Excel
+    for linha in linhas:
+        ws.append(linha)
+        
+        # Pintar a fonte das linhas que contêm transações no futuro de cinza
+        if isinstance(linha[0], date):
+            data_linha = linha[0]
+            data_hoje = datetime.now().date()
+            if data_linha > data_hoje:
+                for cell in ws[num_linha_excel]:
+                    cell.font = Font(color="808080")
+
+        # Formata como moeda em BRL a coluna E (5) do VALOR
+        for cell in ws[num_linha_excel]:
+            if cell.column == 5:
+                cell.number_format = 'R$ #,##0.00'
+
+        # Pintar de vermelho a fonte das células das categorias preenchidas por AI
+        if 'ai_gpt' in linha:
+            for cell in ws[num_linha_excel]:
+                # A coluna F (6) é da CATEGORIA
+                if cell.column == 6:
+                    # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
+                    cell.font = Font(color='FF0000')
+
+        num_linha_excel += 1
+
+    formata_planilha(ws)
 
     # Salva os stats
     save_stats(wb)
@@ -244,10 +308,14 @@ def dump_history():
         nome_planilha = "Summary"
 
         # Salva os dados em arquivo excel
-        incluir_linhas_em_excel(PATH_TO_FINAL_OUTPUT_FILE, nome_planilha, lista_de_listas)
+        substituir_linhas_em_excel(PATH_TO_FINAL_OUTPUT_FILE, nome_planilha, lista_de_listas)
+
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Fim do 'dump' do DB em XLSX.")
 
 def save_stats(wb):
 
+    # [ ] BUG: Na segunda execução sobre o mesmo arquivo de dump, está colocando Stats na aba Summary
     stats = db.fetch_stats()
 
     nome_planilha = 'Stats'
@@ -256,6 +324,7 @@ def save_stats(wb):
     if nome_planilha in wb.sheetnames:
         sheet_to_remove = wb[nome_planilha]
         wb.remove_sheet(sheet_to_remove)
+
     sheet = wb.create_sheet(title=nome_planilha)
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
