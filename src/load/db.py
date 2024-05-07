@@ -52,7 +52,7 @@ def gera_hash_md5(registro):
     ocorrencia_dia = registro['ocorrencia_dia']
 
     # Used to debug hashing_issues that turned out to be about strings with spaces on the right
-    # if registro['detalhe'] == 'PRESENTE MARIANA' and verbose == "true":
+    # if registro['detalhe'] == 'DEBUG' and verbose == "true":
     #     print("Breakpoint")
 
     # Se data for do tipo datetime e não date, é porque estamos lendo de history.xlsx, portanto precisamos normalizar
@@ -142,6 +142,8 @@ def salva_registro(registro, conn, meio, fonte, file_timestamp):
             if (e.errno == 1062):
                 # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
                 salva_duplicado(registro, conn, meio, fonte, file_timestamp)
+                if verbose == "true":
+                    print(f"Error em salva_registro: {e}")
 
             else:
                 if verbose == "true":
@@ -227,8 +229,8 @@ def carrega_historico(input_file):
 
     if verbose == "true":
 
-        # O -1 é para remover a linha do cabeçalho
-        registros_lidos = num_registros_lidos - 1
+        # O -2 é para remover a linha do cabeçalho e a de end-of-file
+        registros_lidos = num_registros_lidos
         registros_salvos = num_registros_salvos
 
         # Considera que a diferença entre registros lidos e registros salvos se dá pelo número de duplicados (deverá ser ZERO com a implentação da lógica que considera PORTADOR e OCORRÊNCIA)
@@ -256,6 +258,8 @@ def atualiza_historico(input_file):
     num_registros_lidos = 0
     num_registros_alterados = 0
     num_registros_inalterados = 0
+    num_registros_nao_encontrados = 0
+    num_registros_corrigidos = 0
 
     # Itera nas linhas do arquivo de histórico
     for linha in files.ler_arquivo_xlsx(input_file, sheet):
@@ -289,6 +293,13 @@ def atualiza_historico(input_file):
                 # Caso contrário, apenas contabiliza para fins estatísticos
                 else:
                     num_registros_inalterados += 1
+            else:
+                num_registros_nao_encontrados +=1
+                if verbose == "true":
+                    print(f"Registro não encontrado no BD: {registro_excel['data'].date()} | {registro_excel['item']} | {registro_excel['ocorrencia_dia']} | {registro_excel['valor']} | {current_hash}")
+
+                # Tenta encontrar o registro pela tupla (data, item, ocorrencia_dia, valor) para corrigir o hash
+                num_registros_corrigidos += fix_hash(registro_excel)
 
         num_registros_lidos += 1
 
@@ -299,8 +310,11 @@ def atualiza_historico(input_file):
 
         print(f"""
         Registros lidos ({sheet}): {num_registros_lidos}
-        Registros alterados ({sheet}): {num_registros_alterados}
-        Registros inalterados ({sheet}): {num_registros_inalterados}
+        Registros alterados: {num_registros_alterados}
+        Registros inalterados: {num_registros_inalterados}
+        Registros não encontrados: {num_registros_nao_encontrados}
+            Registros corrigidos: {num_registros_corrigidos}
+            Registros novos: {num_registros_nao_encontrados - num_registros_corrigidos}
         """)
 
 def verifica_alteracao(registro_bd, registro_excel):
@@ -728,3 +742,110 @@ def update_record(registro_excel):
 
     # Close Connection
     conn.close()
+
+def fix_hash(registro_excel):
+    fixed_hash = 0
+    registro_bd = fetch_transaction_by_tuple(registro_excel)
+    registro_excel_hash = gera_hash_md5(registro_excel)
+    print(f"Hash (XLSX): {registro_excel_hash}")
+    if registro_bd != None:    
+        print(f"Hash (BD): {registro_bd['hash']}\n")
+        update_hash(registro_bd['hash'], registro_excel_hash)
+        fixed_hash = 1
+    else:
+        print("Hash (BD): Não encontrado.\n")
+        conn = conecta_bd()
+        salva_registro(registro_excel, conn, registro_excel['meio'], 'Manual', TIMESTAMP)
+    return fixed_hash
+
+def update_hash(old_hash, new_hash):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Query the database
+    cursor.execute(
+        "UPDATE transactions SET hash = ? WHERE hash = ?",
+        (f"{new_hash}",f"{old_hash}",))
+    
+    # Commita a transação
+    conn.commit()
+
+    # Close Connection
+    conn.close()
+
+def fetch_transaction_by_tuple(registro_excel):
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    # Carrega a query
+    consulta_sql = f"""
+                        SELECT
+                            *
+                        FROM
+                            transactions
+                        WHERE
+                            data = '{registro_excel['data'].date()}'
+                        AND
+                            item = '{registro_excel['item']}'
+                        AND
+                            ocorrencia_dia = '{registro_excel['ocorrencia_dia']}'
+                        AND
+                            ROUND(valor, 1) = ROUND({registro_excel['valor']}, 1);
+                    """
+
+    # Query the database
+    cursor.execute(consulta_sql)
+
+    transaction = None
+
+    # Print Result-set
+    for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:
+        
+        transaction = {'data': data, 
+                       'item': item,
+                       'detalhe': detalhe,
+                       'valor': valor,
+                       'cartao': cartao,
+                       'parcela': parcela,
+                       'ocorrencia_dia': ocorrencia_dia, 
+                       'categoria': categoria,
+                       'categoria_fonte': categoria_fonte,
+                       'tag': tag,
+                       'meio': meio,
+                       'arquivo_fonte': fonte,
+                       'hash': hash,
+                       'timestamp': timestamp,
+                       'file_timestamp': file_timestamp}
+
+    if transaction != None:
+        return transaction
+    else:
+        # [ ] Verificar motivo de divergência de hashes
+        # if verbose == "true":
+        #    print ('Divergência de hash!')
+        return None    
+
+# DEBUG
+
+# dbg_reg = {'data': datetime(year=2024,month=3,day=1), 
+#                 'item': 'Resgate Antecipado - Meus Investimentos - CDB DIRETO DI',
+#                 'ocorrencia_dia': 1,
+#                 'valor': 20000.8}
+
+# dbg_hash = gera_hash_md5(dbg_reg)
+
+# print(f"dbg_hash: {dbg_hash}")
+
+# dbg_reg_db = fetch_transaction_by_hash('0bc77ac7af9d69b6cfcec87042499cd3')
+
+# dbg_hash_db = gera_hash_md5(dbg_reg_db)
+
+# print(f"dbg_hash_db: {dbg_hash_db}")

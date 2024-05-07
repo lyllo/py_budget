@@ -33,7 +33,12 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         # Se o arquivo não existe, vamos precisar de um cabeçalho
         linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
-    ws = wb[nome_planilha]
+    try:
+        ws = wb[nome_planilha]
+
+    except KeyError:
+        # Cria a sheet 'Summary'
+        ws = wb.create_sheet(nome_planilha)
 
     # Inicializa o contador de linhas da planilha
     if new_file == True:
@@ -45,7 +50,7 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     for linha in linhas:
         ws.append(linha)
         
-        # Pintar a fonte das linhas que contêm transações no futuro de cinza
+        # Pinta a fonte das linhas que contêm transações no futuro de cinza
         if isinstance(linha[0], date):
             data_linha = linha[0]
             data_hoje = datetime.now().date()
@@ -81,24 +86,33 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
 
     new_file = True
 
+    # O try foi pra carregar o arquivo, não tratava incialmente ter o arquivo, mas sem a sheet 'Summary'
     try:
         # Tenta carregar o arquivo existente
         wb = load_workbook(nome_arquivo)
 
+        # Instancia a sheet 'Summary'
         ws = wb[nome_planilha]
+
+        # Remove a sheet 'Summary'
         wb.remove(ws)
 
         new_file = False
 
+    # Não existe o arquivo
     except FileNotFoundError:
         # Se o arquivo não existe, cria um novo
         wb = Workbook()
 
-        # Se o arquivo não existe, vamos precisar de um cabeçalho
-        linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
+    # Existe o arquivo mas não a sheet
+    except KeyError:
+        # Cria a sheet 'Summary'
+        ws = wb.create_sheet(nome_planilha)
 
-    ws = wb.active
-    ws.title = nome_planilha
+    ws = wb.create_sheet(nome_planilha)
+
+    # Criando o cabeçalho
+    linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
     # Inicializa o contador de linhas da planilha
     if new_file == True:
@@ -189,12 +203,22 @@ def formata_planilha(sheet):
     # Definir o padrão de preenchimento com fundo branco
     padrao_preenchimento = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
 
-    # [ ] Pintar o fundo das células da primeira linha entre as colunas A e J de cinza
-
     # Iterar sobre todas as células da planilha e aplicar o preenchimento
     for linha in sheet.iter_rows():
         for celula in linha:
             celula.fill = padrao_preenchimento
+
+    # [X] Pintar o fundo das células da primeira linha entre as colunas A e J de cinza
+    fill = PatternFill(start_color="808080", end_color="808080", fill_type="solid")
+    font = Font(color="FFFFFF", bold=True)
+
+    # Loop pelas primeiras 10 colunas da primeira linha
+    for col in range(1, 11):
+        # Seleciona a célula na primeira linha e na coluna atual
+        cell = sheet.cell(row=1, column=col)
+        # Define o preenchimento da célula
+        cell.fill = fill
+        cell.font = font
 
     # Ative o filtro na primeira linha
     sheet.auto_filter.ref = sheet.dimensions
@@ -233,33 +257,8 @@ def ler_arquivo_xls(nome_arquivo):
     for row in range(sheet.nrows):
         yield sheet.row_values(row)
 
-# Salvar dados recém carregados em excel temporário
-def salva_excel_temporario(nome_arquivo, nome_planilha, timestamp):
-
-    # [ ] Sem usar o DB, não é mais possível gerar o arquivo temporário
-    transactions = db.fetch_transactions_where(nome_planilha, timestamp)
-
-    if (len(transactions) > 0):
-
-        # Função de chave para a ordenação
-        def chave_de_ordenacao(dic):
-            return dic['data']
-
-        # Ordenar a lista de dicionários pela chave 'data'
-        lista_ordenada = sorted(transactions, key=chave_de_ordenacao)
-
-        # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-        lista_de_listas = [list(item.values()) for item in lista_ordenada]
-
-        # [ ] Oportunidade de matar os 2 métodos de salvar em excel temporário e final, fazendo condicional apenas desta linha, quando temp
-        # Adiciona o cabeçalho à lista de listas
-        # lista_de_listas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
-
-        # Salva os dados em arquivo excel
-        incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
-
-# Salvar dados recém carregados em excel final
-def salva_excel_final(nome_arquivo, nome_planilha, timestamp):
+# Salvar dados recém carregados em excel
+def salva_excel(nome_arquivo, nome_planilha, timestamp):
 
     transactions = db.fetch_transactions_where(nome_planilha, timestamp)
 
@@ -315,7 +314,6 @@ def dump_history():
 
 def save_stats(wb):
 
-    # [ ] BUG: Na segunda execução sobre o mesmo arquivo de dump, está colocando Stats na aba Summary
     stats = db.fetch_stats()
 
     nome_planilha = 'Stats'
@@ -328,10 +326,10 @@ def save_stats(wb):
     sheet = wb.create_sheet(title=nome_planilha)
 
     # Transforma a lista de dicionários em uma lista de listas, sem os nomes das chaves
-    lista_de_listas = [list(item.values()) for item in stats]
+    linhas_stats = [list(item.values()) for item in stats]
 
     # Insere o cabeçalho
-    lista_de_listas.insert(0, ['MEIO', 'ÚLTIMA TRANSAÇÃO', 'ÚLTIMA ATUALIZAÇÃO', 'ÚLTIMO ARQUIVO', 'TOTAL TRANSAÇÕES'])
+    linhas_stats.insert(0, ['MEIO', 'ÚLTIMA TRANSAÇÃO', 'ÚLTIMA ATUALIZAÇÃO', 'ÚLTIMO ARQUIVO', 'TOTAL TRANSAÇÕES'])
 
-    for lista in lista_de_listas:
-        sheet.append(lista)
+    for linha in linhas_stats:
+        sheet.append(linha)

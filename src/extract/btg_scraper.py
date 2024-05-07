@@ -130,7 +130,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
         # [ ] Ajustar para gerar dinamicamente a string do mês anterior
         # String desejada a ser encontrada na página
-        string_desejada = '/Fev'
+        string_desejada = '/Jan'
 
         # Identifica o elemento dentro do qual você deseja rolar
         elemento_contenedor = driver.find_element(By.XPATH, '//div[@class="timeline"]')

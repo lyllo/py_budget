@@ -106,11 +106,17 @@ def limpar_data(linha):
 
 # Converter strings no formato - R$xx,xx para variáveis do tipo float no formato xx,xx
 def limpar_valor(linha):
-    valor_float = "{:.2f}".format(-1 * float(linha[5:].replace(".","").replace(",",".")))
+    multiplicador = -1
+    offset_valor = 4
+    if linha.find("-") == -1:
+        multiplicador = 1
+        offset_valor = 3
+    valor_float = "{:.2f}".format(multiplicador * float(linha[offset_valor:].replace(".","").replace(",",".")))
     return float(valor_float)
 
 def encontra_linha_de_data(linha):
-    if linha.find("/Jan") != -1 or linha.find("/Fev") != -1 or linha.find("/Mar") != -1 or linha.find("/Abr") != -1 or linha.find("/Mai") != -1 or linha.find("/Jun") != -1 or linha.find("/Jul") != -1 or linha.find("/Ago") != -1 or linha.find("/Set") != -1 or linha.find("/Out") != -1 or linha.find("/Nov") != -1 or linha.find("/Dez") != -1:
+    linha_lower = linha.lower()
+    if linha_lower.find("/jan") != -1 or linha_lower.find("/fev") != -1 or linha_lower.find("/mar") != -1 or linha_lower.find("/abr") != -1 or linha_lower.find("/mai") != -1 or linha_lower.find("/jun") != -1 or linha_lower.find("/jul") != -1 or linha_lower.find("/ago") != -1 or linha_lower.find("/set") != -1 or linha_lower.find("/out") != -1 or linha_lower.find("/nov") != -1 or linha_lower.find("/dez") != -1:
         return True
     else:
         return False
@@ -149,7 +155,7 @@ def init(input_file, output_file):
             # Armazenar o valor da última data encontrada
             data = limpar_data(linha)
 
-        # [ ] Evoluir para capturar transações de Conta
+        # [x] Evoluir para capturar transações de Conta
         # Encontra uma linha de transação de Cartão
         if linha.find("Compra ") != -1:
 
@@ -192,7 +198,7 @@ def init(input_file, output_file):
                 novo_registro['parcela'] = "1/1"
             
         # Encontra uma linha de valor
-        if linha.find("- R$", 0, 4) != -1 and compra_buffer == True:
+        if linha.find("-R$ ", 0, 4) != -1 and compra_buffer == True:
 
             # Definir o valor da chave 'valor' com o valor encontrado
             novo_registro['valor'] = limpar_valor(linha)/parcelas
@@ -250,11 +256,11 @@ def init(input_file, output_file):
 
         nome_arquivo = output_file
         print(f"\nIniciando 'load' do {MEIO} em xlsx temporário...")
-        files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
+        files.salva_excel(nome_arquivo, MEIO, timestamp)
 
     # Salva as informações em um arquivo Excel final
     if(toggle_final_sheet == "true"):
 
         nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
         print(f"\nIniciando 'load' do {MEIO} em xlsx final...")
-        files.salva_excel_final(nome_arquivo, MEIO, timestamp)
+        files.salva_excel(nome_arquivo, "Summary", timestamp)
