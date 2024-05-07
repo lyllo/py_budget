@@ -8,6 +8,7 @@ import random
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import datetime
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -128,9 +129,9 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
         # [x] Acertar o scroll para baixo (no elemnto da timeline) até encontrar o texto do mês anterior
 
-        # [ ] Ajustar para gerar dinamicamente a string do mês anterior
+        # [x] Ajustar para gerar dinamicamente a string do mês anterior
         # String desejada a ser encontrada na página
-        string_desejada = '/Jan'
+        string_desejada = mes_anterior()
 
         # Identifica o elemento dentro do qual você deseja rolar
         elemento_contenedor = driver.find_element(By.XPATH, '//div[@class="timeline"]')
@@ -168,3 +169,45 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
         # Finalmente, feche o navegador quando terminar todas as operações
         driver.quit()
+
+"""
+  ______                /\/|                                _ _ _                     
+ |  ____|              |/\/                 /\             (_) (_)                    
+ | |__ _   _ _ __   ___ ___   ___  ___     /  \  _   ___  ___| |_  __ _ _ __ ___  ___ 
+ |  __| | | | '_ \ / __/ _ \ / _ \/ __|   / /\ \| | | \ \/ / | | |/ _` | '__/ _ \/ __|
+ | |  | |_| | | | | (_| (_) |  __/\__ \  / ____ \ |_| |>  <| | | | (_| | | |  __/\__ \
+ |_|   \__,_|_| |_|\___\___/ \___||___/ /_/    \_\__,_/_/\_\_|_|_|\__,_|_|  \___||___/
+                    )_)                                                               
+
+"""
+
+def mes_anterior():
+    # Dicionário de tradução de meses
+    meses_pt = {
+        "jan": "Jan",
+        "feb": "Fev",
+        "mar": "Mar",
+        "apr": "Abr",
+        "may": "Mai",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Ago",
+        "sep": "Set",
+        "oct": "Out",
+        "nov": "Nov",
+        "dec": "Dez"
+    }
+    
+    # Obter data atual
+    hoje = datetime.date.today()
+    
+    # Obter o primeiro dia do mês anterior
+    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=1)
+    
+    # Obter o nome do mês anterior no formato abreviado em inglês
+    mes_anterior_abreviado_en = primeiro_dia_mes_anterior.strftime("/%b").lower()
+    
+    # Traduzir para português
+    mes_anterior_abreviado_pt = meses_pt[mes_anterior_abreviado_en[1:]]  # Ignora o "/" no início
+    
+    return "/" + mes_anterior_abreviado_pt
