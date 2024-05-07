@@ -142,11 +142,11 @@ def salva_registro(registro, conn, meio, fonte, file_timestamp):
             if (e.errno == 1062):
                 # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
                 salva_duplicado(registro, conn, meio, fonte, file_timestamp)
-                if verbose == "true":
+                if verbose == "error":
                     print(f"Error em salva_registro: {e}")
 
             else:
-                if verbose == "true":
+                if verbose == "error":
                     print(f"Error em salva_registro: {e}")
 
             return 0
@@ -161,6 +161,9 @@ def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
 
     # Inicializa o buffer do dia para identificação de transações duplicadas que não são falsos positivos
     buffer = []
+
+    # Inicaliza contador de registros salvos
+    num_registros_salvos = 0
 
     for registro in lista_de_registros:
         
@@ -181,7 +184,10 @@ def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
             
             buffer.append(registro)
     
-        salva_registro(registro, conn, meio, fonte, file_timestamp)
+        num_registros_salvos += salva_registro(registro, conn, meio, fonte, file_timestamp)
+    
+    if verbose == "true":
+        print(f"Registros lidos: {len(lista_de_registros)}\nRegisros salvos: {num_registros_salvos}")
     
     # Close Connection
     conn.close()
@@ -358,7 +364,7 @@ def salva_duplicado(registro, conn, meio, fonte, file_timestamp):
             conn.commit()
 
         except mariadb.Error as e:
-            if verbose == "true":
+            if verbose == "error":
                 print(f"Error em salva_duplicado: {e}")
 
 def fetch_transactions_where(nome_planilha, timestamp):

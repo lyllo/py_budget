@@ -198,7 +198,7 @@ def init(input_file, output_file):
                 novo_registro['parcela'] = "1/1"
             
         # Encontra uma linha de valor
-        if linha.find("-R$ ", 0, 4) != -1 and compra_buffer == True:
+        if linha.find("- R$ ", 0, 5) != -1 and compra_buffer == True:
 
             # Definir o valor da chave 'valor' com o valor encontrado
             novo_registro['valor'] = limpar_valor(linha)/parcelas
