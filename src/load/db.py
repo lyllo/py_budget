@@ -177,7 +177,7 @@ def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
             buffer.append(registro)
        
         else:
-            if verbose == "true":
+            if verbose == "debug":
                 print(f"O item {registro['item']} já ocorreu {ocorrencias_dia} vez(es) neste arquivo de entrada.")
             
             registro['ocorrencia_dia'] = ocorrencias_dia + 1
@@ -187,7 +187,7 @@ def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
         num_registros_salvos += salva_registro(registro, conn, meio, fonte, file_timestamp)
     
     if verbose == "true":
-        print(f"Registros lidos: {len(lista_de_registros)}\nRegisros salvos: {num_registros_salvos}")
+        print(f"\tRegistros lidos: {len(lista_de_registros)}\n\tRegisros salvos: {num_registros_salvos}")
     
     # Close Connection
     conn.close()
@@ -314,8 +314,9 @@ def atualiza_historico(input_file):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Fim do 'update' do XLSX em BD...")
 
+        # Exclui a linha de cabeçalho
         print(f"""
-        Registros lidos ({sheet}): {num_registros_lidos}
+        Registros lidos ({sheet}): {num_registros_lidos-1}
         Registros alterados: {num_registros_alterados}
         Registros inalterados: {num_registros_inalterados}
         Registros não encontrados: {num_registros_nao_encontrados}

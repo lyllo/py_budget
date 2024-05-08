@@ -183,5 +183,5 @@ if toggle_dump_history == "true":
 
 if toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...\n")
+    print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...")
     db.atualiza_historico(PATH_TO_HISTORY_FILE) 

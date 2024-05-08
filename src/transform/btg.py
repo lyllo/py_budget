@@ -11,7 +11,7 @@ ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
 
 sys.path.append(ROOT_DIR)
 
-from imports import *
+# from imports import *
 import category
 import load.files as files
 import load.db as db
@@ -32,7 +32,7 @@ toggle_db = config.get('Toggle', 'toggle_db')
 toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
 toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
-
+verbose = config.get('Toggle', 'verbose')
 
 """
   ______                /\/|                                _ _ _                     
@@ -110,7 +110,7 @@ def limpar_valor(linha):
     offset_valor = 4
     if linha.find("-") == -1:
         multiplicador = 1
-        offset_valor = 3
+        offset_valor = 4 # É igual a 3 quando faz copy/paste manual
     valor_float = "{:.2f}".format(multiplicador * float(linha[offset_valor:].replace(".","").replace(",",".")))
     return float(valor_float)
 
@@ -242,9 +242,15 @@ def init(input_file, output_file):
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
 
+    if verbose == "true":
+        nome_arquivo_entrada = os.path.basename(input_file)
+        print(f"\tRegistros lidos ({nome_arquivo_entrada}): {len(lista_de_registros)}")
+
     # Salva dados no banco
     if(toggle_db == "true"):
-        print(f"\nIniciando 'load' do {MEIO} em db...")
+
+        now_timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em db...")
         file_timestamp = files.get_modification_time(input_file)
         timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
@@ -254,13 +260,15 @@ def init(input_file, output_file):
     # Salva as informações em um arquivo Excel temporário
     if(toggle_temp_sheet == "true"):
 
+        now_timestamp = datetime.now().strftime("%H:%M:%S")
         nome_arquivo = output_file
-        print(f"\nIniciando 'load' do {MEIO} em xlsx temporário...")
+        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx temporário...")
         files.salva_excel(nome_arquivo, MEIO, timestamp)
 
     # Salva as informações em um arquivo Excel final
     if(toggle_final_sheet == "true"):
 
+        now_timestamp = datetime.now().strftime("%H:%M:%S")
         nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
-        print(f"\nIniciando 'load' do {MEIO} em xlsx final...")
+        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
         files.salva_excel(nome_arquivo, "Summary", timestamp)

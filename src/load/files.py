@@ -8,6 +8,7 @@ from datetime import date
 import xlrd
 import load.db as db
 import os, platform
+import configparser
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -15,6 +16,14 @@ current_file_path = os.path.abspath(__file__)
 # Caminho da raiz do projeto
 ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
+
+# Caminho para arquivo de configuração
+PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
+# Lê as feature toggles do arquivo de configuração
+config = configparser.ConfigParser()
+config.read(PATH_TO_CONFIG_FILE)
+verbose = config.get('Toggle', 'verbose')
 
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
@@ -76,7 +85,7 @@ def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     formata_planilha(ws)
 
     # Salva os stats
-    save_stats(wb)
+    # save_stats(wb)
 
     # Salva o arquivo do Excel
     wb.save(nome_arquivo)
@@ -115,10 +124,7 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
     # Inicializa o contador de linhas da planilha
-    if new_file == True:
-        num_linha_excel = 1
-    else:
-        num_linha_excel = ws.max_row + 1
+    num_linha_excel = 1
 
     # Inclui as linhas no arquivo do Excel
     for linha in linhas:
@@ -149,8 +155,12 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
 
     formata_planilha(ws)
 
+    if verbose == "true":
+        # Exclui a linha de cabeçalho
+        print(f"\tRegistros salvos: {ws.max_row-1}")
+
     # Salva os stats
-    save_stats(wb)
+    # save_stats(wb)
 
     # Salva o arquivo do Excel
     wb.save(nome_arquivo)
@@ -262,6 +272,9 @@ def salva_excel(nome_arquivo, nome_planilha, timestamp):
 
     transactions = db.fetch_transactions_where(nome_planilha, timestamp)
 
+    if verbose == "true":
+        print(f"\tRegistros lidos: {len(transactions)}")
+
     if (len(transactions) > 0):
 
         # Função de chave para a ordenação
@@ -292,6 +305,8 @@ def dump_history():
 
     transactions = db.fetch_transactions()
 
+    print(f"\tRegistros lidos: {len(transactions)}")
+
     if (len(transactions) > 0):
 
         # Função de chave para a ordenação
@@ -309,8 +324,9 @@ def dump_history():
         # Salva os dados em arquivo excel
         substituir_linhas_em_excel(PATH_TO_FINAL_OUTPUT_FILE, nome_planilha, lista_de_listas)
 
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"\n[{timestamp}] Fim do 'dump' do DB em XLSX.")
+        if verbose == "true":
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            print(f"\n[{timestamp}] Fim do 'dump' do DB em XLSX.")
 
 def save_stats(wb):
 

@@ -113,14 +113,14 @@ def fill(lista_de_registros):
     if (simple_match == "true"):
 
         # Imprime timestamp do início do carregamento do dicionário de categorias
-        if(verbose == "true"):
+        if(verbose == "debug"):
             print("[" + datetime.now().strftime("%H:%M:%S") +"] Iniciando carregamento do dicionário...")
 
         # Carrega dicionário de categorias
         lista_de_categorias = carrega_dicionario()
 
         # Imprime timestamp do término do carregamento do dicionário
-        if(verbose == "true"):
+        if(verbose == "debug"):
             print("[" + datetime.now().strftime("%H:%M:%S") +"] Dicionário carregado em memória.")
 
         num_simple_matches = 0
@@ -149,11 +149,11 @@ def fill(lista_de_registros):
                         registro['categoria_fonte'] = 'history_similar'
                         num_similar_matches += 1
 
-        if (simple_match == "true"):
+        if (simple_match == "debug"):
             if(verbose == "true"):
                 print(str(num_simple_matches) + " simple matches em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_simple_matches/len(lista_de_registros)),2)) + "%.")
 
-        if (similar_match == "true"):
+        if (similar_match == "debug"):
             if(verbose == "true"):
                 print(str(num_similar_matches) + " similar matches quando limite = " + str(limite) + " em " + str(len(lista_de_registros)) + " registros, eficiência de " + str(round(100*(num_similar_matches/len(lista_de_registros)),2)) + "%.")
 
