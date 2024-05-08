@@ -330,12 +330,14 @@ def verifica_alteracao(registro_bd, registro_excel):
 
     for chave, valor in registro_bd.items():
         if chave in ['detalhe', 'cartao', 'parcela', 'categoria', 'tag']:
+            if chave == 'categoria':
+                category = 'Manual'
             if registro_excel[chave] != None and registro_excel[chave] != valor:
                 if verbose == "true":
                     current_hash = registro_bd['hash']
                     print(f'Divergência no valor da chave "{chave}" do registro "{current_hash}":\nBD: {registro_bd[chave]}\nEXCEL: {registro_excel[chave]}\n')
                 houve_alteracao = True
-                update_record(registro_excel)
+                update_record(registro_excel, category)
                 return houve_alteracao
 
     return houve_alteracao
@@ -709,7 +711,7 @@ def update_uncategorized_records(records):
     # Close Connection
     conn.close()
 
-def update_record(registro_excel):
+def update_record(registro_excel, category):
 
     #Conecta ao banco
     conn = conecta_bd()
@@ -739,10 +741,19 @@ def update_record(registro_excel):
 
     hash = gera_hash_md5(registro_excel)
 
-    # Query the database
-    cursor.execute(
-        "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ? WHERE hash = ?",
-        (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
+    if category == "Manual":
+
+        # Query the database
+        cursor.execute(
+            "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ?, categoria_fonte = 'Manual' WHERE hash = ?",
+            (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
+        
+    else:
+
+        # Query the database
+        cursor.execute(
+            "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ? WHERE hash = ?",
+            (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
     
     # Commita a transação
     conn.commit()
