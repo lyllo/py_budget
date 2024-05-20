@@ -205,23 +205,22 @@ def init(input_file, output_file):
         now_timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em db...")
         file_timestamp = files.get_modification_time(input_file)
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
+        num_registros_salvos = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
-    else:
-        timestamp = int(datetime.timestamp(datetime.now()))
+        if num_registros_salvos > 0:
 
-    # Salva as informações em um arquivo Excel temporário
-    if(toggle_temp_sheet == "true"):
+            # Salva as informações em um arquivo Excel temporário
+            if(toggle_temp_sheet == "true"):
 
-        now_timestamp = datetime.now().strftime("%H:%M:%S")
-        nome_arquivo = output_file
-        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx temporário...")
-        files.salva_excel(nome_arquivo, MEIO, timestamp)
+                now_timestamp = datetime.now().strftime("%H:%M:%S")
+                nome_arquivo = output_file
+                print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx temporário...")
+                files.salva_excel(nome_arquivo, MEIO)
 
-    # Salva as informações em um arquivo Excel final
-    if(toggle_final_sheet == "true"):
+            # Salva as informações em um arquivo Excel final
+            if(toggle_final_sheet == "true"):
 
-        now_timestamp = datetime.now().strftime("%H:%M:%S")
-        nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
-        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
-        files.salva_excel(nome_arquivo, "Summary", timestamp)
+                now_timestamp = datetime.now().strftime("%H:%M:%S")
+                nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
+                print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
+                files.salva_excel(nome_arquivo, "Summary")

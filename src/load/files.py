@@ -268,9 +268,9 @@ def ler_arquivo_xls(nome_arquivo):
         yield sheet.row_values(row)
 
 # Salvar dados recém carregados em excel
-def salva_excel(nome_arquivo, nome_planilha, timestamp):
+def salva_excel(nome_arquivo, nome_planilha):
 
-    transactions = db.fetch_transactions_where(nome_planilha, timestamp)
+    transactions = db.fetch_recent_transactions(nome_planilha)
 
     if verbose == "true":
         print(f"\tRegistros lidos: {len(transactions)}")

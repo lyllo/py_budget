@@ -128,30 +128,54 @@ def salva_registro(registro, conn, meio, fonte, file_timestamp):
         
         hash = gera_hash_md5(registro)
 
-        try:
-            cursor.execute(
-                "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash, TIMESTAMP, file_timestamp))
-            conn.commit()
+        # Verifica se transação precisa ser ignorada
+        if ignora_registro(hash) != True:
 
-            return 1
-        
-        except mariadb.Error as e:
+            try:
+                cursor.execute(
+                    "INSERT INTO transactions (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                    (registro['data'], registro['item'],  registro['detalhe'], registro['valor'], registro['cartao'], registro['parcela'], registro['ocorrencia_dia'], registro['categoria'], registro['categoria_fonte'], registro['tag'], meio, fonte, hash, TIMESTAMP, file_timestamp))
+                conn.commit()
 
-            # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
-            if (e.errno == 1062):
-                # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
-                salva_duplicado(registro, conn, meio, fonte, file_timestamp)
-                if verbose == "error":
-                    print(f"Error em salva_registro: {e}")
+                return 1
+            
+            except mariadb.Error as e:
 
-            else:
-                if verbose == "error":
-                    print(f"Error em salva_registro: {e}")
+                # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
+                if (e.errno == 1062):
+                    # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
+                    salva_duplicado(registro, conn, meio, fonte, file_timestamp)
+                    if verbose == "error":
+                        print(f"Error em salva_registro: {e}")
 
-            return 0
+                else:
+                    if verbose == "error":
+                        print(f"Error em salva_registro: {e}")
+
+                return 0
         
     return 0
+
+# Verifica se é para ignorar transação
+def ignora_registro(hash):
+    ignora = False
+    conn = conecta_bd()
+    cursor = conn.cursor()
+    cursor.execute(
+    """
+        SELECT COUNT(1) FROM ignored
+        WHERE hash = ?
+    """, 
+    (f"{hash}",))
+    # Obtendo o resultado
+    resultado = cursor.fetchone()
+    count = resultado[0] if resultado else 0
+    if count != 0:
+        ignora = True
+        if verbose == "true":
+            print(f"Ignorando registro com hash: {hash}\n")
+    conn.close()
+    return ignora
 
 # Insere registros no banco de dados
 def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
@@ -193,7 +217,7 @@ def salva_registros(lista_de_registros, meio, fonte, file_timestamp):
     conn.close()
 
     # Return timestamp
-    return TIMESTAMP
+    return num_registros_salvos
 
 def carrega_historico(input_file):
 
@@ -250,22 +274,14 @@ def carrega_historico(input_file):
 
 def atualiza_historico(input_file):
 
-    #Conecta ao banco
-    conn = conecta_bd()
-
     sheet = 'Summary'
-
-    # Obtém o timestamp de criação do arquivo
-    file_timestamp = files.get_modification_time(input_file)
-
-    # Obtém o nome do arquivo
-    file_name = os.path.basename(input_file)
 
     num_registros_lidos = 0
     num_registros_alterados = 0
     num_registros_inalterados = 0
     num_registros_nao_encontrados = 0
     num_registros_corrigidos = 0
+    num_registros_deletados = 0
 
     # Itera nas linhas do arquivo de histórico
     for linha in files.ler_arquivo_xlsx(input_file, sheet):
@@ -283,7 +299,7 @@ def atualiza_historico(input_file):
                          'meio': linha[9],
                          'categoria_fonte': ''}
         
-        # Verifica se chegou a um registro vazio antes de salvar
+        # Verifica se chegou a um registro válido
         if linha[0] is not None and linha[0] != 'DATA':
             
             # Procura o registro no banco
@@ -291,8 +307,12 @@ def atualiza_historico(input_file):
             registro_bd = fetch_transaction_by_hash(current_hash)
 
             if registro_bd != None:
+                # Verifica se é para apagar o registro (contém "DELETE - " no campo 'DETALHE')
+                if registro_excel['detalhe'] != None and registro_excel['detalhe'].find("DELETE - ") != -1:
+                    num_registros_deletados += deleta_registro(registro_bd['hash'])
+
                 # Verifica se houve alteração nos demais campos que não compõem a hash, ou seja, DETALHE, CARTÃO, PARCELA, CATEGORIA e TAG.
-                if verifica_alteracao(registro_bd, registro_excel):
+                elif verifica_alteracao(registro_bd, registro_excel, num_registros_lidos):
                     # Caso haja alteração atualiza o registro no banco, contabilizando para fins estatísticos
                     num_registros_alterados += 1
 
@@ -314,17 +334,70 @@ def atualiza_historico(input_file):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Fim do 'update' do XLSX em BD...")
 
-        # Exclui a linha de cabeçalho
+        # O -1 é para excluir a linha de cabeçalho
         print(f"""
         Registros lidos ({sheet}): {num_registros_lidos-1}
         Registros alterados: {num_registros_alterados}
+        Registros deletados: {num_registros_deletados}
         Registros inalterados: {num_registros_inalterados}
         Registros não encontrados: {num_registros_nao_encontrados}
             Registros corrigidos: {num_registros_corrigidos}
             Registros novos: {num_registros_nao_encontrados - num_registros_corrigidos}
         """)
 
-def verifica_alteracao(registro_bd, registro_excel):
+def deleta_registro(hash):
+
+    registro_deletado = 0
+
+    #Conecta ao banco
+    conn = conecta_bd()
+
+    # Pega o cursor
+    cursor = conn.cursor()
+
+    try:
+    
+        # Copia o registro para a tabela de transações ignoradas para caso ele venha novamente dos golden sources
+        cursor.execute(
+            """
+                INSERT INTO ignored
+                SELECT * FROM transactions
+                WHERE hash = ?
+            """, 
+            (f"{hash}",))
+        
+    except mariadb.Error as e:
+        if verbose == "error":
+            print(f"Erro ao inserir em ignored: {e}")
+
+    try:
+    
+        # Deleta o registro da tabela de transações
+        cursor.execute(
+            """
+                DELETE FROM transactions
+                WHERE hash = ?
+            """, 
+            (f"{hash}",))
+        
+        if verbose == "true":
+            print(f"Deletando de transactions registro com hash = '{hash}'")
+
+        registro_deletado = cursor.rowcount
+
+    except mariadb.Error as e:
+        if verbose == "error":
+            print(f"Erro ao deletar de transactions: {e}")
+    
+    # Commita a transação
+    conn.commit()
+    
+    # Close Connection
+    conn.close()
+
+    return registro_deletado
+
+def verifica_alteracao(registro_bd, registro_excel, num_registros_lidos):
 
     houve_alteracao = False
 
@@ -332,10 +405,12 @@ def verifica_alteracao(registro_bd, registro_excel):
         if chave in ['detalhe', 'cartao', 'parcela', 'categoria', 'tag']:
             if chave == 'categoria':
                 category = 'Manual'
+            else:
+                category = registro_bd['categoria']
             if registro_excel[chave] != None and registro_excel[chave] != valor:
                 if verbose == "true":
                     current_hash = registro_bd['hash']
-                    print(f'Divergência no valor da chave "{chave}" do registro "{current_hash}":\nBD: {registro_bd[chave]}\nEXCEL: {registro_excel[chave]}\n')
+                    print(f'Divergência no valor da chave "{chave}" do registro {num_registros_lidos} de hash "{current_hash}":\nBD: {registro_bd[chave]}\nEXCEL: {registro_excel[chave]}\n')
                 houve_alteracao = True
                 update_record(registro_excel, category)
                 return houve_alteracao
@@ -370,7 +445,7 @@ def salva_duplicado(registro, conn, meio, fonte, file_timestamp):
             if verbose == "error":
                 print(f"Error em salva_duplicado: {e}")
 
-def fetch_transactions_where(nome_planilha, timestamp):
+def fetch_recent_transactions(nome_planilha):
 
     transactions = []
 
@@ -380,10 +455,20 @@ def fetch_transactions_where(nome_planilha, timestamp):
     # Pega o cursor
     cursor = conn.cursor()
 
-    # Query the database
-    cursor.execute(
-        "SELECT * FROM transactions WHERE meio=? AND timestamp=?", 
-        (f"{nome_planilha}",f"{timestamp}",))
+    if nome_planilha == 'Summary':
+
+        # Query the database
+        cursor.execute(
+            "SELECT * FROM transactions WHERE timestamp=(SELECT MAX(timestamp) FROM transactions)", 
+            (f"{nome_planilha}",))
+        
+    else:
+
+        # Query the database
+        cursor.execute(
+            "SELECT * FROM transactions WHERE meio=? AND timestamp=(SELECT MAX(timestamp) FROM transactions)", 
+            (f"{nome_planilha}",))
+
 
     # Print Result-set
     for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:

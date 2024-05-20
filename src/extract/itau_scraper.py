@@ -97,17 +97,18 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
         print("Procurando elementos de entrada de agencia e conta...")
 
     # Preenche o usuário e senha
-    campo_agencia = driver.find_element(By.ID, 'agencia')
-    campo_conta = driver.find_element(By.ID, 'conta')
+    
+    campo_agencia = driver.find_element(By.ID, 'idl-menu-agency')
+    campo_conta = driver.find_element(By.ID, 'idl-menu-account')
 
+    campo_agencia.click()
     campo_agencia.send_keys(agencia)
+
+    campo_conta.click()
     campo_conta.send_keys(conta)
 
-    if verbose == "true":
-        print("Procurando elemento de botão de login...")
-
     # Submete o formulário
-    botao_submit = driver.find_element(By.CSS_SELECTOR, '.login_button')
+    botao_submit = driver.find_element(By.ID, 'idl-btn-login-ok')
     botao_submit.click()
 
     # Verificar se deu erro
