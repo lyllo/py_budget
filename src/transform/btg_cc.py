@@ -139,9 +139,6 @@ def init(input_file, output_file):
     num_linha = 0
     lista_de_registros = []
 
-    # Marcador para linhas de pagamento de fatura
-    compra_buffer = False
-
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
        
