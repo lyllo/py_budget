@@ -173,7 +173,7 @@ def ignora_registro(hash):
     if count != 0:
         ignora = True
         if verbose == "true":
-            print(f"Ignorando registro com hash: {hash}\n")
+            print(f"\tIgnorando registro com hash: {hash}")
     conn.close()
     return ignora
 

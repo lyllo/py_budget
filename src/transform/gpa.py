@@ -1,7 +1,7 @@
 from datetime import datetime
 import category
 import load.files as files
-import load.db as db
+import load.load as load
 import os
 import configparser
 
@@ -117,22 +117,5 @@ def init(input_file, output_file):
     # Preenche as categorias das transações
     category.fill(lista_de_registros)
 
-    # Salva dados no banco
-    if(toggle_db == "true"):
-        print(f"\nIniciando 'load' do {MEIO} em db...")
-        file_timestamp = files.get_modification_time(input_file)
-        timestamp = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
-
-    # Salva as informações em um arquivo Excel temporário
-    if(toggle_temp_sheet == "true"):
-
-        nome_arquivo = output_file
-        print(f"\nIniciando 'load' do {MEIO} em xlsx...")		
-        files.salva_excel_temporario(nome_arquivo, MEIO, timestamp)
-
-    # Salva as informações em um arquivo Excel final
-    if(toggle_final_sheet == "true"):
-
-        nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
-        print(f"\nIniciando 'load' do {MEIO} em xlsx final...")
-        files.salva_excel_final(nome_arquivo, MEIO, timestamp)
+    # Carrega os dados em db e/ou arquivo
+    load.init(input_file, lista_de_registros, MEIO, output_file, PATH_TO_FINAL_OUTPUT_FILE)
