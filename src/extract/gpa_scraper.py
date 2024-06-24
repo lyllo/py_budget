@@ -5,7 +5,6 @@ import os
 import configparser
 from fake_useragent import UserAgent
 import random
-from selenium.webdriver.common.action_chains import ActionChains
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -54,7 +53,7 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
     chrome_options.add_argument(f"user-agent={user_agent}")
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless') # Não carrega a GUI
+    # chrome_options.add_argument('--headless') # Não carrega a GUI
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-gpu")
@@ -87,7 +86,7 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
 
     # Aguarda um tempo para garantir que a página e os elementos foram carregados
 
-    wait_time = random.uniform(3000,5000) / 1000
+    wait_time = random.uniform(5000,6000) / 1000
 
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s pelo carregamento da home não logada...")
@@ -99,14 +98,21 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
 
     # Preenche o usuário e senha
     
-    campo_agencia = driver.find_element(By.ID, 'idl-menu-agency')
-    campo_conta = driver.find_element(By.ID, 'idl-menu-account')
+    try:
+        campo_agencia = driver.find_element(By.ID, 'idl-menu-agency')
+        campo_agencia.click()
+        campo_agencia.send_keys(agencia)
+    
+    except Exception as e:
+        print(f"Exception at campo_agencia: {e}")
 
-    campo_agencia.click()
-    campo_agencia.send_keys(agencia)
+    try:
+        campo_conta = driver.find_element(By.ID, 'idl-menu-account')
+        campo_conta.click()
+        campo_conta.send_keys(conta)
 
-    campo_conta.click()
-    campo_conta.send_keys(conta)
+    except Exception as e:
+        print(f"Exception at campo_conta: {e}")
 
     # Submete o formulário
     botao_submit = driver.find_element(By.ID, 'idl-btn-login-ok')

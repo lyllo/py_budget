@@ -54,7 +54,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless') # Não carrega a GUI
+    # chrome_options.add_argument('--headless') # Não carrega a GUI
     chrome_options.binary_location = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
 
     # Constrói o driver do Chrome
@@ -68,7 +68,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
     # Aguarda um tempo para garantir que a página e os elementos foram carregados
 
-    wait_time = random.uniform(3000,5000) / 1000
+    wait_time = random.uniform(5000,10000) / 1000
 
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s...")
@@ -79,8 +79,9 @@ def init(PATH_TO_BTG_INPUT_FILE):
         print("Preenchendo dados de login...")
 
     # Preenche o usuário e senha
-    campo_usuario = driver.find_element(By.ID, '0cpf')
-    campo_senha = driver.find_element(By.ID, '1senha')
+    wait = WebDriverWait(driver, 10)
+    campo_usuario = wait.until(EC.visibility_of_element_located((By.ID, '0cpf')))
+    campo_senha = wait.until(EC.visibility_of_element_located((By.ID, '1senha')))
 
     campo_usuario.send_keys(usuario)
     campo_senha.send_keys(senha)
@@ -202,7 +203,7 @@ def mes_anterior():
     hoje = datetime.date.today()
     
     # Obter o primeiro dia do mês anterior
-    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=1)
+    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=32)
     
     # Obter o nome do mês anterior no formato abreviado em inglês
     mes_anterior_abreviado_en = primeiro_dia_mes_anterior.strftime("/%b").lower()

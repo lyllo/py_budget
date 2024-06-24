@@ -455,20 +455,24 @@ def fetch_recent_transactions(nome_planilha):
     # Pega o cursor
     cursor = conn.cursor()
 
-    if nome_planilha == 'Summary':
+    # Query the database
+    cursor.execute(
+        "SELECT * FROM transactions WHERE meio=? AND timestamp=(SELECT MAX(timestamp) FROM transactions)", 
+        (f"{nome_planilha}",))
 
-        # Query the database
-        cursor.execute(
-            "SELECT * FROM transactions WHERE timestamp=(SELECT MAX(timestamp) FROM transactions)", 
-            (f"{nome_planilha}",))
+    # if nome_planilha == 'Summary':
+
+    #     # Query the database
+    #     cursor.execute(
+    #         "SELECT * FROM transactions WHERE timestamp=(SELECT MAX(timestamp) FROM transactions)", 
+    #         (f"{nome_planilha}",))
         
-    else:
+    # else:
 
-        # Query the database
-        cursor.execute(
-            "SELECT * FROM transactions WHERE meio=? AND timestamp=(SELECT MAX(timestamp) FROM transactions)", 
-            (f"{nome_planilha}",))
-
+    #     # Query the database
+    #     cursor.execute(
+    #         "SELECT * FROM transactions WHERE meio=? AND timestamp=(SELECT MAX(timestamp) FROM transactions)", 
+    #         (f"{nome_planilha}",))
 
     # Print Result-set
     for (data, item, detalhe, valor, cartao, parcela, ocorrencia_dia, categoria, categoria_fonte, tag, meio, fonte, hash, timestamp, file_timestamp) in cursor:

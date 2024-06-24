@@ -38,7 +38,7 @@ def carrega_dicionario():
     # Cria um dicionário vazio
     dicionario = {}
 
-    if(load_xlsx == "true"): # [ ] Está sendo chamado para todas as fontes de dados que estejam com toggle ativo
+    if(load_xlsx == "true"):
 
         # Carrega o arquivo Excel history com transações até o mês passado
         workbook = load_workbook(PATH_TO_HISTORY_FILE)

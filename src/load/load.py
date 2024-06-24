@@ -56,4 +56,4 @@ def init(input_file, lista_de_registros, MEIO, output_file, PATH_TO_FINAL_OUTPUT
                 now_timestamp = datetime.now().strftime("%H:%M:%S")
                 nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
                 print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
-                files.salva_excel(nome_arquivo, "Summary")
+                files.salva_excel(nome_arquivo, MEIO)

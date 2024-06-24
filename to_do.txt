@@ -57,7 +57,7 @@ GERAL
 
 [x] Criar main que chama todos os módulos
         [x] Verificando se existe o arquivo de entrada
-        [ ] Levar os resultados para o arquivo de BUDGET
+        [x] Levar os resultados para o arquivo de BUDGET
                 [x] Criar rotina de importação dos dados históricos do BUDGET
         [ ] Calcular valor das faturas com bases nas datas de melhor compra (corte + 1)
 
@@ -70,7 +70,7 @@ GERAL
 [ ] Criar parser para Holerite (PDF) pois há despesas de SAÚDE, por exemplo lá dentro.
         [ ] Lembrar de remover a transação de pagamento de salário
 
-[ ] Criar mecanismo para abrir transações, como a do pagamento do condomínio, para separar seus componentes (ex: ÁGUA e LUZ).
+[x] Criar mecanismo para abrir transações, como a do pagamento do condomínio, para separar seus componentes (ex: ÁGUA e LUZ).
 
 SEGURANÇA
 
