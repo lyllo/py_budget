@@ -117,7 +117,7 @@ def init(PATH_TO_ITAU_CC_INPUT_FILE):
 
     # Verificar se deu erro
 
-    wait_time = random.uniform(15000,20000) / 1000
+    wait_time = random.uniform(25000,30000) / 1000
 
     time.sleep(wait_time)
 
