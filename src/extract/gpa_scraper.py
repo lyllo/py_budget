@@ -118,11 +118,20 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
     botao_submit = driver.find_element(By.ID, 'idl-btn-login-ok')
     botao_submit.click()
 
-    # Verificar se deu erro
-
     wait_time = random.uniform(15000,20000) / 1000
-
     time.sleep(wait_time)
+
+    # Captura o ID da aba original
+    aba_original = driver.current_window_handle
+
+    # Captura todos os IDs das abas/janelas
+    abas = driver.window_handles
+
+    # Mude para a nova aba (a última na lista de IDs)
+    for aba in abas:
+        if aba != aba_original:
+            driver.switch_to.window(aba)
+            break
 
     if verbose == "true":
         print(f"Aguardando {wait_time:.2f}s pelo carregamento do teclado virtual...")
@@ -133,12 +142,19 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
     # Itera sobre cada dígito da senha
 
     for digito in senha:
+        # Encontra o elemento do teclado virutal
+        teclado_virtual = driver.find_element(By.XPATH, "//div[contains(@class, 'teclas') and contains(@class, 'clearfix')]")
+
         # Encontra o elemento da tecla correspondente
         xpath = f"//a[contains(@aria-label, '{digito}')]"
-        elemento_tecla = driver.find_element(By.XPATH, xpath)
+        tecla = teclado_virtual.find_element(By.XPATH, xpath)
+
+        # Debugging
+        # print(tecla.text)
+        # driver.get_screenshot_as_file("screenshot.png")
 
         # Clica na tecla
-        elemento_tecla.click()
+        tecla.click()
 
         # Aguarda um curto período (ajuste conforme necessário)
         wait_time = random.uniform(500,1000) / 1000
