@@ -22,11 +22,11 @@ limite = 75
 # Le as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
-load_xlsx = config.get('Toggle', 'load_xlsx')
-simple_match = config.get('Toggle', 'simple_match')
-similar_match = config.get('Toggle', 'similar_match')
-ai_match = config.get('Toggle', 'ai_match')
-verbose = config.get('Toggle', 'verbose')
+load_xlsx = config['default']['load_xlsx']
+simple_match = config['default']['simple_match']
+similar_match = config['default']['similar_match']
+ai_match = config['default']['ai_match']
+verbose = config['default']['verbose']
 
 # 
 # BUSCA SIMPLES (ANÁLISE LÉXICA)
@@ -46,7 +46,7 @@ def carrega_dicionario():
         # Seleciona a planilha Summary desejada
         worksheet = workbook['Summary']
 
-        # Percorre as células das colunas B e D iniciando pela linha 2, onde B = Item e D = Categoria.
+        # Percorre as células das colunas B e H iniciando pela linha 2, onde B = Item e H = Categoria.
         # Exemplo ["iFood" = "Alimentação"]
         for row in worksheet.iter_rows(min_row=2, values_only=True):
             chave = row[1]

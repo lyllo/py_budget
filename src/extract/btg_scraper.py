@@ -2,28 +2,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
 import os
-import configparser
 from fake_useragent import UserAgent
 import random
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import datetime
-
-# Caminho do arquivo atual
-current_file_path = os.path.abspath(__file__)
-
-# Caminho da raiz do projeto
-ROOT_DIR = os.path.abspath(os.path.join(current_file_path, "../../.."))
-
-# Caminho para arquivo de configuração
-PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
-
-# Lê as feature toggles do arquivo de configuração
-config = configparser.ConfigParser()
-config.read(PATH_TO_CONFIG_FILE)
-
-verbose = config.get('Toggle', 'verbose')
+import config as config
 
 # URL de login do BTG Pactual
 url_login = 'https://app.banking.btgpactual.com/login'
@@ -43,7 +28,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
     # Gera um user-agent aleatório
     user_agent = ua.random
 
-    if verbose == "true":
+    if config.verbose == "true":
         print(f"Configurando user-agent: {user_agent}")
 
     # Configura;óes do driver do Chrome
@@ -54,13 +39,13 @@ def init(PATH_TO_BTG_INPUT_FILE):
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument('--incognito')
-    # chrome_options.add_argument('--headless') # Não carrega a GUI
+    chrome_options.add_argument('--headless') # Não carrega a GUI
     chrome_options.binary_location = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
 
     # Constrói o driver do Chrome
     driver = webdriver.Chrome(options=chrome_options)
 
-    if verbose == "true":
+    if config.verbose == "true":
         print("Acessando a página de login...")
 
     # Abre a página de login
@@ -70,12 +55,12 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
     wait_time = random.uniform(5000,10000) / 1000
 
-    if verbose == "true":
+    if config.verbose == "true":
         print(f"Aguardando {wait_time:.2f}s...")
 
     time.sleep(wait_time)
 
-    if verbose == "true":
+    if config.verbose == "true":
         print("Preenchendo dados de login...")
 
     # Preenche o usuário e senha
@@ -94,7 +79,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
     wait_time = random.uniform(3000,5000) / 1000
 
-    if verbose == "true":
+    if config.verbose == "true":
         print(f"Aguardando {wait_time:.2f}s...")
 
     # Espera alguns segundos para o elemento com a classe "modal-error" aparecer
@@ -107,7 +92,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
             driver.quit()
 
     except TimeoutException:
-        if verbose == "true":
+        if config.verbose == "true":
             print("Preenchendo dados do token...")
 
         # Exemplo: encontre um elemento cujo ID comece com 'parte_variavel'
@@ -120,12 +105,12 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
         wait_time = random.uniform(10000,15000) / 1000
 
-        if verbose == "true":
+        if config.verbose == "true":
             print(f"Aguardando {wait_time:.2f}s...")
 
         time.sleep(wait_time)
 
-        if verbose == "true":
+        if config.verbose == "true":
             print("Iniciando rolagem para captura das transações...")
 
         # [x] Acertar o scroll para baixo (no elemnto da timeline) até encontrar o texto do mês anterior
@@ -137,7 +122,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
         # Identifica o elemento dentro do qual você deseja rolar
         elemento_contenedor = driver.find_element(By.XPATH, '//div[@class="timeline"]')
 
-        if verbose == "true":
+        if config.verbose == "true":
             print("Rolando as transações até encontrar o mês anterior...")
 
         # Loop para rolar a página e verificar se a string está presente
@@ -161,7 +146,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
 
         # [x] Acertar o encoding do arquivo para crédito aparecer com é e não 'Compra no cr�dito autorizada'
 
-        if verbose == "true":
+        if config.verbose == "true":
             print("Salvando as transações em arquivo texto...")
 
         # Abre o arquivo para escrita e cola o texto

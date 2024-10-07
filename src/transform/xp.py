@@ -3,7 +3,7 @@ import category
 import load.files as files
 import load.load as load
 import os
-import configparser
+import config as config
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -16,14 +16,6 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
 MEIO = "Cartão XP"
-
-# Lê as feature toggles do arquivo de configuração
-config = configparser.ConfigParser()
-config.read(PATH_TO_CONFIG_FILE)
-
-toggle_db = config.get('Toggle', 'toggle_db')
-toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
-toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
 
 """
   ______                /\/|                                _ _ _                     

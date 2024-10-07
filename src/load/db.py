@@ -25,7 +25,7 @@ TIMESTAMP = int(datetime.timestamp(datetime.now()))
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
-verbose = config.get('Toggle', 'verbose')
+verbose = config['default']['verbose']
 
 def conecta_bd():
     # Connect to MariaDB Platform

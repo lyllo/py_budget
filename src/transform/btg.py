@@ -25,16 +25,6 @@ PATH_TO_FINAL_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\final.xlsx')
 
 MEIO = "Cartão BTG"
 
-# Lê as feature toggles do arquivo de configuração
-config = configparser.ConfigParser()
-config.read(PATH_TO_CONFIG_FILE)
-
-toggle_db = config.get('Toggle', 'toggle_db')
-toggle_temp_sheet = config.get('Toggle', 'toggle_temp_sheet')
-toggle_final_sheet = config.get('Toggle', 'toggle_final_sheet')
-
-verbose = config.get('Toggle', 'verbose')
-
 """
   ______                /\/|                                _ _ _                     
  |  ____|              |/\/                 /\             (_) (_)                    

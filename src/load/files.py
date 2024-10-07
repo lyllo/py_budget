@@ -23,7 +23,7 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 # Lê as feature toggles do arquivo de configuração
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
-verbose = config.get('Toggle', 'verbose')
+verbose = config['default']['verbose']
 
 # Inclui linhas em arquivo Excel
 def incluir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):

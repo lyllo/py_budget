@@ -20,7 +20,7 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
-verbose = config.get('Toggle', 'verbose')
+verbose = config['default']['verbose']
 
 #
 # BUSCA POR AI (SW 3.0)

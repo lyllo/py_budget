@@ -22,7 +22,7 @@ PATH_TO_INPUT_FILES = os.path.join(ROOT_DIR, 'in\\')
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
-verbose = config.get('Toggle', 'verbose')
+verbose = config['default']['verbose']
 
 # URL de login do BTG Pactual
 url_login = 'https://www.itau.com.br/'
