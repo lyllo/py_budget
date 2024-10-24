@@ -27,7 +27,7 @@ verbose = config['default']['verbose']
 #
 
 # Definir chave de API do OpenAI
-openai.api_key = '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'
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Função para fazer a chamada à API e obter a resposta da LLM
 def interagir_com_llm(prompt):
@@ -93,7 +93,7 @@ def ai_query(my_prompt):
     md_uri = f"mariadb+mariadbconnector://{username}:{password}@{host}:{port}/{mydatabase}"
     db = SQLDatabase.from_uri(md_uri)
 
-    OPENAI_API_KEY = "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"
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     llm = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model='gpt-3.5-turbo')
 
     db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, verbose=True)
