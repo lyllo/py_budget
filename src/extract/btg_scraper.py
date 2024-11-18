@@ -188,7 +188,7 @@ def mes_anterior():
     hoje = datetime.date.today()
     
     # Obter o primeiro dia do mês anterior
-    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=32)
+    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=30)
     
     # Obter o nome do mês anterior no formato abreviado em inglês
     mes_anterior_abreviado_en = primeiro_dia_mes_anterior.strftime("/%b").lower()

@@ -14,11 +14,11 @@ PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
 config = configparser.ConfigParser()
 config.read(PATH_TO_CONFIG_FILE)
 
-# [ ] Verificar se data de final.xlsx é maior do que history.xlsx antes de iniciar update_database
+# [x] Verificar se data de final.xlsx é maior do que history.xlsx antes de iniciar update_database
 # [ ] Verificar se data de último update_database é maior do que read_datasource antes de trazer novos dados  
 
-PRESET = 'read_datasources'
-# PRESET = 'update_database'
+# PRESET = 'read_datasources'
+PRESET = 'update_database'
 # PRESET = 'dump_database'
 
 verbose = config['default']['verbose']

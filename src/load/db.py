@@ -6,6 +6,7 @@ import os
 import configparser
 from datetime import datetime
 import io
+import shutil
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -18,6 +19,12 @@ SQL_DIR = os.path.abspath(os.path.join(ROOT_DIR, "src/sql"))
 
 # Caminho para arquivo de configuração
 PATH_TO_CONFIG_FILE = os.path.join(ROOT_DIR, 'config.ini')
+
+# Caminho para arquivo de saída
+PATH_TO_OUTPUT_FILE = os.path.abspath(os.path.join(ROOT_DIR, "out/final.xlsx"))
+
+# Caminho para arquivo de backup do histórico
+PATH_TO_HISTORY_BACKUP_FILE = os.path.abspath(os.path.join(ROOT_DIR, "data/_history.xlsx"))
 
 TIMESTAMP = int(datetime.timestamp(datetime.now()))
 
@@ -274,6 +281,35 @@ def carrega_historico(input_file):
 
 def atualiza_historico(input_file):
 
+    PATH_TO_HISTORY_FILE = input_file
+
+    # Verifica se arquivo de histórico é menos recente do que o arquivo de saída
+    history_file_creation_time = os.path.getmtime(PATH_TO_HISTORY_FILE)
+    output_file_creation_time = os.path.getmtime(PATH_TO_OUTPUT_FILE)
+
+    # Comparar as datas
+    if history_file_creation_time < output_file_creation_time:
+        
+        # Apaga _history.xlsx
+        if os.path.exists(PATH_TO_HISTORY_BACKUP_FILE):  # Verificar se o arquivo existe
+            os.remove(PATH_TO_HISTORY_BACKUP_FILE)
+        
+        # Renomeia history.xlsx para _history.xlsx
+        if os.path.exists(PATH_TO_HISTORY_FILE):  # Verificar se o arquivo existe
+            os.rename(PATH_TO_HISTORY_FILE, PATH_TO_HISTORY_BACKUP_FILE)
+        
+        # Copia out/final.xlsx para a data/history.xlsx
+        try:
+            shutil.copy(PATH_TO_OUTPUT_FILE, PATH_TO_HISTORY_FILE)
+        except FileNotFoundError:
+            print(f"O arquivo {PATH_TO_OUTPUT_FILE} não foi encontrado.")
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+    elif history_file_creation_time >= output_file_creation_time:
+        print("[db.py] Arquivo do histórico já está atualizado. Não vamos mexer no BD.")
+        return
+    
     sheet = 'Summary'
 
     num_registros_lidos = 0

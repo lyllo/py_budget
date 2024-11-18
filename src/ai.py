@@ -94,17 +94,18 @@ def ai_query(my_prompt):
     db = SQLDatabase.from_uri(md_uri)
 
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    llm = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model='gpt-3.5-turbo')
+    llm = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model='gpt-4o-mini')
 
     db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, verbose=True)
 
     query = f"""
-            Você é um especialista financeiro que ajuda as pessoas a manterem seus gastos dentro dos limites estabelecidos para cada categoria de gasto de seus orçamentos.
-            Em todas as tabelas, os valores são apresentados como números negativos. Em suas respostas, nunca use números negativos.
+            Você é um especialista financeiro que ajuda as pessoas a manterem seus gastos dentro dos limites estabelecidos para cada categoria de gasto em seus orçamentos.
+            Em todas as tabelas, em MariaDB, os valores são apresentados como números negativos. Em suas respostas, nunca use números negativos.
             Quando sua resposta envolver valores, sempre use o símbolo do real brasileiro (R$), nunca se esquecendo de usar o ponto como separador de milhar.
             Preste atenção para obter a data atual, considerando mês e ano, quando a pergunta envolver "este mês".
             Caso a pergunta seja sobre quanto ainda pode ser gasto em uma determinada categoria, considere os valores da tabela "limits".
             Por exemplo, se o limite de uma categoria for R$1.000,00 e já houver transações nesta categoria dentro de um mês que somam R$750,00, a resposta deverá ser R$250,00 e não R$750,00.
+            Agora responda ao seguinte questinamento:
             {my_prompt}
         """
 
@@ -118,3 +119,5 @@ def ai_query(my_prompt):
             print(f"Prompt Tokens: {cb.prompt_tokens}")
             print(f"Completion Tokens: {cb.completion_tokens}")
             print(f"Total Cost (USD): ${cb.total_cost}")
+
+# ai_query("Quando ainda posso gastar com ALIMENTAÇÃO este mês?")
