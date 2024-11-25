@@ -53,8 +53,8 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
     chrome_options.add_argument(f"user-agent={user_agent}")
     chrome_options.add_argument('--disable-javascript')
     chrome_options.add_argument('--incognito')
-    # chrome_options.add_argument('--headless') # Não carrega a GUI
-    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument('--headless') # Não carrega a GUI
+    chrome_options.add_argument("--window-size=2560,1440")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-software-rasterizer")
@@ -73,7 +73,7 @@ def init(PATH_TO_GPA_CC_INPUT_FILE):
     driver = webdriver.Chrome(options=chrome_options)
 
     # Maximize a janela do navegador (apenas quando headless não é ativo)
-    # driver.maximize_window()
+    driver.maximize_window()
 
     if verbose == "true":
         print("Acessando a home...")

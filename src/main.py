@@ -18,7 +18,6 @@ import load.db as db
 import load.files as files
 
 import os
-import configparser
 from datetime import datetime
 import config as config
 
@@ -86,7 +85,7 @@ if config.toggle_extract_gpa == "true":
 
 if config.toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' doc Cartão GPA...")
+    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão GPA...")
     gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
 
 # Flash
