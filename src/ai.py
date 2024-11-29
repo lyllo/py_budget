@@ -105,13 +105,15 @@ def ai_query(my_prompt):
             Preste atenção para obter a data atual, considerando mês e ano, quando a pergunta envolver "este mês".
             Caso a pergunta seja sobre quanto ainda pode ser gasto em uma determinada categoria, considere os valores da tabela "limits".
             Por exemplo, se o limite de uma categoria for R$1.000,00 e já houver transações nesta categoria dentro de um mês que somam R$750,00, a resposta deverá ser R$250,00 e não R$750,00.
+            Certifique-se de que não há delimitadores como ```sql ou outros caracteres estranhos no início da sua consulta SQL.
+            Nunca responda com o código de uma consulta em SQL.
             Agora responda ao seguinte questinamento:
             {my_prompt}
         """
 
     with get_openai_callback() as cb:
         response = db_chain.run(query)
-        print(f"Response: {response}")
+        print(f"\nResponse: {response}")
 
         if verbose == "True":
 
@@ -120,4 +122,4 @@ def ai_query(my_prompt):
             print(f"Completion Tokens: {cb.completion_tokens}")
             print(f"Total Cost (USD): ${cb.total_cost}")
 
-# ai_query("Quando ainda posso gastar com ALIMENTAÇÃO este mês?")
+ai_query("Quando ainda posso gastar com ALIMENTAÇÃO este mês?")
