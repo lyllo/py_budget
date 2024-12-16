@@ -122,4 +122,4 @@ def ai_query(my_prompt):
             print(f"Completion Tokens: {cb.completion_tokens}")
             print(f"Total Cost (USD): ${cb.total_cost}")
 
-ai_query("Quando ainda posso gastar com ALIMENTAÇÃO este mês?")
+# ai_query("Quando ainda posso gastar com ALIMENTAÇÃO este mês?")

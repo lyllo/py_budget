@@ -45,9 +45,6 @@ def init(PATH_TO_BTG_INPUT_FILE):
     # Constrói o driver do Chrome
     driver = webdriver.Chrome(options=chrome_options)
 
-    if config.verbose == "true":
-        print("Acessando a página de login...")
-
     # Abre a página de login
     driver.get(url_login)
 
@@ -56,7 +53,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
     wait_time = random.uniform(5000,10000) / 1000
 
     if config.verbose == "true":
-        print(f"Aguardando {wait_time:.2f}s...")
+        print(f"Aguardando {wait_time:.2f}s pelo carregamento da tela de login...")
 
     time.sleep(wait_time)
 
@@ -80,7 +77,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
     wait_time = random.uniform(3000,5000) / 1000
 
     if config.verbose == "true":
-        print(f"Aguardando {wait_time:.2f}s...")
+        print(f"Aguardando {wait_time:.2f}s pelo carregamento da tela de token...")
 
     # Espera alguns segundos para o elemento com a classe "modal-error" aparecer
     try:
@@ -92,12 +89,20 @@ def init(PATH_TO_BTG_INPUT_FILE):
             driver.quit()
 
     except TimeoutException:
-        if config.verbose == "true":
-            print("Preenchendo dados do token...")
 
-        # Exemplo: encontre um elemento cujo ID comece com 'parte_variavel'
-        parte_fixa_otp = '3id_'
-        campo_token = driver.find_element(By.CSS_SELECTOR, f'[id^="{parte_fixa_otp}"]')
+        try:
+            wait_time = random.uniform(3000,5000) / 1000
+            if config.verbose == "true":
+                print(f"Aguardando {wait_time:.2f}s para preencher o token...")
+
+            parte_fixa_otp = '3id_'
+            campo_token = WebDriverWait(driver, wait_time).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, f'[id^="{parte_fixa_otp}"]'))
+            )
+        except TimeoutException:
+            print("Tempo de espera esgotado. O token não foi encontrado.")
+            driver.quit() # [ ] Poderia tentar reiniciar automaticamente o script 
+        
         campo_token.send_keys(token_acesso)
 
         # Submete o formulário de token (substitua isso pelo botão real, se necessário)
@@ -106,7 +111,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
         wait_time = random.uniform(10000,15000) / 1000
 
         if config.verbose == "true":
-            print(f"Aguardando {wait_time:.2f}s...")
+            print(f"Aguardando {wait_time:.2f}s pelo carregamento da home...")
 
         time.sleep(wait_time)
 
@@ -120,7 +125,18 @@ def init(PATH_TO_BTG_INPUT_FILE):
         string_desejada = mes_anterior()
 
         # Identifica o elemento dentro do qual você deseja rolar
-        elemento_contenedor = driver.find_element(By.XPATH, '//div[@class="timeline"]')
+
+        try:
+            wait_time = random.uniform(3000,5000) / 1000
+            if config.verbose == "true":
+                print(f"Aguardando {wait_time:.2f}s para encontrar a timeline...")
+
+            elemento_contenedor = WebDriverWait(driver, wait_time).until(
+                EC.presence_of_element_located((By.XPATH, '//div[@class="timeline"]'))
+            )
+        except TimeoutException:
+            print("Tempo de espera esgotado. A timeline não foi encontrada.")
+            driver.quit() # [ ] Poderia tentar reiniciar automaticamente o script 
 
         if config.verbose == "true":
             print("Rolando as transações até encontrar o mês anterior...")
