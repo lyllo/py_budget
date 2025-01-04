@@ -139,7 +139,7 @@ def init(PATH_TO_BTG_INPUT_FILE):
             driver.quit() # [ ] Poderia tentar reiniciar automaticamente o script 
 
         if config.verbose == "true":
-            print("Rolando as transações até encontrar o mês anterior...")
+            print(f"Rolando as transações até encontrar o mês anterior ({string_desejada})...")
 
         # Loop para rolar a página e verificar se a string está presente
         # [ ] Tratar o caso em que a timeline tem só a carcaça carregada, mas sem as transações
