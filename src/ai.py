@@ -38,7 +38,9 @@ def ai_query(prompt):
     query_prompt = f"""
     Você é um especialista financeiro. Sua tarefa é gerar uma consulta SQL válida com base na pergunta fornecida. 
     A consulta deve ser executada em um banco de dados MariaDB. Apenas forneça a consulta SQL sem explicações ou texto adicional.
-
+    Todas as transações com valores positivos representam entradas, ou seja, são receitas e não gastos! Já os valores negativos representam saídas, ou seja, gastos.
+    Desconsidere em suas análises as categorias IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIAS.
+    Em suas respostas não se esqueça de transformar valores negativos em números positivos, antecedidos do símbolo da moeda brasileira (R$), separador de milhar com ponto (.) e de decimais com vírgula (,).
     Pergunta: {prompt}
     """
 
@@ -50,8 +52,11 @@ def ai_query(prompt):
         # Obtém a consulta SQL gerada pelo modelo
         response = db_chain.run(query_prompt)
 
-        # Aqui pegamos o campo 'Answer' da resposta gerada
-        return response.strip()  # Retorna apenas a resposta natural (Answer)
+        # Remover a repetição da pergunta, se houver
+        response = response.replace(prompt, "").strip()
+
+        # Retorna a resposta limpa
+        return response
 
     except Exception as e:
         return f"Houve um erro ao processar a consulta: {str(e)}"
