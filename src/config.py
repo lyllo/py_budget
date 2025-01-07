@@ -17,9 +17,9 @@ config.read(PATH_TO_CONFIG_FILE)
 # [x] Verificar se data de final.xlsx é maior do que history.xlsx antes de iniciar update_database
 # [ ] Verificar se data de último update_database é maior do que read_datasource antes de trazer novos dados  
 
-# PRESET = 'read_datasources'
+PRESET = 'read_datasources'
 # PRESET = 'update_database'
-PRESET = 'dump_database'
+# PRESET = 'dump_database'
 
 verbose = config['default']['verbose']
 simple_match = config['default']['simple_match']
