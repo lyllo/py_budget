@@ -1,11 +1,11 @@
-import ai
+from ai import ai_query
 
-#my_prompt = "Qual é o valor limite para a categoria LAZER?"
+# Pergunta do usuário
+pergunta = "Em que categoria estão os maiores gastos do ano passado?"
 
-#my_prompt = "Quanto já foi gasto em LAZER em Dezembro de 2023?"
+# Chamada à função para obter a resposta
+resposta = ai_query(pergunta)
 
-my_prompt = "Quanto eu ainda posso gastar com lazer neste mês?"
-
-#my_prompt = "Monte uma tabela cujas colunas sejam o meio de pagamento, a quantidade total de transações desse meio, a data da transação mais recente desse meio (até a data presente) e a data do último arquivo atualizado desse meio."
-
-ai.ai_query(my_prompt)
+# Exibe a resposta gerada
+print(f"Q: {pergunta}")
+print(f"A: {resposta}")
