@@ -39,8 +39,9 @@ def ai_query(prompt):
     Você é um especialista financeiro. Sua tarefa é gerar uma consulta SQL válida com base na pergunta fornecida. 
     A consulta deve ser executada em um banco de dados MariaDB. Apenas forneça a consulta SQL sem explicações ou texto adicional.
     Todas as transações com valores positivos representam entradas, ou seja, são receitas e não gastos! Já os valores negativos representam saídas, ou seja, gastos.
-    Desconsidere em suas análises as categorias IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIAS.
-    Em suas respostas não se esqueça de transformar valores negativos em números positivos, antecedidos do símbolo da moeda brasileira (R$), separador de milhar com ponto (.) e de decimais com vírgula (,).
+    Desconsidere todas as transações cuja categoria seja IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA ou TRANSFERÊNCIAS.
+    As transações que não estão categorizadas, tem um valor em branco na coluna categoria, e não NULL.
+    Em suas respostas não se esqueça de incluir o símbolo da moeda brasileira (R$), separador de milhar com ponto (.) e de decimais com vírgula (,).
     Pergunta: {prompt}
     """
 
