@@ -31,17 +31,19 @@ def ai_query(prompt):
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=openai_api_key,
-        model="gpt-3.5-turbo"  # Usando o modelo GPT-3.5-turbo para consulta SQL
+        model="gpt-3.5-turbo-0125"  # Usando o modelo gpt-3.5-turbo para consulta SQL
     )
 
     # Passa a pergunta diretamente para o modelo LLM para gerar a consulta SQL
     query_prompt = f"""
     Você é um especialista financeiro. Sua tarefa é gerar uma consulta SQL válida com base na pergunta fornecida. 
     A consulta deve ser executada em um banco de dados MariaDB. Apenas forneça a consulta SQL sem explicações ou texto adicional.
-    Todas as transações com valores positivos representam entradas, ou seja, são receitas e não gastos! Já os valores negativos representam saídas, ou seja, gastos.
-    Desconsidere todas as transações cuja categoria seja IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA ou TRANSFERÊNCIAS.
+    Se o usuário pergunta sobre '''este mês''', considera sempre que ele também está se referindo a '''este ano'''.
+    Se o usuário perguntar sobre gastos, desconsidere as transações cuja categoria sejam PROVENTOS, PROVENTOS CMC ou PROVENTOS PQR.
+    Desconsidere todas as transações cuja categoria seja IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA ou TRANSFERÊNCIA.
     As transações que não estão categorizadas, tem um valor em branco na coluna categoria, e não NULL.
     Em suas respostas não se esqueça de incluir o símbolo da moeda brasileira (R$), separador de milhar com ponto (.) e de decimais com vírgula (,).
+    Nunca responda na primeira pessoa, responda se referindo ao usuário como '''você'''.
     Pergunta: {prompt}
     """
 

@@ -319,6 +319,8 @@ def atualiza_historico(input_file):
     num_registros_corrigidos = 0
     num_registros_deletados = 0
 
+    # [ ] Ao realizar o update_db tem hora que dá pra ver mais de 1 thread acessando o Banco ao mesmo tempo. É preciso garantir que apenas 1 conexão esteja ativa por vez.
+
     # Itera nas linhas do arquivo de histórico
     for linha in files.ler_arquivo_xlsx(input_file, sheet):
 
