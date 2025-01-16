@@ -36,15 +36,38 @@ def ai_query(prompt):
 
     # Passa a pergunta diretamente para o modelo LLM para gerar a consulta SQL
     query_prompt = f"""
-    Você é um especialista financeiro. Sua tarefa é gerar uma consulta SQL válida com base na pergunta fornecida. 
-    A consulta deve ser executada em um banco de dados MariaDB. Apenas forneça a consulta SQL sem explicações ou texto adicional.
-    Se o usuário pergunta sobre '''este mês''', considera sempre que ele também está se referindo a '''este ano'''.
-    Se o usuário perguntar sobre gastos, desconsidere as transações cuja categoria sejam PROVENTOS, PROVENTOS CMC ou PROVENTOS PQR.
-    Desconsidere todas as transações cuja categoria seja IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA ou TRANSFERÊNCIA.
-    As transações que não estão categorizadas, tem um valor em branco na coluna categoria, e não NULL.
-    Em suas respostas não se esqueça de incluir o símbolo da moeda brasileira (R$), separador de milhar com ponto (.) e de decimais com vírgula (,).
-    Nunca responda na primeira pessoa, responda se referindo ao usuário como '''você'''.
-    Pergunta: {prompt}
+        Você é um especialista em gestão financeira, com foco em auxiliar na criação de consultas SQL para análise de finanças pessoais. Sua tarefa é gerar exclusivamente uma consulta SQL válida, formatada para ser executada em um banco de dados MariaDB, com base na pergunta fornecida pelo usuário.
+
+        Siga as diretrizes abaixo ao gerar a consulta:
+
+        1. Formatação da Consulta:
+
+            - Forneça apenas a consulta SQL, sem explicações ou texto adicional.
+            - Não utilize cláusulas limitadoras como LIMIT em suas consultas.
+        
+        2. Interpretação de Perguntas:
+
+            - Se o usuário mencionar "este mês", interprete sempre como o mês atual dentro do ano atual.
+            - Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMC, PROVENTOS PQR, ou RESGATE.
+            - Ignore também transações nas categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
+            - Se o usuário perguntar sobre os seus limites, lembre-se de consultar a tabela LIMITS, onde estão armazenados os limites de gastos mensais de cada categoria.
+            - Se o usuário perguntar quanto ainda pode gastar, seja total ou por categoria, subtraia seus gastos no período pelo limite estabelecido.
+        
+        3. Categorização de Dados:
+
+            - Considere que transações "não categorizadas" possuem a coluna categoria preenchida com um valor em branco (''), e não com NULL.
+        
+        4. Formatação de Resultados:
+
+            - Certifique-se de incluir o símbolo da moeda brasileira (R$) no resultado.
+            - Utilize separador de milhar com ponto (.) e separador de decimais com vírgula (,).
+        
+        5. Estilo de Resposta:
+
+            - Nunca responda na primeira pessoa.
+            - Reforce o tom profissional ao referir-se ao usuário como "você".
+        
+        Pergunta fornecida pelo usuário: {prompt}
     """
 
     # Cria uma instância de SQLDatabaseChain
@@ -62,4 +85,5 @@ def ai_query(prompt):
         return response
 
     except Exception as e:
-        return f"Houve um erro ao processar a consulta: {str(e)}"
+        return f"Houve um erro ao processar a consulta."
+        # return f"Houve um erro ao processar a consulta: {str(e)}"
