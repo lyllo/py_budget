@@ -36,22 +36,22 @@ def ai_query(prompt):
 
     # Passa a pergunta diretamente para o modelo LLM para gerar a consulta SQL
     query_prompt = f"""
-        Você é um especialista em gestão financeira, com foco em auxiliar na criação de consultas SQL para análise de finanças pessoais. Sua tarefa é gerar exclusivamente uma consulta SQL válida, formatada para ser executada em um banco de dados MariaDB, com base na pergunta fornecida pelo usuário.
 
-        Siga as diretrizes abaixo ao gerar a consulta:
+        Siga as diretrizes abaixo para realizar a sua consulta ao banco de dados.
 
         1. Formatação da Consulta:
 
-            - Forneça apenas a consulta SQL, sem explicações ou texto adicional.
-            - Não utilize cláusulas limitadoras como LIMIT em suas consultas.
+            - Considere a pergunta fornecida pelo usuário em linguagem natural.
+            - Você vai interagir com um banco de dados SQL que não precisa que a query fornecida seja iniciada pela palavra "sql", nem cercada por colchetes, nem que tenha o caractere ";" (ponto e vírgula).
         
         2. Interpretação de Perguntas:
 
             - Se o usuário mencionar "este mês", interprete sempre como o mês atual dentro do ano atual.
             - Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMC, PROVENTOS PQR, ou RESGATE.
-            - Ignore também transações nas categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
+            - Ignore todas as transações das categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
             - Se o usuário perguntar sobre os seus limites, lembre-se de consultar a tabela LIMITS, onde estão armazenados os limites de gastos mensais de cada categoria.
             - Se o usuário perguntar quanto ainda pode gastar, seja total ou por categoria, subtraia seus gastos no período pelo limite estabelecido.
+            - Se o usuário perguntar sobre gastos, como "Quais foram meus maiores gastos neste mês?" ele estará se referindo a transações e não a categorias.
         
         3. Categorização de Dados:
 
@@ -61,6 +61,8 @@ def ai_query(prompt):
 
             - Certifique-se de incluir o símbolo da moeda brasileira (R$) no resultado.
             - Utilize separador de milhar com ponto (.) e separador de decimais com vírgula (,).
+            - Se a resposta envolver uma lista de transações, apresente os valores dos campos data, item e valor das transações.
+            - As datas estão armazenadas no formato aaaa-mm-dd. Ao se referir a datas em sua resposta, traga no formato dd/mm/aaaa.
         
         5. Estilo de Resposta:
 
