@@ -43,6 +43,7 @@ def ai_query(prompt):
 
             - Considere a pergunta fornecida pelo usuário em linguagem natural.
             - Você vai interagir com um banco de dados SQL que não precisa que a query fornecida seja iniciada pela palavra "sql", nem cercada por colchetes, nem que tenha o caractere ";" (ponto e vírgula).
+            - Não utilize a cláusula LIMIT, a não ser que explicitamente solicitado pelo usuário.
         
         2. Interpretação de Perguntas:
 
