@@ -1,4 +1,4 @@
-from ai import ai_query
+from ai import process_query
 
 def main():
     print("Bem-vindo ao sistema de consulta! Faça suas perguntas ou digite 'sair' para encerrar.")
@@ -13,7 +13,7 @@ def main():
         
         # Chama a função para processar a pergunta
         try:
-            resposta = ai_query(pergunta)
+            resposta = process_query(pergunta)
             print(f"Assistente: {resposta}")
         except Exception as e:
             print(f"Erro ao processar sua solicitação: {str(e)}")
