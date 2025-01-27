@@ -19,8 +19,8 @@ senha = os.getenv('BTG_pass')
 
 def init(PATH_TO_BTG_INPUT_FILE):
 
-    # Solicita o token de acesso
-    token_acesso = input("Digite o token de acesso: ")
+    # Solicita o token de acesso (Desabilitando para não receber 401 na tentativa de obter timeline)
+    # token_acesso = input("Digite o token de acesso: ")
 
     # Cria uma instância da classe UserAgent
     ua = UserAgent()
@@ -91,23 +91,24 @@ def init(PATH_TO_BTG_INPUT_FILE):
     except TimeoutException:
 
         try:
-            wait_time = random.uniform(3000,5000) / 1000
+            wait_time = 10 # Espera 10s para autorizar o acesso pelo celular
             if config.verbose == "true":
-                print(f"Aguardando {wait_time:.2f}s para preencher o token...")
+                print(f"Aguardando {wait_time:.2f}s para autorizar o acesso pelo celular...")
 
             parte_fixa_otp = '3id_'
             campo_token = WebDriverWait(driver, wait_time).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, f'[id^="{parte_fixa_otp}"]'))
             )
         except TimeoutException:
-            print("Tempo de espera esgotado. O token não foi encontrado.")
+            print("Tempo de espera esgotado. O campo do token não foi encontrado.")
             driver.quit() # [ ] Poderia tentar reiniciar automaticamente o script 
         
-        campo_token.send_keys(token_acesso)
+        # campo_token.send_keys(token_acesso)
 
         # Submete o formulário de token (substitua isso pelo botão real, se necessário)
-        campo_token.submit()
+        # campo_token.submit()
 
+        # [ ] Aqui ainda não está perfeito o fluxo, pois não está respeitando a pausa explícita de 10s para aprovar o acesso pelo celular.
         wait_time = random.uniform(10000,15000) / 1000
 
         if config.verbose == "true":
