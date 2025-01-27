@@ -138,13 +138,22 @@ def init(PATH_TO_BTG_INPUT_FILE):
             print("Tempo de espera esgotado. A timeline não foi encontrada.")
             driver.quit() # [ ] Poderia tentar reiniciar automaticamente o script 
 
+        # Controle de tempo
+        inicio = time.time()
+        encontrou_string = False
+
+        timeout = random.uniform(10000,20000) / 1000
         if config.verbose == "true":
-            print(f"Rolando as transações até encontrar o mês anterior ({string_desejada})...")
+            print(f"Aguardando {timeout:.2f}s para popular a timeline...")
 
         # Loop para rolar a página e verificar se a string está presente
-        # [ ] Tratar o caso em que a timeline tem só a carcaça carregada, mas sem as transações
-        encontrou_string = False
         while not encontrou_string:
+
+            # Verifica se o tempo limite foi atingido
+            if config.verbose == "true" and time.time() - inicio > timeout:
+                print("Tempo limite atingido sem popular a timeline.")
+                break
+
             # Rola a página para baixo
             driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight;", elemento_contenedor)
             
@@ -154,23 +163,36 @@ def init(PATH_TO_BTG_INPUT_FILE):
             # Verifica se a string está presente na página
             encontrou_string = string_desejada in driver.page_source
 
+        if config.verbose == "true":
+            print(f"Capturando as transações até o início do mês anterior ({string_desejada})...")
+
         # Localiza o elemento de texto na página usando XPath (substitua pelo seu seletor)
         elemento_texto = driver.find_element(By.XPATH, '//div[@class="timeline"]')
 
         # Obtém o texto do elemento
         texto_para_copiar = elemento_texto.text
 
+        # A timeline não foi populada
+        if (texto_para_copiar == ''):
+            # [ ] Tratar o caso em que a timeline tem só a carcaça carregada, mas sem as transações
+            if config.verbose == "true":
+                print("Tempo de espera esgotado. A timeline não foi populada.")
+                driver.quit()
+
         # [x] Acertar o encoding do arquivo para crédito aparecer com é e não 'Compra no cr�dito autorizada'
 
-        if config.verbose == "true":
-            print("Salvando as transações em arquivo texto...")
+        # A timeline foi populada
+        if (texto_para_copiar != ''):
 
-        # Abre o arquivo para escrita e cola o texto
-        with open(PATH_TO_BTG_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
-            arquivo.write(texto_para_copiar)
+            if config.verbose == "true":
+                print("Salvando as transações em arquivo texto...")
 
-        # Finalmente, feche o navegador quando terminar todas as operações
-        driver.quit()
+            # Abre o arquivo para escrita e cola o texto
+            with open(PATH_TO_BTG_INPUT_FILE, 'w', encoding='utf-8') as arquivo:
+                arquivo.write(texto_para_copiar)
+
+            # Finalmente, feche o navegador quando terminar todas as operações
+            driver.quit()
 
 """
   ______                /\/|                                _ _ _                     
