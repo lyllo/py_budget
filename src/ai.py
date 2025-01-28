@@ -5,6 +5,7 @@ from langchain_experimental.sql import SQLDatabaseChain
 from sqlalchemy import create_engine
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
+import tiktoken
 
 # Configuração das credenciais
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -85,6 +86,12 @@ db = get_database_connection()  # Obtém a conexão do banco de dados
 def process_query(user_query, memory):
     # Carrega o contexto da memória
     context = memory.load_memory_variables({})
+
+    # Conta os tokens no contexto
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    context_tokens = encoding.encode(str(context))
+    num_tokens = len(context_tokens)
+    print(f"Número de tokens no contexto: {num_tokens}")
 
     db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, memory=memory, verbose=False)
     
