@@ -38,7 +38,7 @@ def get_llm_model():
 
 # Defina o prompt de entrada do SQLDatabaseChain
 sqldbchain_prompt = PromptTemplate(
-    input_variables=["query"],
+    input_variables=["query", "context"],
     template="""Considerando o seguinte contexto dos dados:
 
     1. Formatação da Consulta:
@@ -52,9 +52,6 @@ sqldbchain_prompt = PromptTemplate(
     - Se o usuário mencionar "este mês", interprete sempre como o mês atual dentro do ano atual.
     - Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMCR, PROVENTOS PQR, ou RESGATE.
     - Ignore todas as transações das categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
-    - Se o usuário perguntar sobre os seus limites, lembre-se de consultar a tabela LIMITS, onde estão armazenados os limites de gastos mensais de cada categoria.
-    - Se o usuário perguntar quanto ainda pode gastar, sem especificar uma categoria nem período de tempo, considere que ele está interessado em saber sobre todo o mês atual.
-    - Se o usuário perguntar sobre gastos, como "Quais foram meus maiores gastos neste mês?" ele estará se referindo a transações e não a categorias.
 
     3. Categorização de Dados:
     - Considere que transações "não categorizadas" possuem a coluna categoria preenchida com um valor em branco (''), e não com NULL.
@@ -72,6 +69,9 @@ sqldbchain_prompt = PromptTemplate(
     - Nunca responda na primeira pessoa.
     - Reforce o tom profissional ao referir-se ao usuário como "você".
 
+    Contexto da conversa:
+    {context}
+
     Eis a pergunta do usuário:
     {query}
     """
@@ -83,11 +83,13 @@ db = get_database_connection()  # Obtém a conexão do banco de dados
 
 # Função para processar a entrada do usuário
 def process_query(user_query, memory):
+    # Carrega o contexto da memória
+    context = memory.load_memory_variables({})
 
     db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, memory=memory, verbose=False)
     
     # Gera a consulta SQL
-    formatted_sqldbchain_prompt = sqldbchain_prompt.format(query=user_query)
+    formatted_sqldbchain_prompt = sqldbchain_prompt.format(query=user_query, context=context)
     sqldbchain_result = db_chain.run(formatted_sqldbchain_prompt)
 
     return sqldbchain_result

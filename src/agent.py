@@ -18,8 +18,17 @@ def main():
         
         # Chama a função para processar a pergunta
         try:
+            # Log da memória antes de processar a pergunta
+            # print(f"Memória antes: {memory.load_memory_variables({})}")
+
             resposta = process_query(pergunta, memory)
             print(f"Assistente: {resposta}")
+
+            # Atualiza a memória com a pergunta e a resposta
+            memory.save_context({"input": pergunta}, {"output": resposta})
+
+            # Log da memória depois de processar a pergunta
+            # print(f"Memória depois: {memory.load_memory_variables({})}")
         
         except Exception as e:
             print(f"Erro ao processar sua solicitação: {str(e)}")
