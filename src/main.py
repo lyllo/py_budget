@@ -18,6 +18,7 @@ import load.db as db
 import load.files as files
 
 import os
+import sys
 from datetime import datetime
 import config as config
 
@@ -53,6 +54,9 @@ PATH_TO_RICO_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\rico_ci.xlsx')
 
 PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
 
+SUCESSFULL_SCRAPING = 0
+UNSUCCESSFUL_SCRAPING = 1
+
 # Verifica a existência de um arquivo
 def file_exists(file_path):
     return os.path.exists(file_path)
@@ -63,7 +67,10 @@ def file_exists(file_path):
 if config.toggle_extract_btg == "true":
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"\n[{timestamp}] Iniciando 'extract' do Cartão BTG...")       
-    btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
+    status = btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
+    if status == UNSUCCESSFUL_SCRAPING:
+        print("[main.py] Erro ao extrair dados do Cartão BTG. Encerrando a execução do programa.")
+        sys.exit(1)
 
 if config.toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
     timestamp = datetime.now().strftime("%H:%M:%S")

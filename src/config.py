@@ -19,7 +19,7 @@ config.read(PATH_TO_CONFIG_FILE)
 
 PRESET = 'read_datasources'
 # PRESET = 'update_database'
-# PRESET = 'dump_database'
+# PRESET = 'dump_database' # Pode chamar se der erro de atualização do arquivo xlsx por conta dele estar aberto, após ET do ETL acontecer.
 
 verbose = config['default']['verbose']
 simple_match = config['default']['simple_match']
