@@ -4,7 +4,7 @@ from langchain.sql_database import SQLDatabase
 from langchain_experimental.sql import SQLDatabaseChain
 from sqlalchemy import create_engine
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain.memory import ConversationBufferMemory
 
 # Configuração das credenciais
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -32,7 +32,7 @@ def get_llm_model():
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=openai_api_key,
-        model="gpt-3.5-turbo-0125"  # Usando o modelo gpt-3.5-turbo para consulta SQL
+        model="gpt-3.5-turbo-0125"  # Usando o modelo gpt-3.5-turbo-0125 para consulta SQL
     )
     return llm
 
@@ -43,21 +43,23 @@ sqldbchain_prompt = PromptTemplate(
 
     1. Formatação da Consulta:
     - Considere a pergunta fornecida pelo usuário em linguagem natural.
-    - Você vai interagir com um banco de dados MariaDB que não funcionará se a query que você gerar contenha o comando "sql", colchetes, nem mesmo o caractere ";" (ponto e vírgula).
+    - Verifique em sua memória se há contextos anteriores que possam ser relevantes para a consulta.
+    - Sua primeira tarefa será criar um código SQL e não Markdown.
+    - Não inclua em sua query SQL o comando "sql", colchetes, crases, nem mesmo ponto e vírgula.
     - Não utilize a cláusula LIMIT, a não ser que explicitamente solicitado pelo usuário.
 
     2. Interpretação de Perguntas:
     - Se o usuário mencionar "este mês", interprete sempre como o mês atual dentro do ano atual.
-    - Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMC, PROVENTOS PQR, ou RESGATE.
+    - Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMCR, PROVENTOS PQR, ou RESGATE.
     - Ignore todas as transações das categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
     - Se o usuário perguntar sobre os seus limites, lembre-se de consultar a tabela LIMITS, onde estão armazenados os limites de gastos mensais de cada categoria.
-    - Se o usuário perguntar quanto ainda pode gastar, seja total ou por categoria, subtraia seus gastos no período pelo limite estabelecido.
+    - Se o usuário perguntar quanto ainda pode gastar, sem especificar uma categoria nem período de tempo, considere que ele está interessado em saber sobre todo o mês atual.
     - Se o usuário perguntar sobre gastos, como "Quais foram meus maiores gastos neste mês?" ele estará se referindo a transações e não a categorias.
 
     3. Categorização de Dados:
     - Considere que transações "não categorizadas" possuem a coluna categoria preenchida com um valor em branco (''), e não com NULL.
 
-    Ao gerar a resposta em linguagem natural para o usuário, considere as seguintes regras e Resultado SQL:
+    Ao gerar a resposta em linguagem natural para o usuário, considere as seguintes regras:
 
     1. Formatação de Resultados:
     - Suas respostas deverão ser sempre em português do Brasil.
@@ -78,10 +80,12 @@ sqldbchain_prompt = PromptTemplate(
 # Cria uma instância de SQLDatabaseChain
 llm = get_llm_model() # Obtém o modelo de linguagem
 db = get_database_connection()  # Obtém a conexão do banco de dados
-db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, verbose=False)
 
 # Função para processar a entrada do usuário
-def process_query(user_query):
+def process_query(user_query, memory):
+
+    db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, memory=memory, verbose=False)
+    
     # Gera a consulta SQL
     formatted_sqldbchain_prompt = sqldbchain_prompt.format(query=user_query)
     sqldbchain_result = db_chain.run(formatted_sqldbchain_prompt)
