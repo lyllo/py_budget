@@ -22,145 +22,147 @@ import sys
 from datetime import datetime
 import config as config
 
-# Configura os paths dos arquivos que serão utilizados
-ROOT_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
+def main():
+
+    # Configura os paths dos arquivos que serão utilizados
+    ROOT_DIR = os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
     )
-)
 
-PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
-PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
-PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
-PATH_TO_FLASH_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\flash.xlsx')
-PATH_TO_GPA_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\gpa.xls')
-PATH_TO_GPA_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\gpa.xlsx')
-PATH_TO_XP_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp.csv')
-PATH_TO_XP_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp.xlsx')
+    PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
+    PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
+    PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
+    PATH_TO_FLASH_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\flash.xlsx')
+    PATH_TO_GPA_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\gpa.xls')
+    PATH_TO_GPA_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\gpa.xlsx')
+    PATH_TO_XP_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp.csv')
+    PATH_TO_XP_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp.xlsx')
 
-PATH_TO_ITAU_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\itau_cc.xls')
-PATH_TO_ITAU_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\itau_cc.xlsx')
-PATH_TO_BTG_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
-PATH_TO_BTG_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_cc.xlsx')
+    PATH_TO_ITAU_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\itau_cc.xls')
+    PATH_TO_ITAU_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\itau_cc.xlsx')
+    PATH_TO_BTG_CC_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
+    PATH_TO_BTG_CC_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_cc.xlsx')
 
-PATH_TO_BTG_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_ci.txt')
-PATH_TO_BTG_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_ci.xlsx')
-PATH_TO_SOFISA_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\sofisa_ci.txt')
-PATH_TO_SOFISA_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\sofisa_ci.xlsx')
-PATH_TO_XP_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp_ci.xlsx')
-PATH_TO_XP_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp_ci.xlsx')
-PATH_TO_RICO_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\rico_ci.xlsx')
-PATH_TO_RICO_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\rico_ci.xlsx')
+    PATH_TO_BTG_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_ci.txt')
+    PATH_TO_BTG_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg_ci.xlsx')
+    PATH_TO_SOFISA_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\sofisa_ci.txt')
+    PATH_TO_SOFISA_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\sofisa_ci.xlsx')
+    PATH_TO_XP_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\xp_ci.xlsx')
+    PATH_TO_XP_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\xp_ci.xlsx')
+    PATH_TO_RICO_CI_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\rico_ci.xlsx')
+    PATH_TO_RICO_CI_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\rico_ci.xlsx')
 
-PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
+    PATH_TO_HISTORY_FILE = os.path.join(ROOT_DIR, 'data\\history.xlsx')
 
-SUCESSFULL_SCRAPING = 0
-UNSUCCESSFUL_SCRAPING = 1
+    SUCESSFULL_SCRAPING = 0
+    UNSUCCESSFUL_SCRAPING = 1
 
-# Verifica a existência de um arquivo
-def file_exists(file_path):
-    return os.path.exists(file_path)
+    # Verifica a existência de um arquivo
+    def file_exists(file_path):
+        return os.path.exists(file_path)
 
-# Cartões
+    # Cartões
 
-# BTG
-if config.toggle_extract_btg == "true":
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão BTG...")       
-    status = btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
-    if status == UNSUCCESSFUL_SCRAPING:
-        print("[main.py] Erro ao extrair dados do Cartão BTG. Encerrando a execução do programa.")
-        sys.exit(1)
+    # BTG
+    if config.toggle_extract_btg == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'extract' do Cartão BTG...")       
+        status = btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
+        if status == UNSUCCESSFUL_SCRAPING:
+            print("[main.py] Erro ao extrair dados do Cartão BTG. Encerrando a execução do programa.")
+            sys.exit(1)
 
-if config.toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão BTG...")
-    btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+    if config.toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Cartão BTG...")
+        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
-# XP
-if config.toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão XP...")
-    xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
+    # XP
+    if config.toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Cartão XP...")
+        xp.init(PATH_TO_XP_INPUT_FILE, PATH_TO_XP_OUTPUT_FILE)
 
-# GPA
+    # GPA
 
-if config.toggle_extract_gpa == "true":
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão GPA...")       
-    gpa_scraper.init(PATH_TO_GPA_INPUT_FILE)
+    if config.toggle_extract_gpa == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'extract' do Cartão GPA...")       
+        gpa_scraper.init(PATH_TO_GPA_INPUT_FILE)
 
-if config.toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão GPA...")
-    gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
+    if config.toggle_transform_gpa == "true" and file_exists(PATH_TO_GPA_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Cartão GPA...")
+        gpa.init(PATH_TO_GPA_INPUT_FILE, PATH_TO_GPA_OUTPUT_FILE)
 
-# Flash
+    # Flash
 
-if config.toggle_extract_flash == "true":
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'extract' do Cartão Flash...")       
-    flash_scraper.init(PATH_TO_FLASH_INPUT_FILE)
+    if config.toggle_extract_flash == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'extract' do Cartão Flash...")       
+        flash_scraper.init(PATH_TO_FLASH_INPUT_FILE)
 
-if config.toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Cartão Flash...")
-    flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
+    if config.toggle_transform_flash == "true" and file_exists(PATH_TO_FLASH_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Cartão Flash...")
+        flash.init(PATH_TO_FLASH_INPUT_FILE, PATH_TO_FLASH_OUTPUT_FILE)
 
-# Contas
-if config.toggle_extract_itau_cc == "true":
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'extract' da Conta Itaú...")       
-    itau_scraper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
+    # Contas
+    if config.toggle_extract_itau_cc == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'extract' da Conta Itaú...")       
+        itau_scraper.init(PATH_TO_ITAU_CC_INPUT_FILE)    
 
-if config.toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' da Conta Itaú...")
-    itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
+    if config.toggle_transform_itau_cc == "true" and file_exists(PATH_TO_ITAU_CC_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' da Conta Itaú...")
+        itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
 
-if config.toggle_transform_btg_cc == "true" and file_exists(PATH_TO_BTG_CC_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' da Conta BTG...")
-    btg_cc.init(PATH_TO_BTG_CC_INPUT_FILE, PATH_TO_BTG_CC_OUTPUT_FILE)
+    if config.toggle_transform_btg_cc == "true" and file_exists(PATH_TO_BTG_CC_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' da Conta BTG...")
+        btg_cc.init(PATH_TO_BTG_CC_INPUT_FILE, PATH_TO_BTG_CC_OUTPUT_FILE)
 
-# Investimentos
-if config.toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do BTG Investimentos...")
-    btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
+    # Investimentos
+    if config.toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do BTG Investimentos...")
+        btg_ci.init(PATH_TO_BTG_CI_INPUT_FILE, PATH_TO_BTG_CI_OUTPUT_FILE)
 
-if config.toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Sofisa Investimentos...")
-    sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
+    if config.toggle_transform_sofisa_ci == "true" and file_exists(PATH_TO_SOFISA_CI_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Sofisa Investimentos...")
+        sofisa_ci.init(PATH_TO_SOFISA_CI_INPUT_FILE, PATH_TO_SOFISA_CI_OUTPUT_FILE)
 
-if config.toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do XP Investimentos...")
-    xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
+    if config.toggle_transform_xp_ci == "true" and file_exists(PATH_TO_XP_CI_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do XP Investimentos...")
+        xp_ci.init(PATH_TO_XP_CI_INPUT_FILE, PATH_TO_XP_CI_OUTPUT_FILE)
 
-if config.toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'transform' do Rico Investimentos...")
-    rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
+    if config.toggle_transform_rico_ci == "true" and file_exists(PATH_TO_RICO_CI_INPUT_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'transform' do Rico Investimentos...")
+        rico_ci.init(PATH_TO_RICO_CI_INPUT_FILE, PATH_TO_RICO_CI_OUTPUT_FILE)
 
-# HISTORY LOAD (USED TO CREATE A FRESH NEW DB FROM THE DATA STORED IN AN EXCEL FILE)
+    # HISTORY LOAD (USED TO CREATE A FRESH NEW DB FROM THE DATA STORED IN AN EXCEL FILE)
 
-if config.toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'load' do XLSX em BD...")
-    db.carrega_historico(PATH_TO_HISTORY_FILE)
+    if config.toggle_load_history == "true" and file_exists(PATH_TO_HISTORY_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'load' do XLSX em BD...")
+        db.carrega_historico(PATH_TO_HISTORY_FILE)
 
-# DUMP HISTORY (USED TO CREATE A FRESH NEW FILE FROM THE DATA STORED IN THE DB)
-    
-if config.toggle_dump_history == "true":
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
-    files.dump_history()
+    # DUMP HISTORY (USED TO CREATE A FRESH NEW FILE FROM THE DATA STORED IN THE DB)
+        
+    if config.toggle_dump_history == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
+        files.dump_history()
 
-# UPDATE DATA FROM EXCEL (USED TO UPDATE THE DB WITH THE DETAILS ENTERED IN AN EXCEL FILE)
+    # UPDATE DATA FROM EXCEL (USED TO UPDATE THE DB WITH THE DETAILS ENTERED IN AN EXCEL FILE)
 
-if config.toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...")
-    db.atualiza_historico(PATH_TO_HISTORY_FILE)
+    if config.toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...")
+        db.atualiza_historico(PATH_TO_HISTORY_FILE)

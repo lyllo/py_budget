@@ -1,5 +1,6 @@
 import os
 import configparser
+import main
 
 # Configura os paths dos arquivos que serão utilizados
 ROOT_DIR = os.path.dirname(
@@ -50,3 +51,6 @@ toggle_final_sheet = config[PRESET]['toggle_final_sheet']
 toggle_load_history = config[PRESET]['toggle_load_history']
 toggle_dump_history = config[PRESET]['toggle_dump_history']
 toggle_update_data_from_excel = config[PRESET]['toggle_update_data_from_excel']
+
+if __name__ == "__main__":
+    main.main()
