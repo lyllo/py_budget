@@ -1,4 +1,5 @@
 import extract.btg_scraper as btg_scraper
+import extract.btg_mobile_scraper as btg_mobile_scraper
 import extract.itau_scraper as itau_scraper
 import extract.flash_scraper as flash_scraper
 import extract.gpa_scraper as gpa_scraper
@@ -32,6 +33,7 @@ def main():
     )
 
     PATH_TO_BTG_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg.txt')
+    PATH_TO_BTG_MOBILE_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\btg_mobile.txt')
     PATH_TO_BTG_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\btg.xlsx')
     PATH_TO_FLASH_INPUT_FILE = os.path.join(ROOT_DIR, 'in\\flash.txt')
     PATH_TO_FLASH_OUTPUT_FILE = os.path.join(ROOT_DIR, 'out\\flash.xlsx')
@@ -68,16 +70,24 @@ def main():
     # BTG
     if config.toggle_extract_btg == "true":
         timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"\n[{timestamp}] Iniciando 'extract' do Cartão BTG...")       
+        print(f"\n[{timestamp}] Iniciando 'extract' da Timeline...")       
         status = btg_scraper.init(PATH_TO_BTG_INPUT_FILE)
         if status == UNSUCCESSFUL_SCRAPING:
-            print("[main.py] Erro ao extrair dados do Cartão BTG. Encerrando a execução do programa.")
+            print("[main.py] Erro ao extrair dados da Timeline. Encerrando a execução do programa.")
             sys.exit(1)
 
-    if config.toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_INPUT_FILE):
+    if config.toggle_extract_btg_mobile == "true":
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Iniciando 'extract' da Timeline BTG...")       
+        status = btg_mobile_scraper.init(PATH_TO_BTG_MOBILE_INPUT_FILE)
+        if status == UNSUCCESSFUL_SCRAPING:
+            print("[main.py] Erro ao extrair dados da Timeline BTG. Encerrando a execução do programa.")
+            sys.exit(1)
+
+    if config.toggle_transform_btg == "true" and file_exists(PATH_TO_BTG_MOBILE_INPUT_FILE):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Iniciando 'transform' do Cartão BTG...")
-        btg.init(PATH_TO_BTG_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
+        btg.init(PATH_TO_BTG_MOBILE_INPUT_FILE, PATH_TO_BTG_OUTPUT_FILE)
 
     # XP
     if config.toggle_transform_xp == "true" and file_exists(PATH_TO_XP_INPUT_FILE):
@@ -120,10 +130,10 @@ def main():
         print(f"\n[{timestamp}] Iniciando 'transform' da Conta Itaú...")
         itau_cc.init(PATH_TO_ITAU_CC_INPUT_FILE, PATH_TO_ITAU_CC_OUTPUT_FILE)
 
-    if config.toggle_transform_btg_cc == "true" and file_exists(PATH_TO_BTG_CC_INPUT_FILE):
+    if config.toggle_transform_btg_cc == "true" and file_exists(PATH_TO_BTG_MOBILE_INPUT_FILE):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Iniciando 'transform' da Conta BTG...")
-        btg_cc.init(PATH_TO_BTG_CC_INPUT_FILE, PATH_TO_BTG_CC_OUTPUT_FILE)
+        btg_cc.init(PATH_TO_BTG_MOBILE_INPUT_FILE, PATH_TO_BTG_CC_OUTPUT_FILE)
 
     # Investimentos
     if config.toggle_transform_btg_ci == "true" and file_exists(PATH_TO_BTG_CI_INPUT_FILE):

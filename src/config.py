@@ -18,6 +18,8 @@ config.read(PATH_TO_CONFIG_FILE)
 # [x] Verificar se data de final.xlsx é maior do que history.xlsx antes de iniciar update_database
 # [ ] Verificar se data de último update_database é maior do que read_datasource antes de trazer novos dados  
 
+PRESET = os.getenv('PRESET', 'read_datasources')
+
 PRESET = 'read_datasources'
 # PRESET = 'update_database'
 # PRESET = 'dump_database' # Pode chamar se der erro de atualização do arquivo xlsx por conta dele estar aberto, após ET do ETL acontecer.
@@ -40,6 +42,7 @@ toggle_transform_xp_ci = config[PRESET]['toggle_transform_xp_ci']
 toggle_transform_rico_ci = config[PRESET]['toggle_transform_rico_ci']
 
 toggle_extract_btg = config[PRESET]['toggle_extract_btg']
+toggle_extract_btg_mobile = config[PRESET]['toggle_extract_btg_mobile']
 toggle_extract_flash = config[PRESET]['toggle_extract_flash']
 toggle_extract_gpa = config[PRESET]['toggle_extract_gpa']
 toggle_extract_itau_cc = config[PRESET]['toggle_extract_itau_cc']
