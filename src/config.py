@@ -40,6 +40,8 @@ toggle_transform_btg_ci = config[PRESET]['toggle_transform_btg_ci']
 toggle_transform_sofisa_ci = config[PRESET]['toggle_transform_sofisa_ci']
 toggle_transform_xp_ci = config[PRESET]['toggle_transform_xp_ci']
 toggle_transform_rico_ci = config[PRESET]['toggle_transform_rico_ci']
+toggle_transform_btg_mobile = config[PRESET]['toggle_transform_btg_mobile']
+toggle_transform_btg_cc_mobile = config[PRESET]['toggle_transform_btg_cc_mobile']
 
 toggle_extract_btg = config[PRESET]['toggle_extract_btg']
 toggle_extract_btg_mobile = config[PRESET]['toggle_extract_btg_mobile']

@@ -87,14 +87,13 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
                 for element in elements:
                     text = element.text
                     if text:  # Verificar se o texto não está vazio
-                        bounds = element.get_attribute("bounds") # Coletar os limites do elemento para verificar tipo do dado
-                        collected_data.append(bounds + " | " + text)
+                        collected_data.append(text)
                 # Realizar o scroll
                 scroll_down()
                 sleep(1)  # Aguardar um pouco para que o scroll seja concluído
 
         # Exibir os dados coletados
-        print("Salvando os dados coletados em btg.txt")
+        print("Salvando os dados coletados em btg_mobile.txt")
         with open(PATH_TO_BTG_MOBILE_INPUT_FILE, "w", encoding="utf-8") as file:
             for data in collected_data:
                 file.write(data + "\n")
