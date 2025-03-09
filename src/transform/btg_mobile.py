@@ -136,6 +136,9 @@ def init(input_file, output_file):
 
     # Lê as linhas do arquivo para tratamento dos dados
     for linha in linhas_arquivo:
+
+        if(num_linha > 0):
+            linha_anterior = linhas_arquivo[num_linha-1]
        
         # Encontra uma linha de data em Outubro ou Novembro
         if encontra_linha_de_data(linha):
@@ -144,10 +147,10 @@ def init(input_file, output_file):
             data = limpar_data(linha)
 
         # Encontra uma linha de transação de Cartão
-        if linha.find("Compra no crédito") != -1 and linhas_arquivo[num_linha-1].find("R$") != -1:
+        if linha.find("Compra no crédito") != -1 and linha_anterior.find("R$") != -1:
 
             # Verifica se duplicidade é dada por offset do scroll (hardcoded positional shit)
-            if linhas_arquivo[num_linha-3] != "Filtro" and linhas_arquivo[num_linha-1] != linhas_arquivo[num_linha-5]:
+            if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5]:
 
                 if linha.find("não autorizada") == -1:
                     unnautorized = True
