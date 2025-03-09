@@ -150,7 +150,7 @@ def init(input_file, output_file):
         if (linha.find("Pagamento de ") != -1 or linha.find("Pix ") != -1 or linha.find("Transferência ") != -1) and linha_anterior.find("R$") != -1:
 
             # Verifica se duplicidade é dada por offset do scroll (hardcoded positional shit)
-            if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5]:
+            if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5] or linha_anterior != linhas_arquivo[num_linha-6]:
 
                 # Criar um novo registro com valores padrões
                 novo_registro = {'data': '', 

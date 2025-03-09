@@ -2,6 +2,7 @@ import os
 import sys
 import configparser
 from datetime import datetime
+import re
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -56,9 +57,11 @@ def obter_numero_mes(mes):
 
 # Obter o número de parcelas de uma transação
 def obter_numero_parcelas(linha):
-    posicao_x = linha.find('x', 21)
-    parcelas = linha[21:posicao_x]
-    return parcelas
+    # Encontra o número de 1 ou 2 dígitos seguido por 'x'
+    match = re.search(r'(\d{1,2})x', linha)
+    if match:
+        return int(match.group(1))
+    return None
    
 # Converter strings no formato dd/mmm para variáveis do tipo datetime no formato aaaa-mm-dd
 def limpar_data(linha):
@@ -150,7 +153,7 @@ def init(input_file, output_file):
         if linha.find("Compra no crédito") != -1 and linha_anterior.find("R$") != -1:
 
             # Verifica se duplicidade é dada por offset do scroll (hardcoded positional shit)
-            if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5]:
+            if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5] or linha_anterior != linhas_arquivo[num_linha-6]:
 
                 if linha.find("não autorizada") == -1:
                     unnautorized = True
@@ -182,8 +185,8 @@ def init(input_file, output_file):
                     novo_registro['cartao'] = 'PHILIPPE Q ROSA'
 
                 # Armazena o número de parcelas da compra para posterior criação dos registros de forma separada
-                if linha.find("Compra no crédito em ") != -1:
-                    parcelas = int(obter_numero_parcelas(linha))
+                if linha.find(" em ") != -1:
+                    parcelas = obter_numero_parcelas(linha)
                 else:
                     parcelas = 1
                     novo_registro['parcela'] = "1/1"
