@@ -146,7 +146,8 @@ def init(input_file, output_file):
         # Encontra uma linha de transação de Cartão
         if linha.find("Compra no crédito") != -1 and linhas_arquivo[num_linha-1].find("R$") != -1:
 
-            if linhas_arquivo[num_linha-3] != "Filtro" and linhas_arquivo[num_linha-2] != "Filtro" and linhas_arquivo[num_linha-1] != "Filtro":
+            # Verifica se duplicidade é dada por offset do scroll (hardcoded positional shit)
+            if linhas_arquivo[num_linha-3] != "Filtro" and linhas_arquivo[num_linha-1] != linhas_arquivo[num_linha-5]:
 
                 if linha.find("não autorizada") == -1:
                     unnautorized = True

@@ -146,7 +146,7 @@ def init(input_file, output_file):
         # Encontra uma linha de transação de Conta
         if linha.find("Pagamento de ") != -1 or linha.find("Pix ") != -1 or linha.find("Transferência ") != -1 and linhas_arquivo[num_linha-1].find("R$") != -1:
 
-            if linhas_arquivo[num_linha-3] != "Filtro" and linhas_arquivo[num_linha-2] != "Filtro" and linhas_arquivo[num_linha-1] != "Filtro":
+            if linhas_arquivo[num_linha-3] != "Filtro" and linhas_arquivo[num_linha-1] != linhas_arquivo[num_linha-5]:
 
                 # Criar um novo registro com valores padrões
                 novo_registro = {'data': '', 

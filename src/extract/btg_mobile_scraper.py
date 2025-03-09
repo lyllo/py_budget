@@ -80,6 +80,12 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
                 last_month = get_last_month()
                 reached_last_month = driver.find_element(AppiumBy.XPATH, f'//*[contains(@text, "Fev")]')
                 print("Chegamos até o mês anterior")
+                # Coletar uma últime vez os elementos visíveis
+                elements = driver.find_elements(AppiumBy.CLASS_NAME, 'android.widget.TextView')
+                for element in elements:
+                    text = element.text
+                    if text:  # Verificar se o texto não está vazio
+                        collected_data.append(text)
                 break
             except:
                 # Coletar dados dos elementos visíveis
