@@ -146,78 +146,80 @@ def init(input_file, output_file):
         # Encontra uma linha de transação de Cartão
         if linha.find("Compra no crédito") != -1 and linhas_arquivo[num_linha-1].find("R$") != -1:
 
-            if linha.find("não autorizada") == -1:
-                unnautorized = True
-            else:
-                unnautorized = False
+            if linhas_arquivo[num_linha-3] != "Filtro":
 
-            # Criar um novo registro com valores padrões
-            novo_registro = {'data': '', 
-                             'item': '',
-                             'detalhe': '',
-                             'ocorrencia_dia': '', 
-                             'valor': '',  
-                             'cartao': '',  
-                             'parcela': '',
-                             'categoria': '',
-                             'tag': '',
-                             'categoria_fonte': ''}
-
-            # Define o valor da chave 'data' com a última data encontrada
-            novo_registro['data'] = data
-
-            # Define o valor da chave 'item' com o item encontrado (2 linhas para cima)
-            novo_registro['item'] = linhas_arquivo[num_linha-2]
-
-            # Define o valor da chave 'cartao' com o nome do portador (igual o da XP)
-            if linha.find("CINTHIA") != -1:
-                novo_registro['cartao'] = 'CINTHIA ROSA'
-            else:
-                novo_registro['cartao'] = 'PHILIPPE Q ROSA'
-
-            # Armazena o número de parcelas da compra para posterior criação dos registros de forma separada
-            if linha.find("Compra no crédito em ") != -1:
-                parcelas = int(obter_numero_parcelas(linha))
-            else:
-                parcelas = 1
-                novo_registro['parcela'] = "1/1"
-
-            # Definir o valor da chave 'valor' com o valor encontrado (1 linha para cima)
-            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha-1])/parcelas
-
-            # Verifica se valor é zerado e status é autorizado
-            if novo_registro['valor'] != 0 and unnautorized != False:
-
-                if parcelas == 1:
-                    # Armazenar o novo registro de parcela única na lista de registros
-                    lista_de_registros.append(novo_registro)
-
+                if linha.find("não autorizada") == -1:
+                    unnautorized = True
                 else:
-                    # Armazena os registros referentes a todas as parcelas na lista de registros
-                    for parcela in range (1, parcelas+1):
-                        
-                        # Armazena a data da primeira parcela
-                        if (parcela == 1):
-                            data_base = novo_registro['data']
-                        
-                        data_parcela = installments.calcula_data_parcela(data_base, parcela)
-                        
-                        nova_parcela = {'data': novo_registro['data'], 
-                                        'item': novo_registro['item'],
-                                        'detalhe': '',
-                                        'ocorrencia_dia': '', 
-                                        'valor': novo_registro['valor'],  
-                                        'cartao': novo_registro['cartao'],  
-                                        'parcela': '',
-                                        'categoria': '',
-                                        'tag': '',
-                                        'categoria_fonte': ''}
-                        
-                        nova_parcela['data'] = data_parcela
-                        nova_parcela['parcela'] = str(parcela) + "/" + str(parcelas)
+                    unnautorized = False
 
-                        # Armazenar o novo registro de múltiplas parcelas na lista de registros
-                        lista_de_registros.append(nova_parcela)
+                # Criar um novo registro com valores padrões
+                novo_registro = {'data': '', 
+                                'item': '',
+                                'detalhe': '',
+                                'ocorrencia_dia': '', 
+                                'valor': '',  
+                                'cartao': '',  
+                                'parcela': '',
+                                'categoria': '',
+                                'tag': '',
+                                'categoria_fonte': ''}
+
+                # Define o valor da chave 'data' com a última data encontrada
+                novo_registro['data'] = data
+
+                # Define o valor da chave 'item' com o item encontrado (2 linhas para cima)
+                novo_registro['item'] = linhas_arquivo[num_linha-2]
+
+                # Define o valor da chave 'cartao' com o nome do portador (igual o da XP)
+                if linha.find("CINTHIA") != -1:
+                    novo_registro['cartao'] = 'CINTHIA ROSA'
+                else:
+                    novo_registro['cartao'] = 'PHILIPPE Q ROSA'
+
+                # Armazena o número de parcelas da compra para posterior criação dos registros de forma separada
+                if linha.find("Compra no crédito em ") != -1:
+                    parcelas = int(obter_numero_parcelas(linha))
+                else:
+                    parcelas = 1
+                    novo_registro['parcela'] = "1/1"
+
+                # Definir o valor da chave 'valor' com o valor encontrado (1 linha para cima)
+                novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha-1])/parcelas
+
+                # Verifica se valor é zerado e status é autorizado
+                if novo_registro['valor'] != 0 and unnautorized != False:
+
+                    if parcelas == 1:
+                        # Armazenar o novo registro de parcela única na lista de registros
+                        lista_de_registros.append(novo_registro)
+
+                    else:
+                        # Armazena os registros referentes a todas as parcelas na lista de registros
+                        for parcela in range (1, parcelas+1):
+                            
+                            # Armazena a data da primeira parcela
+                            if (parcela == 1):
+                                data_base = novo_registro['data']
+                            
+                            data_parcela = installments.calcula_data_parcela(data_base, parcela)
+                            
+                            nova_parcela = {'data': novo_registro['data'], 
+                                            'item': novo_registro['item'],
+                                            'detalhe': '',
+                                            'ocorrencia_dia': '', 
+                                            'valor': novo_registro['valor'],  
+                                            'cartao': novo_registro['cartao'],  
+                                            'parcela': '',
+                                            'categoria': '',
+                                            'tag': '',
+                                            'categoria_fonte': ''}
+                            
+                            nova_parcela['data'] = data_parcela
+                            nova_parcela['parcela'] = str(parcela) + "/" + str(parcelas)
+
+                            # Armazenar o novo registro de múltiplas parcelas na lista de registros
+                            lista_de_registros.append(nova_parcela)
 
         num_linha += 1
 

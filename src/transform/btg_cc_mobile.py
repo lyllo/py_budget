@@ -146,32 +146,34 @@ def init(input_file, output_file):
         # Encontra uma linha de transação de Conta
         if linha.find("Pagamento de ") != -1 or linha.find("Pix ") != -1 or linha.find("Transferência ") != -1 and linhas_arquivo[num_linha-1].find("R$") != -1:
 
-            # Criar um novo registro com valores padrões
-            novo_registro = {'data': '', 
-                             'item': '',
-                             'detalhe': '',
-                             'ocorrencia_dia': '', 
-                             'valor': '',  
-                             'cartao': '',  
-                             'parcela': '',
-                             'categoria': '',
-                             'tag': '',
-                             'categoria_fonte': ''}
+            if linhas_arquivo[num_linha-3] != "Filtro":
 
-            if linha.find("Pix ") != -1:
-                detalhe = "Pix"
-            elif linha.find("Pagamento de ") != -1:
-                detalhe = "Pagamento"
-            elif  linha.find("Transferência ") != -1:
-                detalhe = "Transferência"
+                # Criar um novo registro com valores padrões
+                novo_registro = {'data': '', 
+                                'item': '',
+                                'detalhe': '',
+                                'ocorrencia_dia': '', 
+                                'valor': '',  
+                                'cartao': '',  
+                                'parcela': '',
+                                'categoria': '',
+                                'tag': '',
+                                'categoria_fonte': ''}
 
-            novo_registro['detalhe'] = detalhe            
-            novo_registro['data'] = data
-            novo_registro['item'] = linhas_arquivo[num_linha-2]
-            novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha-1])
+                if linha.find("Pix ") != -1:
+                    detalhe = "Pix"
+                elif linha.find("Pagamento de ") != -1:
+                    detalhe = "Pagamento"
+                elif  linha.find("Transferência ") != -1:
+                    detalhe = "Transferência"
 
-            # Armazenar o novo registro na lista de registros
-            lista_de_registros.append(novo_registro)
+                novo_registro['detalhe'] = detalhe            
+                novo_registro['data'] = data
+                novo_registro['item'] = linhas_arquivo[num_linha-2]
+                novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha-1])
+
+                # Armazenar o novo registro na lista de registros
+                lista_de_registros.append(novo_registro)
 
         num_linha += 1
 
