@@ -6,6 +6,9 @@ from appium.webdriver.common.touch_action import TouchAction
 from time import sleep
 import os
 import datetime
+import subprocess
+import time
+import load.db as db
 
 desired_caps = {
     'platformName': 'Android',
@@ -20,6 +23,8 @@ desired_caps = {
 senha = os.getenv('BTG_pass')
 
 def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
+
+    #[ ] TO-DO: Inicializar automaticamente o Appium Server 
 
     # Inicia a sessão do Appium
     driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)
@@ -72,14 +77,14 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
         # Lista para armazenar os dados coletados
         collected_data = []
 
+        # [x] TO-DO: Substituir o texto do mês anterior (ou última data do BD) programaticamente.
+        formatted_date = db.fetch_most_recent_transaction_date_formatted()
+        print(f"Vamos rolar até {formatted_date}, data anterior à última transação não parcelada no BD.")
+
         # Loop para dar scroll até que o elemento desejado apareça
-        # [ ] TO-DO: Substituir o texto do mês anterior (ou última data do BD) programaticamente.
         while True:
             try:
-                # Verificar se o elemento desejado está presente
-                last_month = get_last_month()
-                reached_last_month = driver.find_element(AppiumBy.XPATH, f'//*[contains(@text, "Fev")]')
-                print("Chegamos até o mês anterior")
+                driver.find_element(AppiumBy.XPATH, f'//*[contains(@text, "{formatted_date}")]')
                 # Coletar uma últime vez os elementos visíveis
                 elements = driver.find_elements(AppiumBy.CLASS_NAME, 'android.widget.TextView')
                 for element in elements:
@@ -109,33 +114,23 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
         print("Fechar o driver ao final")
         driver.quit()
 
-def get_last_month():
-    # Dicionário de tradução de meses
-    meses_pt = {
-        "jan": "Jan",
-        "feb": "Fev",
-        "mar": "Mar",
-        "apr": "Abr",
-        "may": "Mai",
-        "jun": "Jun",
-        "jul": "Jul",
-        "aug": "Ago",
-        "sep": "Set",
-        "oct": "Out",
-        "nov": "Nov",
-        "dec": "Dez"
-    }
+def start_appium():
+    """Inicia o servidor Appium automaticamente."""
+    try:
+        # Inicia o Appium em segundo plano
+        process = subprocess.Popen(["appium"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # Aguarda alguns segundos para garantir que o servidor esteja rodando
+        time.sleep(5)
+        
+        # Retorna o processo para permitir a finalização posterior
+        return process
+    except Exception as e:
+        print(f"Erro ao iniciar o Appium: {e}")
+        return None
     
-    # Obter data atual
-    hoje = datetime.date.today()
-    
-    # Obter o primeiro dia do mês anterior
-    primeiro_dia_mes_anterior = hoje.replace(day=1) - datetime.timedelta(days=30)
-    
-    # Obter o nome do mês anterior no formato abreviado em inglês
-    mes_anterior_abreviado_en = primeiro_dia_mes_anterior.strftime("/%b").lower()
-    
-    # Traduzir para português
-    mes_anterior_abreviado_pt = meses_pt[mes_anterior_abreviado_en[1:]]  # Ignora o "/" no início
-    
-    return "/" + mes_anterior_abreviado_pt
+def stop_appium(process):
+    """Encerra o processo do Appium."""
+    if process:
+        process.terminate()
+        print("Appium encerrado.")

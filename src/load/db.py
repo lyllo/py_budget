@@ -1,12 +1,13 @@
 import mariadb
 import sys
 import hashlib
-import load.files as files
 import os
 import configparser
 from datetime import datetime
 import io
 import shutil
+import locale
+from datetime import timedelta
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
@@ -978,19 +979,40 @@ def fetch_transaction_by_tuple(registro_excel):
         #    print ('Divergência de hash!')
         return None    
 
-# DEBUG
+def fetch_most_recent_transaction_date_formatted():
+    """
+    Busca a data da transação mais recente no banco de dados,
+    considerando apenas transações não parceladas, e formata para 'DD/Mon' em português.
+    """
+    # Define o locale para português
+    locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
 
-# dbg_reg = {'data': datetime(year=2024,month=3,day=1), 
-#                 'item': 'Resgate Antecipado - Meus Investimentos - CDB DIRETO DI',
-#                 'ocorrencia_dia': 1,
-#                 'valor': 20000.8}
+    # Conecta ao banco
+    conn = conecta_bd()
 
-# dbg_hash = gera_hash_md5(dbg_reg)
+    # Pega o cursor
+    cursor = conn.cursor()
 
-# print(f"dbg_hash: {dbg_hash}")
+    # Executa a consulta para buscar a data mais recente de transações não parceladas
+    cursor.execute(
+        """
+        SELECT MAX(data)
+        FROM transactions
+        WHERE parcela IS NULL OR parcela = ''
+        """
+    )
 
-# dbg_reg_db = fetch_transaction_by_hash('0bc77ac7af9d69b6cfcec87042499cd3')
+    # Obtém o resultado
+    result = cursor.fetchone()
+    most_recent_date = result[0] if result else None
 
-# dbg_hash_db = gera_hash_md5(dbg_reg_db)
+    # Fecha a conexão
+    conn.close()
 
-# print(f"dbg_hash_db: {dbg_hash_db}")
+    # Formata a data para 'DD/Mon' se existir
+    if most_recent_date:
+        adjusted_date = most_recent_date - timedelta(days=1)
+        formatted_date = adjusted_date.strftime('%d/%b')
+        day, month = formatted_date.split('/')
+        return f"{day}/{month.capitalize()}"
+    return None
