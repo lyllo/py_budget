@@ -8,6 +8,7 @@ import io
 import shutil
 import locale
 from datetime import timedelta
+import load.files as files
 
 # Caminho do arquivo atual
 current_file_path = os.path.abspath(__file__)
