@@ -44,7 +44,7 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
         # Esperar um pouco para garantir que a tela de digitação da senha carregou
         print("Esperar até 5s para garantir que a próxima tela carregou")
         WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((AppiumBy.XPATH, '//*[@content-desc="Qual a sua senha de acesso?"]'))
+            EC.presence_of_element_located((AppiumBy.XPATH, '//*[@text="Qual a sua senha de acesso?"]'))
         )
 
         # Encontrar o campo para a senha e inserir o valor
@@ -54,7 +54,7 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
 
         # Encontrar o botão de confirmação e clicar
         print("Encontrar o botão de confirmação e clicar")
-        confirm_button = driver.find_element(AppiumBy.XPATH, '//*[@content-desc="Continuar"]')
+        confirm_button = driver.find_element(AppiumBy.XPATH, '//*[@content-desc="Avançar"]')
         confirm_button.click()
 
         # Esperar até que a tela inicial carregue
