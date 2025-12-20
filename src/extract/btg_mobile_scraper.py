@@ -12,8 +12,8 @@ import load.db as db
 
 desired_caps = {
     'platformName': 'Android',
-    'platformVersion': '14',
-    'deviceName': 'RQCR500A8QT',
+    'platformVersion': '16',
+    'deviceName': 'RQCYA001J5A',
     'appPackage': 'com.btg.pactual.banking',
     "appActivity": ".banking_login.presentation.BankingLoginActivity",
     'automationName': 'UiAutomator2',
