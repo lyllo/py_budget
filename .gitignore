@@ -3,4 +3,5 @@
 data/
 in/
 out/
+logs/
 __pycache__/

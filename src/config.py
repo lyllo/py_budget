@@ -28,6 +28,7 @@ simple_match = config['default']['simple_match']
 similar_match = config['default']['similar_match']
 ai_match = config['default']['ai_match']
 load_xlsx = config['default']['load_xlsx']
+debug_mode = config['default']['debug_mode']
 
 toggle_transform_btg = config[PRESET]['toggle_transform_btg']
 toggle_transform_xp = config[PRESET]['toggle_transform_xp']

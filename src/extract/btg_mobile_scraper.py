@@ -2,13 +2,13 @@ from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from appium.webdriver.common.touch_action import TouchAction
 from time import sleep
 import os
-import datetime
+from datetime import datetime
 import subprocess
 import time
 import load.db as db
+import config as config
 
 desired_caps = {
     'platformName': 'Android',
@@ -54,12 +54,12 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
 
         # Encontrar o botão de confirmação e clicar
         print("Encontrar o botão de confirmação e clicar")
-        confirm_button = driver.find_element(AppiumBy.XPATH, '//*[@content-desc="Avançar"]')
+        confirm_button = driver.find_element(AppiumBy.XPATH, '//*[@content-desc="Next"]')
         confirm_button.click()
 
         # Esperar até que a tela inicial carregue
-        print("Esperar até 10s para garantir que a tela inicial carregou")
-        WebDriverWait(driver, 10).until(
+        print("Esperar até 20s para garantir que a tela inicial carregou")
+        WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((AppiumBy.XPATH, '//*[@text="Atividades"]'))
         )
 
@@ -91,6 +91,8 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
                     text = element.text
                     if text:  # Verificar se o texto não está vazio
                         collected_data.append(text)
+                if (config.debug_mode == 'true'):
+                    capture_screen_and_dump(driver)  # Add this to capture at the end      
                 break
             except:
                 # Coletar dados dos elementos visíveis
@@ -101,6 +103,9 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
                         collected_data.append(text)
                 # Realizar o scroll
                 scroll_down()
+                if (config.debug_mode == 'true'):
+                    capture_screen_and_dump(driver)  # Add this to capture at the end
+                collected_data.append("\n=== SCROLL ===\n")  # Marcar o ponto do scroll
                 sleep(1)  # Aguardar um pouco para que o scroll seja concluído
 
         # Exibir os dados coletados
@@ -134,3 +139,31 @@ def stop_appium(process):
     if process:
         process.terminate()
         print("Appium encerrado.")
+
+def capture_screen_and_dump(driver, logs_dir="logs"):
+    # Ensure logs directory exists
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    # Generate unique filename based on timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_filename = f"snapshot_{timestamp}"
+    
+    # Take screenshot
+    screenshot_path = os.path.join(logs_dir, f"{base_filename}.png")
+    driver.get_screenshot_as_file(screenshot_path)
+    
+    # Dump screen contents to text file (all visible elements with text)
+    text_path = os.path.join(logs_dir, f"{base_filename}.txt")
+    all_elements = driver.find_elements(AppiumBy.XPATH, "//*")  # Find all elements
+    with open(text_path, "w", encoding="utf-8") as file:
+        for element in all_elements:
+            text = element.text
+            if text:
+                file.write(text + "\n")
+    
+    # Dump full UI XML (similar to uiautomator dump)
+    xml_path = os.path.join(logs_dir, f"{base_filename}.xml")
+    with open(xml_path, "w", encoding="utf-8") as file:
+        file.write(driver.page_source)
+    
+    print(f"Screenshot, text dump, and XML dump saved: {base_filename}")

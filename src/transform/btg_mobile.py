@@ -176,7 +176,7 @@ def init(input_file, output_file):
                 novo_registro['data'] = data
 
                 # Define o valor da chave 'item' com o item encontrado (2 linhas para cima)
-                novo_registro['item'] = linhas_arquivo[num_linha-2]
+                novo_registro['item'] = linhas_arquivo[num_linha-3]
 
                 # Define o valor da chave 'cartao' com o nome do portador (igual o da XP)
                 if linha.find("CINTHIA") != -1:
