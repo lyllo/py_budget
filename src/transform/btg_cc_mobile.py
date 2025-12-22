@@ -147,7 +147,7 @@ def init(input_file, output_file):
             data = limpar_data(linha)
 
         # Encontra uma linha de transação de Conta
-        if (linha.find("Pagamento de ") != -1 or linha.find("Pix ") != -1 or linha.find("Transferência ") != -1) and linha_anterior.find("R$") != -1:
+        if (linha.find("Pagamento de ") != -1 or linha.find("Pix ") != -1 or linha.find("Transferência ") != -1 or linha.find("Transferencia ") != -1 or linha.find("TransferÃªncia ") != -1) and linha_anterior.find("R$") != -1:
 
             # Verifica se duplicidade é dada por offset do scroll (hardcoded positional shit)
             if linhas_arquivo[num_linha-3] != "Filtro" or linha_anterior == linhas_arquivo[num_linha-5] or linha_anterior != linhas_arquivo[num_linha-6]:
@@ -164,17 +164,26 @@ def init(input_file, output_file):
                                 'tag': '',
                                 'categoria_fonte': ''}
 
-                if linha.find("Pix ") != -1:
+                if "Pix " in linha or "Pix" == linha.strip():
                     detalhe = "Pix"
-                elif linha.find("Pagamento de ") != -1:
+                elif "Pagamento de " in linha or "boleto" in linha.lower():
                     detalhe = "Pagamento"
-                elif  linha.find("Transferência ") != -1:
+                elif "Transferência " in linha or "TransferÃªncia" in linha or "Transferencia" in linha:
                     detalhe = "Transferência"
+                else:
+                    detalhe = "Outros"
 
                 novo_registro['detalhe'] = detalhe            
                 novo_registro['data'] = data
                 novo_registro['item'] = linhas_arquivo[num_linha-3]
                 novo_registro['valor'] = limpar_valor(linhas_arquivo[num_linha-1])
+
+                # Define o portador/emissor (coluna CARTÃO)
+                # No formato normalizado, a linha atual é a "Type Line" (ex: "Pix enviado por...")
+                if "CINTHIA" in linha.upper():
+                    novo_registro['cartao'] = 'CINTHIA ROSA'
+                else:
+                    novo_registro['cartao'] = 'PHILIPPE Q ROSA'
 
                 # Armazenar o novo registro na lista de registros
                 lista_de_registros.append(novo_registro)

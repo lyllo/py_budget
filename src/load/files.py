@@ -267,13 +267,13 @@ def ler_arquivo_xls(nome_arquivo):
     for row in range(sheet.nrows):
         yield sheet.row_values(row)
 
-# Salvar dados recém carregados em excel
+# Salvar dados recém carregados em excel (puxando do DB)
 def salva_excel(nome_arquivo, nome_planilha):
 
     transactions = db.fetch_recent_transactions(nome_planilha)
 
     if verbose == "true":
-        print(f"\tRegistros lidos: {len(transactions)}")
+        print(f"\tRegistros lidos (DB): {len(transactions)}")
 
     if (len(transactions) > 0):
 
@@ -292,10 +292,60 @@ def salva_excel(nome_arquivo, nome_planilha):
         # Salva os dados em arquivo excel
         incluir_linhas_em_excel(nome_arquivo, nome_planilha, lista_de_listas)
 
+# Salvar dados recém lidos diretamente em excel (sem passar pelo DB)
+def salva_lista_excel(nome_arquivo, nome_planilha, lista_de_registros):
+
+    if verbose == "true":
+        print(f"\tSalvando {len(lista_de_registros)} registros diretamente em {os.path.basename(nome_arquivo)}...")
+
+    if (len(lista_de_registros) > 0):
+
+        # Função de chave para a ordenação
+        def chave_de_ordenacao(dic):
+            # Normalizar data para garantir que seja date ou datetime comparável
+            d = dic['data']
+            if isinstance(d, datetime):
+                return d.date()
+            return d
+
+        # Ordenar a lista de dicionários pela chave 'data'
+        lista_ordenada = sorted(lista_de_registros, key=chave_de_ordenacao)
+
+        # Transforma a lista de dicionários em uma lista de listas
+        # Ordem: ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO']
+        lista_de_listas = []
+        for reg in lista_ordenada:
+            lista_de_listas.append([
+                reg.get('data'),
+                reg.get('item'),
+                reg.get('detalhe', ''),
+                reg.get('ocorrencia_dia', 1),
+                reg.get('valor'),
+                reg.get('cartao', ''),
+                reg.get('parcela', ''),
+                reg.get('categoria', ''),
+                reg.get('tag', ''),
+                reg.get('meio', nome_planilha) # Usa o meio passado ou o do registro
+            ])
+
+        nome_planilha_final = "Summary"
+
+        # Se for o arquivo final, usamos incluir (append) ou substituir? 
+        # Geralmente final.xlsx é o consolidado. Se estamos bypassando DB, 
+        # talvez o usuário queira concatenar.
+        if "final.xlsx" in nome_arquivo.lower():
+            incluir_linhas_em_excel(nome_arquivo, nome_planilha_final, lista_de_listas)
+        else:
+            substituir_linhas_em_excel(nome_arquivo, nome_planilha_final, lista_de_listas)
+
 def get_modification_time(file_path):
     if platform.system() == 'Windows':
         modification_time = os.path.getmtime(file_path)
-        db.update_mtime(file_path, modification_time)
+        # Tenta atualizar o mtime no DB, mas ignora se falhar (pois estamos bypassando)
+        try:
+            db.update_mtime(file_path, modification_time)
+        except:
+            pass
         return modification_time
     else:
         print("Este exemplo funciona apenas no Windows, a obtenção da data de criação pode variar em outros sistemas operacionais.")

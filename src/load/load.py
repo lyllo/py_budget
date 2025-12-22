@@ -16,22 +16,20 @@ def init(input_file, lista_de_registros, MEIO, output_file, PATH_TO_FINAL_OUTPUT
         now_timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em db...")
         file_timestamp = files.get_modification_time(input_file)
-        num_registros_salvos = db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
+        db.salva_registros(lista_de_registros, MEIO, os.path.basename(input_file), file_timestamp)
 
-        if num_registros_salvos > 0:
+    # Salva as informações em um arquivo Excel temporário
+    if(config.toggle_temp_sheet == "true"):
 
-            # Salva as informações em um arquivo Excel temporário
-            if(config.toggle_temp_sheet == "true"):
+        now_timestamp = datetime.now().strftime("%H:%M:%S")
+        nome_arquivo = output_file
+        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx temporário...")
+        files.salva_lista_excel(nome_arquivo, MEIO, lista_de_registros)
 
-                now_timestamp = datetime.now().strftime("%H:%M:%S")
-                nome_arquivo = output_file
-                print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx temporário...")
-                files.salva_excel(nome_arquivo, MEIO)
+    # Salva as informações em um arquivo Excel final
+    if(config.toggle_final_sheet == "true"):
 
-            # Salva as informações em um arquivo Excel final
-            if(config.toggle_final_sheet == "true"):
-
-                now_timestamp = datetime.now().strftime("%H:%M:%S")
-                nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
-                print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
-                files.salva_excel(nome_arquivo, MEIO)
+        now_timestamp = datetime.now().strftime("%H:%M:%S")
+        nome_arquivo = PATH_TO_FINAL_OUTPUT_FILE
+        print(f"\n[{now_timestamp}] Iniciando 'load' do {MEIO} em xlsx final...")
+        files.salva_lista_excel(nome_arquivo, MEIO, lista_de_registros)

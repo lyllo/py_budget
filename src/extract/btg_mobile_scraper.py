@@ -72,30 +72,36 @@ def extract_transaction_fields(texts):
     
     import re
     
-    # Identify type line (usually first, but we search for it to be safe)
-    type_line = None
-    merchant = None
-    value = None
-    category = None
+    # Identify type line and value indices
+    type_idx = -1
+    value_idx = -1
     
-    keywords = ['Compra', 'Pix', 'Transferência', 'Pagamento', 'boleto']
-    for t in texts:
+    keywords = ['Compra', 'Pix', 'Transferência', 'Pagamento', 'boleto', 'TransferÃªncia']
+    for i, t in enumerate(texts):
         if any(kw in t for kw in keywords):
-            type_line = t
+            type_idx = i
             break
             
-    # Value is always the one with R$
-    for t in texts:
+    for i, t in enumerate(texts):
         if 'R$' in t:
-            value = t
+            value_idx = i
             break
             
-    # Simple assignment if we found core fields
+    if type_idx == -1 or value_idx == -1:
+        # Core fields not found, skip
+        return None
+        
+    # Remaining indices are potential merchant and category
+    remaining_indices = [i for i in range(len(texts)) if i not in [type_idx, value_idx]]
+    
+    merchant = texts[remaining_indices[0]] if remaining_indices else "Unknown"
+    category = texts[remaining_indices[1]] if len(remaining_indices) > 1 else ""
+    
     transaction = {
-        'type_line': type_line or texts[0],
-        'merchant': texts[1] if len(texts) > 1 else "Unknown",
-        'category': texts[2] if len(texts) > 2 else "Unknown",
-        'value': value or "R$ 0,00",
+        'type_line': texts[type_idx],
+        'merchant': merchant,
+        'category': category,
+        'value': texts[value_idx],
         'all_texts': texts
     }
     
@@ -115,10 +121,10 @@ def extract_transaction_fields(texts):
         transaction['type'] = 'CARD'
     elif 'Pix' in t_line:
         transaction['type'] = 'PIX'
-    elif 'Transferência' in t_line:
+    elif 'Transferência' in t_line or 'TransferÃªncia' in t_line:
         transaction['type'] = 'TRANSFER'
-    elif 'boleto' in t_line:
-        transaction['type'] = 'BOLETO'
+    elif 'boleto' in t_line or 'Pagamento' in t_line:
+        transaction['type'] = 'PAYMENT'
     else:
         transaction['type'] = 'OTHER'
     
@@ -382,9 +388,13 @@ def collect_new_transactions(driver, seen_signatures, collected_data, last_date)
                 collected_data.append(item_date)
                 current_date = item_date
             
-            # Add all transaction text fields to output
-            for text in texts:
-                collected_data.append(text)
+            # Add normalized 4-line transaction to output
+            # Format: Merchant, Category, Value, Type Line
+            # This ensures backward compatibility with transformers using fixed offsets.
+            collected_data.append(fields['merchant'])
+            collected_data.append(fields['category'] or "")
+            collected_data.append(fields['value'])
+            collected_data.append(fields['type_line'])
             
             # Mark as seen
             seen_signatures.add(signature)
