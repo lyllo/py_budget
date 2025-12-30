@@ -19,9 +19,10 @@ config.read(PATH_TO_CONFIG_FILE)
 # [ ] Verificar se data de último update_database é maior do que read_datasource antes de trazer novos dados  
 # [ ] Alterar registros apenas manipulados no Excel, não os que já estão no banco de dados.
 
-PRESET = 'read_datasources'
+# PRESET = 'read_datasources'
 # PRESET = 'update_database' # Pode chamar se por acaso apagar registros diretamente no banco e precisar restaurar com o Excel.
 # PRESET = 'dump_database' # Pode chamar se der erro de atualização do arquivo xlsx por conta dele estar aberto, após ET do ETL acontecer.
+PRESET = 'read_datasources'
 
 verbose = config['default']['verbose']
 simple_match = config['default']['simple_match']

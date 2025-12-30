@@ -78,15 +78,21 @@ def gera_hash_md5(registro):
         if valor.startswith('='):
             std_valor = round(eval(valor[1:]) + 0.0005, 2)
     
-    std_ocorrencia_dia = ocorrencia_dia
+    try:
+        std_ocorrencia_dia = int(float(ocorrencia_dia))
+    except:
+        std_ocorrencia_dia = ocorrencia_dia
 
-    if data is not None and item is not None and valor is not None:
+    if std_data is not None and std_item is not None and std_valor is not None:
         str_data = str(std_data)
         str_item = std_item
         str_valor = str(std_valor)
         str_ocorrencia_dia = str(std_ocorrencia_dia)
 
         input_string = str_data + str_item + str_valor + str_ocorrencia_dia
+        
+        # if verbose == "debug":
+        #    print(f"[DEBUG HASH] Input: '{input_string}'")
 
         input_bytes = input_string.encode('utf-8')
         md5_hash = hashlib.md5(input_bytes)
@@ -137,8 +143,22 @@ def salva_registro(registro, conn, meio, fonte, file_timestamp):
         
         hash = gera_hash_md5(registro)
 
-        # Verifica se transação precisa ser ignorada
         if ignora_registro(hash) != True:
+
+            # COLLISION AWARENESS: If saving the FIRST part of an installment (1/N where N > 1),
+            # purge any existing "full" (1/1) transaction for the same merchant and date.
+            # This handles cases where history had the full amount but the scraper found the split.
+            if registro['parcela'] and registro['parcela'].startswith('1/') and registro['parcela'] != '1/1':
+                try:
+                    if verbose == "true":
+                        print(f"[DB] Installment detected (1/N). Purging any existing '1/1' for {registro['item']} on {registro['data']}")
+                    cursor.execute(
+                        "DELETE FROM transactions WHERE data = ? AND item = ? AND parcela = '1/1' AND meio = ?",
+                        (registro['data'], registro['item'], meio)
+                    )
+                except Exception as e:
+                    if verbose == "error":
+                        print(f"Error purging 1/1 collision: {e}")
 
             try:
                 cursor.execute(
@@ -152,10 +172,27 @@ def salva_registro(registro, conn, meio, fonte, file_timestamp):
 
                 # Verifica se erro é referente a registro duplicado (hash agora é chave primária)
                 if (e.errno == 1062):
-                    # Salvar duplicado serve apenas para depurar, pois em PROD pode jogar fora o que estiver em "offset concomitante"
+                    # Se o registro que estamos tentando salvar tem categoria e o do banco não, atualiza
+                    if registro.get('categoria') and registro.get('categoria') != '':
+                        try:
+                            # Busca o registro atual no banco pelo hash
+                            cursor.execute("SELECT categoria FROM transactions WHERE hash = ?", (hash,))
+                            resultado = cursor.fetchone()
+                            if resultado and (not resultado[0] or resultado[0] == ''):
+                                if verbose == "true":
+                                    print(f"[DB] Atualizando categoria para registro existente: {registro['item']}")
+                                cursor.execute(
+                                    "UPDATE transactions SET categoria = ?, categoria_fonte = ? WHERE hash = ?",
+                                    (registro['categoria'], registro['categoria_fonte'], hash)
+                                )
+                                conn.commit()
+                        except Exception as ex:
+                            if verbose == "error":
+                                print(f"Erro ao tentar atualizar registro duplicado: {ex}")
+
                     salva_duplicado(registro, conn, meio, fonte, file_timestamp)
-                    if verbose == "error":
-                        print(f"Error em salva_registro: {e}")
+                    if verbose == "debug":
+                        print(f"Registro duplicado ignorado (ou atualizado): {registro['item']}")
 
                 else:
                     if verbose == "error":
@@ -321,7 +358,8 @@ def atualiza_historico(input_file):
     num_registros_corrigidos = 0
     num_registros_deletados = 0
 
-    # [ ] Ao realizar o update_db tem hora que dá pra ver mais de 1 thread acessando o Banco ao mesmo tempo. É preciso garantir que apenas 1 conexão esteja ativa por vez.
+    # Abre uma única conexão para todo o loop de atualização
+    conn_shared = conecta_bd()
 
     # Itera nas linhas do arquivo de histórico
     for linha in files.ler_arquivo_xlsx(input_file, sheet):
@@ -344,7 +382,7 @@ def atualiza_historico(input_file):
             
             # Procura o registro no banco
             current_hash = gera_hash_md5(registro_excel)
-            registro_bd = fetch_transaction_by_hash(current_hash)
+            registro_bd = fetch_transaction_by_hash(current_hash, conn_shared)
 
             if registro_bd != None:
                 # Verifica se é para apagar o registro (contém "DELETE - " no campo 'DETALHE')
@@ -352,7 +390,7 @@ def atualiza_historico(input_file):
                     num_registros_deletados += deleta_registro(registro_bd['hash'])
 
                 # Verifica se houve alteração nos demais campos que não compõem a hash, ou seja, DETALHE, CARTÃO, PARCELA, CATEGORIA e TAG.
-                elif verifica_alteracao(registro_bd, registro_excel, num_registros_lidos):
+                elif verifica_alteracao(registro_bd, registro_excel, num_registros_lidos, conn_shared):
                     # Caso haja alteração atualiza o registro no banco, contabilizando para fins estatísticos
                     num_registros_alterados += 1
 
@@ -365,7 +403,7 @@ def atualiza_historico(input_file):
                     print(f"Registro não encontrado no BD: {registro_excel['data'].date()} | {registro_excel['item']} | {registro_excel['ocorrencia_dia']} | {registro_excel['valor']} | {current_hash}")
 
                 # Tenta encontrar o registro pela tupla (data, item, ocorrencia_dia, valor) para corrigir o hash
-                num_registros_corrigidos += fix_hash(registro_excel)
+                num_registros_corrigidos += fix_hash(registro_excel, conn_shared)
 
         num_registros_lidos += 1
 
@@ -437,23 +475,32 @@ def deleta_registro(hash):
 
     return registro_deletado
 
-def verifica_alteracao(registro_bd, registro_excel, num_registros_lidos):
-
+def verifica_alteracao(registro_bd, registro_excel, num_registros_lidos, conn=None):
     houve_alteracao = False
+    
+    # Verifica se houve mudança na categoria separadamente para garantir o aprendizado
+    if registro_excel['categoria'] != None and registro_excel['categoria'] != registro_bd['categoria']:
+        try:
+            import category as cat
+            cat.aprende_categoria(registro_excel['item'], registro_excel['categoria'])
+        except Exception as e:
+            pass
 
-    for chave, valor in registro_bd.items():
-        if chave in ['detalhe', 'cartao', 'parcela', 'categoria', 'tag']:
-            if chave == 'categoria':
-                category = 'Manual'
-            else:
-                category = registro_bd['categoria']
-            if registro_excel[chave] != None and registro_excel[chave] != valor:
-                if verbose == "true":
-                    current_hash = registro_bd['hash']
-                    print(f'Divergência no valor da chave "{chave}" do registro {num_registros_lidos} de hash "{current_hash}":\nBD: {registro_bd[chave]}\nEXCEL: {registro_excel[chave]}\n')
-                houve_alteracao = True
-                update_record(registro_excel, category)
-                return houve_alteracao
+    for chave in ['detalhe', 'cartao', 'parcela', 'categoria', 'tag']:
+        valor_bd = registro_bd.get(chave)
+        valor_excel = registro_excel.get(chave)
+        
+        if valor_excel != None and valor_excel != valor_bd:
+            if verbose == "true":
+                current_hash = registro_bd['hash']
+                print(f'Divergência no valor da chave "{chave}" do registro {num_registros_lidos} de hash "{current_hash}":\nBD: {valor_bd}\nEXCEL: {valor_excel}\n')
+            
+            houve_alteracao = True
+            # Se mudou a categoria, marcamos como Manual para o DB
+            source = 'Manual' if registro_excel['categoria'] != registro_bd['categoria'] else registro_bd.get('categoria_fonte', 'history')
+            update_record(registro_excel, source)
+            # Retornamos no primeiro campo alterado pois update_record já atualiza todos os campos
+            return True
 
     return houve_alteracao
 
@@ -744,10 +791,13 @@ def fetch_current_months_transactions(category):
 
     return transactions
 
-def fetch_transaction_by_hash(hash):
-
-    #Conecta ao banco
-    conn = conecta_bd()
+def fetch_transaction_by_hash(hash, conn=None):
+    
+    #Conecta ao banco se não houver conexão
+    should_close = False
+    if conn is None:
+        conn = conecta_bd()
+        should_close = True
 
     # Pega o cursor
     cursor = conn.cursor()
@@ -840,10 +890,13 @@ def update_uncategorized_records(records):
     # Close Connection
     conn.close()
 
-def update_record(registro_excel, category):
+def update_record(registro_excel, category, conn=None):
 
-    #Conecta ao banco
-    conn = conecta_bd()
+    #Conecta ao banco se não houver conexão
+    should_close = False
+    if conn is None:
+        conn = conecta_bd()
+        should_close = True
 
     # Pega o cursor
     cursor = conn.cursor()
@@ -871,6 +924,13 @@ def update_record(registro_excel, category):
     hash = gera_hash_md5(registro_excel)
 
     if category == "Manual":
+        # Aprendizado automático: salva no binário a correção manual do usuário
+        try:
+            import category as cat
+            cat.aprende_categoria(registro_excel['item'], registro_excel['categoria'])
+        except Exception as e:
+            if verbose == "error":
+                print(f"Erro ao disparar aprendizado automático: {e}")
 
         # Query the database
         cursor.execute(
@@ -884,25 +944,32 @@ def update_record(registro_excel, category):
             "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ? WHERE hash = ?",
             (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
     
-    # Commita a transação
-    conn.commit()
-
     # Close Connection
-    conn.close()
+    if should_close:
+        conn.close()
 
-def fix_hash(registro_excel):
+def fix_hash(registro_excel, conn=None):
     fixed_hash = 0
+    # fetch_transaction_by_tuple ainda abre sua própria conexão por enquanto (menos crítico)
     registro_bd = fetch_transaction_by_tuple(registro_excel)
     registro_excel_hash = gera_hash_md5(registro_excel)
-    print(f"Hash (XLSX): {registro_excel_hash}")
+    
     if registro_bd != None:    
-        print(f"Hash (BD): {registro_bd['hash']}\n")
         update_hash(registro_bd['hash'], registro_excel_hash)
         fixed_hash = 1
     else:
-        print("Hash (BD): Não encontrado.\n")
-        conn = conecta_bd()
+        # Se não encontrou nem por tupla, é novo ou item mudou de nome
+        if conn is None:
+            conn = conecta_bd()
+            should_close = True
+        else:
+            should_close = False
+            
         salva_registro(registro_excel, conn, registro_excel['meio'], 'Manual', TIMESTAMP)
+        
+        if should_close:
+            conn.close()
+            
     return fixed_hash
 
 def update_hash(old_hash, new_hash):

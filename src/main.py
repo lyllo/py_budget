@@ -25,6 +25,12 @@ import sys
 from datetime import datetime
 import config as config
 
+# Force UTF-8 encoding for stdout on Windows to prevent Ã§Ã£o characters
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 def main():
 
     # Configura os paths dos arquivos que serão utilizados
@@ -178,16 +184,25 @@ def main():
         print(f"\n[{timestamp}] Iniciando 'load' do XLSX em BD...")
         db.carrega_historico(PATH_TO_HISTORY_FILE)
 
-    # DUMP HISTORY (USED TO CREATE A FRESH NEW FILE FROM THE DATA STORED IN THE DB)
-        
-    if config.toggle_dump_history == "true":
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"\n[{timestamp}] Iniciando 'dump' do DB em XLSX...")
-        files.dump_history()
-
     # UPDATE DATA FROM EXCEL (USED TO UPDATE THE DB WITH THE DETAILS ENTERED IN AN EXCEL FILE)
 
     if config.toggle_update_data_from_excel == "true" and file_exists(PATH_TO_HISTORY_FILE):
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Iniciando 'update' do XLSX em BD...")
         db.atualiza_historico(PATH_TO_HISTORY_FILE)
+
+    # FINAL EXPORT: Dump DB to Excel if requested
+    if config.toggle_final_sheet == "true" or config.toggle_dump_history == "true":
+        # Check if output file is open before dumping
+        if file_exists(files.PATH_TO_FINAL_OUTPUT_FILE):
+            try:
+                # Try to open file for append or modify to see if locked
+                f = open(files.PATH_TO_FINAL_OUTPUT_FILE, 'a')
+                f.close()
+            except IOError:
+                print(f"\n[main.py] ERRO: O arquivo {os.path.basename(files.PATH_TO_FINAL_OUTPUT_FILE)} parece estar aberto. Feche-o antes de continuar.")
+                sys.exit(1)
+
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"\n[{timestamp}] Sincronizando BD com Excel Final...")
+        files.dump_history()

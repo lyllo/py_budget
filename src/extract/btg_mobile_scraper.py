@@ -10,14 +10,15 @@ import time
 import load.db as db
 import config as config
 
+# Appium Configuration
 desired_caps = {
     'platformName': 'Android',
     'platformVersion': '16',
     'deviceName': 'RQCYA001J5A',
     'appPackage': 'com.btg.pactual.banking',
-    "appActivity": ".banking_login.presentation.BankingLoginActivity",
+    'appActivity': '.banking_login.presentation.BankingLoginActivity',
     'automationName': 'UiAutomator2',
-    'noReset': True # Pulo do gato para não perder o token entre execuções do script
+    'noReset': True
 }
 
 senha = os.getenv('BTG_pass')
@@ -62,68 +63,64 @@ def create_transaction_signature(merchant, value, t_type, date):
 
 def extract_transaction_fields(texts):
     """
-    Extract structured fields from transaction text array.
-    
-    Returns dict with parsed fields or None if invalid structure.
+    Extract structured fields from transaction text array (Expected 4-5 texts).
     """
-    if len(texts) < 3:
-        # Not a complete transaction, skip it
+    if len(texts) not in [4, 5]:
         return None
     
     import re
     
-    # Identify type line and value indices
-    type_idx = -1
-    value_idx = -1
+    # Heuristic: 
+    # Value contains 'R$'
+    # Type contains keywords (Buy, Pix, etc)
+    # The other two are Merchant and Category. 
     
-    keywords = ['Compra', 'Pix', 'Transferência', 'Pagamento', 'boleto', 'TransferÃªncia']
-    for i, t in enumerate(texts):
-        if any(kw in t for kw in keywords):
-            type_idx = i
-            break
+    keywords = ['Compra', 'Pix', 'Transferência', 'Pagamento', 'boleto', 'TransferÃªncia', 'Contestação', 'Crédito', 'Estorno']
+    
+    value = None
+    type_line = None
+    remaining = []
+    
+    for t in texts:
+        if 'R$' in t and value is None:
+            value = t
+        elif any(kw in t for kw in keywords) and type_line is None:
+            type_line = t
+        else:
+            remaining.append(t)
             
-    for i, t in enumerate(texts):
-        if 'R$' in t:
-            value_idx = i
-            break
-            
-    if type_idx == -1 or value_idx == -1:
-        # Core fields not found, skip
+    if value is None or type_line is None:
         return None
         
-    # Remaining indices are potential merchant and category
-    remaining_indices = [i for i in range(len(texts)) if i not in [type_idx, value_idx]]
-    
-    merchant = texts[remaining_indices[0]] if remaining_indices else "Unknown"
-    category = texts[remaining_indices[1]] if len(remaining_indices) > 1 else ""
+    merchant = remaining[0] if remaining else "Unknown"
+    category = remaining[1] if len(remaining) > 1 else ""
     
     transaction = {
-        'type_line': texts[type_idx],
+        'type_line': type_line,
         'merchant': merchant,
         'category': category,
-        'value': texts[value_idx],
-        'all_texts': texts
+        'value': value,
+        'all_texts': texts,
+        'tag': remaining[2] if len(remaining) > 2 else ""
     }
     
-    # Parse transaction type line for additional info
-    t_line = transaction['type_line']
-    
     # Extract cardholder name (e.g., "Pix enviado por Cinthia Milsoni De Castro Rosa")
-    cardholder_match = re.search(r'por\s+(.+)$', t_line)
+    cardholder_match = re.search(r'por\s+(.+)$', type_line)
     transaction['cardholder'] = cardholder_match.group(1) if cardholder_match else None
     
     # Extract installments (e.g., "Compra no crédito em 12x")
-    installments_match = re.search(r'em\s+(\d+)x', t_line)
+    installments_match = re.search(r'em\s+(\d+)x', type_line)
     transaction['installments'] = int(installments_match.group(1)) if installments_match else 1
     
     # Determine transaction type
-    if 'Compra no crédito' in t_line or 'Compra no débito' in t_line:
+    t_lower = type_line.lower()
+    if 'crédito' in t_lower or 'débito' in t_lower:
         transaction['type'] = 'CARD'
-    elif 'Pix' in t_line:
+    elif 'pix' in t_lower:
         transaction['type'] = 'PIX'
-    elif 'Transferência' in t_line or 'TransferÃªncia' in t_line:
+    elif 'transfer' in t_lower:
         transaction['type'] = 'TRANSFER'
-    elif 'boleto' in t_line or 'Pagamento' in t_line:
+    elif 'boleto' in t_lower or 'pagamento' in t_lower:
         transaction['type'] = 'PAYMENT'
     else:
         transaction['type'] = 'OTHER'
@@ -143,36 +140,8 @@ def is_authorized_transaction(texts):
             return False
     return True
 
-def get_date_headers(driver):
-    """
-    Find all visible date headers on screen.
-    Returns dict mapping Y-position to date text.
-    """
-    try:
-        # Find all TextViews
-        all_text_elements = driver.find_elements(AppiumBy.CLASS_NAME, 'android.widget.TextView')
-        
-        date_headers = {}
-        import re
-        date_pattern = re.compile(r'\d{1,2}/[A-Z][a-z]{2}')  # Matches "20/Dez", "19/Dez", etc.
-        
-        for elem in all_text_elements:
-            text = elem.text
-            if text and date_pattern.search(text):
-                try:
-                    bounds = elem.get_attribute('bounds')
-                    # Extract Y coordinate from bounds [x1,y1][x2,y2]
-                    y_coord = int(bounds.split(',')[1].split(']')[0])
-                    date_headers[y_coord] = text
-                except:
-                    continue
-        
-        return date_headers
-    except Exception as e:
-        print(f"⚠ Error finding date headers: {e}")
-        return {}
 
-def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
+def init(input_file, force_until_date=None):
 
     #[ ] TO-DO: Inicializar automaticamente o Appium Server 
 
@@ -213,28 +182,32 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
             EC.presence_of_element_located((AppiumBy.XPATH, '//*[@text="Atividades"]'))
         )
 
-        # Get target date from database
-        formatted_date = db.fetch_most_recent_transaction_date_formatted()
+        # 1. Determine target date (lowest date we need to reach)
+        if force_until_date:
+            target_date = force_until_date
+        else:
+            target_date = db.fetch_most_recent_transaction_date_formatted()
+        
+        print(f"📅 Collecting until: {target_date}")
         
         # ====================================================================
         # New Container-Based Collection with Deduplication
         # ====================================================================
         
         print("🔍 Starting container-based transaction collection...")
-        print(f"📅 Collecting until: {formatted_date}")
         
         seen_signatures = set()  # Track collected transactions by content signature
         collected_data = []
         scroll_count = 0
         max_scrolls = 100  # Safety limit
         no_new_items_count = 0
-        current_date = None
+        current_date = last_date if 'last_date' in locals() else None
         
         while scroll_count < max_scrolls:
             try:
                 # Check if target date reached
-                driver.find_element(AppiumBy.XPATH, f'//*[contains(@text, "{formatted_date}")]')
-                print(f"✓ Target date '{formatted_date}' found after {scroll_count} scrolls")
+                driver.find_element(AppiumBy.XPATH, f'//*[contains(@text, "{target_date}")]')
+                print(f"✓ Target date '{target_date}' found after {scroll_count} scrolls")
                 
                 # Final collection pass
                 new_count = collect_new_transactions(
@@ -280,8 +253,8 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
         print(f"{'='*60}\n")
         
         # Save collected data to file
-        print(f"💾 Saving {len(seen_signatures)} unique transactions to {PATH_TO_BTG_MOBILE_INPUT_FILE}")
-        with open(PATH_TO_BTG_MOBILE_INPUT_FILE, "w", encoding="utf-8") as file:
+        print(f"💾 Saving {len(seen_signatures)} unique transactions to {input_file}")
+        with open(input_file, "w", encoding="utf-8") as file:
             for data in collected_data:
                 file.write(data + "\n")
 
@@ -296,113 +269,87 @@ def init(PATH_TO_BTG_MOBILE_INPUT_FILE):
 
 def collect_new_transactions(driver, seen_signatures, collected_data, last_date):
     """
-    Collect new transactions from current screen that haven't been seen before.
-    Returns count of new transactions found and the most recent date.
+    Collect new transactions/dates from screen using XML structural parsing.
+    (1 TextView = Date, 4 TextViews = Transaction)
     """
-    from selenium.common.exceptions import StaleElementReferenceException
+    import xml.etree.ElementTree as ET
+    import re
     
-    # Get all transaction containers on current screen
-    containers = get_transaction_containers(driver)
-    
-    # Get date headers to associate with transactions
-    date_headers = get_date_headers(driver)
-    
-    # Get screen dimensions for safe bottom margin
+    try:
+        xml_source = driver.page_source
+        root = ET.fromstring(xml_source.encode('utf-8'))
+    except Exception as e:
+        print(f"  ⚠ Error parsing page source: {e}")
+        return 0, last_date
+
+    # Screen dimensions for safe bottom margin
     window_size = driver.get_window_size()
     screen_height = window_size['height']
-    # Skip items where the bottom is in the last 5% of screen (avoid partial captures)
     bottom_safe_threshold = int(screen_height * 0.95)
+    
+    date_pattern = re.compile(r'\d{1,2}/[A-Z][a-z]{2}')
+
+    # Process all android.view.ViewGroup elements
+    containers = [n for n in root.iter() if n.get('class') == 'android.view.ViewGroup']
+    
+    candidates = []
+    for node in containers:
+        bounds = node.get('bounds')
+        if not bounds: continue
+        
+        # Format: [x1,y1][x2,y2]
+        parts = bounds.replace('[', '').replace(']', ',').split(',')
+        y1 = int(parts[1])
+        y3 = int(parts[2]) # x2
+        y2 = int(parts[3]) # y2
+        
+        if y2 > bottom_safe_threshold:
+            continue
+            
+        candidates.append({'node': node, 'y1': y1, 'y2': y2})
+        
+    # Sort candidates by Y coordinate
+    candidates.sort(key=lambda x: x['y1'])
     
     new_count = 0
     current_date = last_date
     
-    for container in containers:
-        try:
-            # Check if container is fully visible (avoid partial captures at bottom)
-            container_bounds = container.get_attribute('bounds')
-            # Extract Y2 coordinate from bounds [x1,y1][x2,y2]
-            container_bottom_y = int(container_bounds.split('][')[1].split(',')[1].replace(']', ''))
-            
-            if container_bottom_y > bottom_safe_threshold:
-                # Item is likely cut off at the bottom, skip and wait for next scroll
-                continue
-
-            # Extract all TextViews from this container
-            # Use retry logic for stale elements (RecyclerView may recycle during extraction)
-            max_retries = 2
-            texts = None
-            
-            for attempt in range(max_retries):
-                try:
-                    text_elements = container.find_elements(AppiumBy.CLASS_NAME, 'android.widget.TextView')
-                    texts = [elem.text for elem in text_elements if elem.text]
-                    break  # Success, exit retry loop
-                except StaleElementReferenceException:
-                    if attempt == max_retries - 1:
-                        # Last attempt failed, skip this container
-                        print(f"  ⚠ Stale element after {max_retries} retries, skipping container")
-                        break
-                    # Wait briefly and retry
-                    sleep(0.1)
-            
-            if not texts or len(texts) < 3:
-                # Not a complete transaction, skip
-                continue
-            
-            # Identify core fields for parsing and signature
+    for cand in candidates:
+        node = cand['node']
+        # Find all descendant TextViews with text
+        text_elements = [c for c in node.iter('android.widget.TextView') if c.get('text')]
+        texts = [c.get('text') for c in text_elements]
+        
+        # RULE: 1 TextView = Date
+        if len(texts) == 1:
+            txt = texts[0]
+            if (date_pattern.search(txt) or 'Hoje' in txt or 'Ontem' in txt) and txt != current_date:
+                collected_data.append(txt)
+                collected_data.append("") # Newline after date
+                current_date = txt
+        
+        # RULE: 4-5 TextViews = Transaction
+        elif len(texts) in [4, 5]:
             fields = extract_transaction_fields(texts)
-            if not fields:
-                continue
-
-            # Check if transaction is authorized (check ALL text fields)
-            if not is_authorized_transaction(texts):
-                print(f"  ⊘ Skipping unauthorized: {fields['merchant']}")
-                continue
-
-            # Find the date for this transaction to use in signature
-            item_date = current_date
-            try:
-                container_y = int(container_bounds.split(',')[1].split(']')[0])
-                closest_y = -1
-                for date_y, date_text in date_headers.items():
-                    if date_y < container_y and date_y > closest_y:
-                        item_date = date_text
-                        closest_y = date_y
-            except:
-                pass
-
-            # Create signature using core fields ONLY (Robust against extra descriptive text)
-            signature = create_transaction_signature(
-                merchant=fields['merchant'],
-                value=fields['value'],
-                t_type=fields['type'],
-                date=item_date
-            )
-            
-            if signature in seen_signatures:
-                # Already collected this transaction
-                continue
-            
-            # If date changed, record it
-            if item_date and item_date != current_date:
-                collected_data.append(item_date)
-                current_date = item_date
-            
-            # Add normalized 4-line transaction to output
-            # Format: Merchant, Category, Value, Type Line
-            # This ensures backward compatibility with transformers using fixed offsets.
-            collected_data.append(fields['merchant'])
-            collected_data.append(fields['category'] or "")
-            collected_data.append(fields['value'])
-            collected_data.append(fields['type_line'])
-            
-            # Mark as seen
-            seen_signatures.add(signature)
-            new_count += 1
-            
-        except Exception as e:
-            print(f"  ⚠ Error processing container: {e}")
-            continue
+            if fields and is_authorized_transaction(texts):
+                signature = create_transaction_signature(
+                    merchant=fields['merchant'],
+                    value=fields['value'],
+                    t_type=fields['type'],
+                    date=current_date
+                )
+                
+                if signature not in seen_signatures:
+                    collected_data.append(fields['merchant'])
+                    collected_data.append(fields['category'] or "")
+                    collected_data.append(fields['value'])
+                    collected_data.append(fields['type_line'])
+                    if fields.get('tag'):
+                        collected_data.append(f"TAG: {fields['tag']}")
+                    collected_data.append("") # Newline after transaction
+                    
+                    seen_signatures.add(signature)
+                    new_count += 1
     
     return new_count, current_date
 

@@ -1,4 +1,12 @@
 import os
+import sys
+import warnings
+
+# Suppress warnings from google.generativeai and related packages early
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", message=".*google.generativeai.*")
+
+import google.generativeai as genai
 from langchain.chat_models import ChatOpenAI
 from langchain.sql_database import SQLDatabase
 from langchain_experimental.sql import SQLDatabaseChain
@@ -10,108 +18,102 @@ import tiktoken
 # Configuração das credenciais
 openai_api_key = os.getenv("OPENAI_API_KEY")
 mariadb_password = os.getenv("MARIADB_PASSWORD")
+gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-if not openai_api_key or not mariadb_password:
-    raise ValueError("As chaves OPENAI_API_KEY e MARIADB_PASSWORD são necessárias.")
+# Avisos de chaves faltantes
+if not gemini_api_key:
+    # print("AVISO: GEMINI_API_KEY não encontrada no ambiente. Categorização por IA será desativada.")
+    pass
+if not openai_api_key:
+    # print("AVISO: OPENAI_API_KEY não encontrada no ambiente. Consultas SQL serão desativadas.")
+    pass
+if not mariadb_password:
+    # print("AVISO: MARIADB_PASSWORD não encontrada no ambiente.")
+    pass
 
-# Função para obter a conexão com o banco de dados
+# Lista oficial das 18 categorias do usuário (conforme imagem fornecida)
+OFFICIAL_CATEGORIES = [
+    "ALUGUEL", "DOMÉSTICA", "EDUCAÇÃO", "SAÚDE", "MERCADO",
+    "LAZER", "CARRO", "COMPRAS", "ALIMENTAÇÃO", "PET",
+    "LUZ", "SERVIÇOS", "CASA", "TRANSPORTE", "INTERNET",
+    "STREAMING", "ÁGUA", "GÁS"
+]
+
 def get_database_connection():
+    if not mariadb_password:
+        return None
     username = "root"
     host = "127.0.0.1"
     port = 3306
     database = "db_budget"
     db_uri = f"mariadb+mariadbconnector://{username}:{mariadb_password}@{host}:{port}/{database}"
-
-    # Usando o SQLAlchemy para criar a conexão com o banco de dados
     engine = create_engine(db_uri)
-    
-    # Criando a instância do SQLDatabase, passando a conexão do SQLAlchemy
     db = SQLDatabase(engine)
     return db
 
 def get_llm_model():
+    """Retorna o modelo OpenAI para consultas SQL (Legado)"""
+    if not openai_api_key:
+        return None
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=openai_api_key,
-        model="gpt-3.5-turbo-0125"  # Usando o modelo gpt-3.5-turbo-0125 para consulta SQL
+        model="gpt-3.5-turbo-0125"
     )
     return llm
 
-# Instruções iniciais do prompt
-system_prompt = """
-Considerando o seguinte contexto dos dados:
+def get_gemini_model():
+    """Retorna o modelo Gemini para categorização (Gratuito)"""
+    if not gemini_api_key:
+        return None
+    try:
+        genai.configure(api_key=gemini_api_key)
+        # Usando o flash para velocidade e custo gratuito
+        model = genai.GenerativeModel('models/gemini-2.0-flash')
+        return model
+    except Exception as e:
+        return None
 
-1. Formatação da Consulta:
-- Considere a pergunta fornecida pelo usuário em linguagem natural.
-- Verifique em sua memória se há contextos anteriores que possam ser relevantes para a consulta.
-- Sua primeira tarefa será criar um código SQL e não Markdown.
-- Não inclua em sua query SQL o comando "sql", colchetes, crases, nem mesmo ponto e vírgula.
-- Não utilize a cláusula LIMIT, a não ser que explicitamente solicitado pelo usuário.
+def prepara_prompt(item):
+    """Prepara o prompt para categorização de transações"""
+    categorias_str = ", ".join(OFFICIAL_CATEGORIES)
+    prompt = f"""Classifique a seguinte transação em UMA das categorias abaixo:
+{categorias_str}
 
-2. Interpretação de Perguntas:
-- Se o usuário mencionar "este mês", interprete sempre como o mês atual dentro do ano atual.
-- Para perguntas relacionadas a "gastos", exclua transações nas categorias: PROVENTOS, PROVENTOS CMCR, PROVENTOS PQR, ou RESGATE.
-- Ignore todas as transações das categorias: IMPOSTO, INVESTIMENTO, IPTU, OUTROS, PAGAMENTO, TRANSFERÊNCIA, REALOCAÇÃO, RENDIMENTO, TARIFA e TRANSFERÊNCIA.
+Transação: "{item}"
 
-3. Categorização de Dados:
-- Considere que transações "não categorizadas" possuem a coluna categoria preenchida com um valor em branco (''), e não com NULL.
+Responda APENAS com o nome da categoria, SEM pontuação ou explicação adicional.
+Se não tiver certeza, responda "OUTROS"."""
+    return prompt
 
-Ao gerar a resposta em linguagem natural para o usuário, considere as seguintes regras:
+def interagir_com_llm(prompt):
+    """Categorização utilizando Google Gemini (Gratuito/Billing)"""
+    if not gemini_api_key:
+        return "OUTROS", None
+    try:
+        model = get_gemini_model()
+        if not model:
+            return "OUTROS", None
+            
+        # Nova sintaxe para generate_content
+        response = model.generate_content(
+            contents=prompt
+        )
+        
+        text = response.text.strip().upper()
+        usage = response.usage_metadata
+        return text, usage
+    except Exception as e:
+        print(f"Erro ao interagir com Gemini: {e}")
+        return "OUTROS", None
 
-1. Formatação de Resultados:
-- Suas respostas deverão ser sempre em português do Brasil.
-- Certifique-se de incluir o símbolo da moeda brasileira (R$) no resultado.
-- Utilize separador de milhar com ponto (.) e separador de decimais com vírgula (,).
-- Se a resposta envolver uma lista de transações, apresente os valores dos campos data, item e valor das transações.
-- As datas estão armazenadas no formato aaaa-mm-dd. Ao se referir a datas em sua resposta, traga no formato dd/mm/aaaa.
-
-2. Estilo de Resposta:
-- Nunca responda na primeira pessoa.
-- Reforce o tom profissional ao referir-se ao usuário como "você".
-"""
-
-# Defina o prompt de entrada do SQLDatabaseChain
-sqldbchain_prompt = PromptTemplate(
-    input_variables=["query", "context"],
-    template="""
-    Contexto da conversa:
-    {context}
-
-    Eis a pergunta do usuário:
-    {query}
-    """
-)
-
-# Cria uma instância de SQLDatabaseChain
-llm = get_llm_model() # Obtém o modelo de linguagem
-db = get_database_connection()  # Obtém a conexão do banco de dados
-
-# Função para processar a entrada do usuário
 def process_query(user_query, memory):
-    # Carrega o contexto da memória
-    context = memory.load_memory_variables({})
-
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
-
-    # Conta os tokens no system prompt
-    # system_prompt_tokens = encoding.encode(str(system_prompt))
-    # num_system_prompt_tokens = len(system_prompt_tokens)
-    # print(f"Número de tokens no system prompt: {num_system_prompt_tokens}")
-
-    # Conta os tokens no contexto
-    # context_tokens = encoding.encode(str(context))
-    # num_tokens = len(context_tokens)
-    # print(f"Número de tokens no contexto: {num_tokens}")
-
+    """Processamento de query SQL em linguagem natural (Legado - OpenAI)"""
+    llm = get_llm_model()
+    db = get_database_connection()
+    if not llm or not db:
+        return "Serviço de consulta SQL não disponível devido a chaves de API/DB ausentes."
+    
     db_chain = SQLDatabaseChain.from_llm(llm=llm, db=db, memory=memory, verbose=False)
-    
-    # Verifica se o system_prompt já foi enviado
-    if "system_prompt_sent" not in context:
-        formatted_sqldbchain_prompt = system_prompt + sqldbchain_prompt.format(query=user_query, context=context)
-        memory.save_context({"input": "system_prompt_sent"}, {"output": "true"})
-    else:
-        formatted_sqldbchain_prompt = sqldbchain_prompt.format(query=user_query, context=context)
-    
-    sqldbchain_result = db_chain.run(formatted_sqldbchain_prompt)
-
-    return sqldbchain_result
+    # Nota: Simplificado para manter compatibilidade
+    return db_chain.run(user_query)

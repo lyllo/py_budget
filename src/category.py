@@ -32,7 +32,11 @@ verbose = config['default']['verbose']
 # BUSCA SIMPLES (ANÁLISE LÉXICA)
 #
 
-# Carrega as colunas do Excel referentes a ITEM e CATEGORIA
+from load.db import conecta_bd
+
+# ... (imports)
+
+# Carrega as colunas do Excel referentes a ITEM e CATEGORIA e mescla com DB
 def carrega_dicionario():
 
     # Cria um dicionário vazio
@@ -51,20 +55,49 @@ def carrega_dicionario():
         for row in worksheet.iter_rows(min_row=2, values_only=True):
             chave = row[1]
             valor = row[7]
-            dicionario[chave] = valor
+            if chave and valor:
+                dicionario[chave] = valor
         
         # Fecha o arquivo
         workbook.close()
 
-        # Salvando os dados em um arquivo binário
+    else:
+        # Carrega os dados salvos em um arquivo binário
+        if os.path.exists(PATH_TO_BIN_FILE):
+            with open(PATH_TO_BIN_FILE, 'rb') as arquivo:
+                dicionario = pickle.load(arquivo)
+
+    # [OPTIMIZATION] Carrega também do Banco de Dados (MariaDB) para garantir que o aprendizado recente seja considerado
+    try:
+        conn = conecta_bd()
+        cursor = conn.cursor()
+        cursor.execute("SELECT item, categoria FROM transactions WHERE categoria IS NOT NULL AND categoria != '' AND categoria != 'OUTROS'")
+        rows = cursor.fetchall()
+        
+        count_db_learn = 0
+        for row in rows:
+            item_db = row[0]
+            cat_db = row[1]
+            # Prioridade para o DB (mais recente/confiável) ou apenas preenche lacunas?
+            # Vamos preencher lacunas e sobrescrever, pois DB é a fonte da verdade final.
+            if item_db:
+                dicionario[item_db] = cat_db
+                count_db_learn += 1
+        
+        conn.close()
+        if verbose == "true":
+            print(f"[Smart Learning] Carregados {count_db_learn} itens categorizados diretamente do DB.")
+
+    except Exception as e:
+        if verbose == "error":
+            print(f"Erro ao carregar dicionário do DB: {e}")
+
+    # Atualiza o binário com o consolidado (Excel + DB)
+    try:
         with open(PATH_TO_BIN_FILE, 'wb') as arquivo:
             pickle.dump(dicionario, arquivo)
-
-    else:
-
-        # Carrega os dados salvos em um arquivo binário
-        with open(PATH_TO_BIN_FILE, 'rb') as arquivo:
-            dicionario = pickle.load(arquivo)
+    except Exception as e:
+        pass
 
     # Retorna o dicionário
     return dicionario
@@ -92,20 +125,45 @@ def limpa_resposta(resposta):
     return resposta_limpa 
 
 def busca_categoria_com_ai(lista_de_registros):
+    total_input_tokens = 0
+    total_output_tokens = 0
+    calls_made = 0
 
     for registro in lista_de_registros:
-        if registro['categoria'] == 'minha_categoria':
-
-            # [ ] Voltar a buscar chamar a LLM agrupada (que não funcionava bem) ao invés de unitariamente
+        # Só chama a IA se a categoria ainda estiver vazia ou for "Outros"
+        if not registro.get('categoria') or registro.get('categoria').upper() == 'OUTROS':
             
             registro_para_ai = registro['item']
             prompt = ai.prepara_prompt(registro_para_ai)
-            resposta = ai.interagir_com_llm(prompt)
+            resposta, usage = ai.interagir_com_llm(prompt)
+            
+            if usage:
+                total_input_tokens += usage.prompt_token_count
+                total_output_tokens += usage.candidates_token_count
+                calls_made += 1
+
             resposta_limpa = limpa_resposta(resposta)
-            registro['categoria'] = resposta_limpa
-            registro['categoria_fonte'] = "ai_gpt"
-            if(verbose == "true"):
-                print("[GPT] Encontrei a categoria " + resposta_limpa + " para o estabelecimento " + registro_para_ai)
+            
+            # Validação: só aceita se estiver na lista oficial (opcional, mas bom para consistência)
+            if resposta_limpa in [c.upper() for c in ai.OFFICIAL_CATEGORIES]:
+                registro['categoria'] = resposta_limpa
+                registro['categoria_fonte'] = "ai_gpt"
+                if(verbose == "true"):
+                    print(f"[IA] Categorizado: {registro_para_ai} -> {resposta_limpa}")
+            else:
+                if(verbose == "true"):
+                    print(f"[IA] Categoria inválida retornada: {resposta_limpa} para {registro_para_ai}")
+    
+    if calls_made > 0:
+        # Gemini Flash pricing (USD): $0.075 per 1M input tokens, $0.30 per 1M output tokens
+        cost_input = (total_input_tokens / 1_000_000) * 0.075
+        cost_output = (total_output_tokens / 1_000_000) * 0.30
+        total_cost = cost_input + cost_output
+        print(f"\n[AI Usage Summary - Gemini]")
+        print(f"Total Calls: {calls_made}")
+        print(f"Input Tokens: {total_input_tokens} (${cost_input:,.6f})")
+        print(f"Output Tokens: {total_output_tokens} (${cost_output:,.6f})")
+        print(f"Estimated Cost: ${total_cost:,.6f}\n")
 
 def fill(lista_de_registros):
 
@@ -161,3 +219,30 @@ def fill(lista_de_registros):
 
     if (ai_match == "true"):
         busca_categoria_com_ai(lista_de_registros)
+
+def aprende_categoria(item, categoria):
+    """Atualiza o dicionário de categorias com um novo aprendizado manual e persiste no binário."""
+    if not item or not categoria:
+        return
+    
+    try:
+        # Tenta carregar o dicionário atual (preferencialmente do binário)
+        # Se o arquivo não existir, inicia um novo
+        if os.path.exists(PATH_TO_BIN_FILE):
+            with open(PATH_TO_BIN_FILE, 'rb') as arquivo:
+                dicionario = pickle.load(arquivo)
+        else:
+            dicionario = {}
+        
+        # Só atualiza e salva se houver mudança real
+        if dicionario.get(item) != categoria:
+            dicionario[item] = categoria
+            with open(PATH_TO_BIN_FILE, 'wb') as arquivo:
+                pickle.dump(dicionario, arquivo)
+            
+            if verbose == "true":
+                print(f"[Aprendizado] Item '{item}' vinculado à categoria '{categoria}' em dados.bin")
+                
+    except Exception as e:
+        if verbose == "error":
+            print(f"Erro ao salvar aprendizado: {e}")
