@@ -81,7 +81,7 @@ def init(input_file, output_file):
         "Água", "Gás", "Outra Categoria", "Transferência", "Investimento", "Impostos",
         "Lazer e Entretenimento", "Mercado", "Vendas", "Salário", "Serviços", "Pagamento de conta",
         "Pagamento de boleto", "Pix enviado", "Transferência recebida", "Cancelamento", 
-        "Estorno", "Crédito em confiança", "Finanças", "Assinaturas e Serviços"
+        "Estorno", "Crédito em confiança", "Finanças", "Assinaturas e Serviços", "Cuidados Pessoais"
     ]
     
     linhas_arquivo = [l.strip() for l in linhas_arquivo_raw]
@@ -181,10 +181,15 @@ def init(input_file, output_file):
             if "crédito" in t_lower or "compra no" in t_lower:
                 continue
                 
-            detalhe = "Outros"
-            if "Pix" in type_line: detalhe = "Pix"
-            elif "Pagamento" in type_line or "boleto" in type_line.lower(): detalhe = "Pagamento"
-            elif "Transfer" in type_line: detalhe = "Transferência"
+            detalhe = ""
+            if "Pix" in type_line:
+                # Try to extract recipient/sender: "Pix enviado por Name" or "Pix recebido de Name"
+                match = re.search(r'(?:por|de|recebido de|enviado para)\s+(.+)', type_line, re.IGNORECASE)
+                detalhe = f"Pix - {match.group(1).strip()}" if match else "Pix"
+            elif "Pagamento" in type_line or "boleto" in type_line.lower():
+                detalhe = "Pagamento"
+            elif "Transfer" in type_line:
+                detalhe = "Transferência"
 
             cartao = 'PHILIPPE Q ROSA'
             if "CINTHIA" in type_line.upper(): cartao = 'CINTHIA ROSA'

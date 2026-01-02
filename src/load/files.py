@@ -123,6 +123,12 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     # Criando o cabeçalho
     linhas.insert(0, ['DATA', 'ITEM', 'DETALHE', 'OCORRÊNCIA', 'VALOR', 'CARTÃO', 'PARCELA', 'CATEGORIA', 'TAG', 'MEIO'])
 
+    # Batch style objects
+    font_gray = Font(color="808080")
+    font_red = Font(color='FF0000')
+    data_hoje = datetime.now().date()
+    currency_format = 'R$ #,##0.00'
+
     # Inicializa o contador de linhas da planilha
     num_linha_excel = 1
 
@@ -130,26 +136,21 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
     for linha in linhas:
         ws.append(linha)
         
-        # Pintar a fonte das linhas que contêm transações no futuro de cinza
-        if isinstance(linha[0], date):
-            data_linha = linha[0]
-            data_hoje = datetime.now().date()
-            if data_linha > data_hoje:
-                for cell in ws[num_linha_excel]:
-                    cell.font = Font(color="808080")
+        # Access the just appended row for formatting
+        current_row = ws[num_linha_excel]
 
-        # Formata como moeda em BRL a coluna E (5) do VALOR
-        for cell in ws[num_linha_excel]:
-            if cell.column == 5:
-                cell.number_format = 'R$ #,##0.00'
+        # 1. Row-level Formatting (Single Pass - ONLY when needed)
+        # Currency Formatting (Column E / index 4) - Mandatory
+        current_row[4].number_format = currency_format
 
-        # Pintar de vermelho a fonte das células das categorias preenchidas por AI
-        if 'ai_gpt' in linha:
-            for cell in ws[num_linha_excel]:
-                # A coluna F (6) é da CATEGORIA
-                if cell.column == 6:
-                    # print("Vou pintar a célula da linha " + str(num_linha_excel) + " e coluna " + str(cell.column))
-                    cell.font = Font(color='FF0000')
+        # Future Coloring (Slow but necessary for specific rows)
+        if isinstance(linha[0], date) and linha[0] > data_hoje:
+            for cell in current_row:
+                cell.font = font_gray
+        
+        # AI Category Coloring (Category is Column H / index 7)
+        elif 'ai_gpt' in linha:
+            current_row[7].font = font_red
 
         num_linha_excel += 1
 
@@ -159,81 +160,37 @@ def substituir_linhas_em_excel(nome_arquivo, nome_planilha, linhas):
         # Exclui a linha de cabeçalho
         print(f"\tRegistros salvos: {ws.max_row-1}")
 
-    # Salva os stats
-    # save_stats(wb)
-
     # Salva o arquivo do Excel
     wb.save(nome_arquivo)
 
 # Formata a planilha
 def formata_planilha(sheet):
     
-    # Configura o tamanho das colunas
-    colunas_menores = ['A', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-    largura_menor = 20
+    # 1. Column Dimensions
+    col_widths = {
+        'A': 20, 'B': 40, 'C': 40, 'D': 20, 'E': 20, 
+        'F': 20, 'G': 20, 'H': 20, 'I': 20, 'J': 20
+    }
+    for col, width in col_widths.items():
+        sheet.column_dimensions[col].width = width
 
-    for coluna in colunas_menores:
-        sheet.column_dimensions[coluna].width = largura_menor
+    # 2. Global Row Height (Fast Scale)
+    sheet.sheet_format.defaultRowHeight = 15
 
-    colunas_maiores = ['B', 'C']
-    largura_maior = 40
+    # 3. Header Formatting (First row)
+    # Re-apply header styles specifically to row 1
+    header_fill = PatternFill(start_color="808080", end_color="808080", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    header_align = Alignment(horizontal='center', vertical='center')
 
-    for coluna in colunas_maiores:
-        sheet.column_dimensions[coluna].width = largura_maior
-
-    # Habilita a quebra de texto nas colunas maiores
-    for coluna in colunas_maiores:
-        for cell in sheet[coluna]:
-            cell.alignment = Alignment(wrap_text=True)
-
-    # Defina a altura desejada para todas as linhas
-    altura_desejada = 15
-
-    for linha in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
-        for cell in linha:
-            sheet.row_dimensions[cell.row].height = altura_desejada
-    
-    # Centraliza as células das colunas menores
-    for coluna in colunas_menores:
-        for cell in sheet[coluna]:
-            cell.alignment = cell.alignment.copy(horizontal='center')
-
-    # Centraliza as células da primeira linha
-    numero_da_linha = 1
-    alinhamento = Alignment(horizontal='center', vertical='center')
-
-    # Defina o estilo de fonte como negrito
-    fonte_negrito = Font(bold=True)
-
-    # Percorra todas as células na linha e defina o alinhamento centralizado
-    for coluna in range(1, sheet.max_column + 1):
-        sheet.cell(row=numero_da_linha, column=coluna).alignment = alinhamento
-        sheet.cell(row=numero_da_linha, column=coluna).font = fonte_negrito
-
-    # Definir o padrão de preenchimento com fundo branco
-    padrao_preenchimento = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
-
-    # Iterar sobre todas as células da planilha e aplicar o preenchimento
-    for linha in sheet.iter_rows():
-        for celula in linha:
-            celula.fill = padrao_preenchimento
-
-    # [X] Pintar o fundo das células da primeira linha entre as colunas A e J de cinza
-    fill = PatternFill(start_color="808080", end_color="808080", fill_type="solid")
-    font = Font(color="FFFFFF", bold=True)
-
-    # Loop pelas primeiras 10 colunas da primeira linha
     for col in range(1, 11):
-        # Seleciona a célula na primeira linha e na coluna atual
         cell = sheet.cell(row=1, column=col)
-        # Define o preenchimento da célula
-        cell.fill = fill
-        cell.font = font
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_align
 
-    # Ative o filtro na primeira linha
+    # 4. Features
     sheet.auto_filter.ref = sheet.dimensions
-
-    # Congela a primeira linha
     sheet.freeze_panes = sheet['A2']
 
 # Carregar arquivo de texto

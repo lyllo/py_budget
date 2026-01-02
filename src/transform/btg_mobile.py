@@ -134,7 +134,7 @@ def init(input_file, output_file):
         "Água", "Gás", "Outra Categoria", "Transferência", "Investimento", "Impostos",
         "Lazer e Entretenimento", "Mercado", "Vendas", "Salário", "Serviços", "Pagamento de conta",
         "Pagamento de boleto", "Pix enviado", "Transferência recebida", "Cancelamento", 
-        "Estorno", "Crédito em confiança", "Finanças", "Assinaturas e Serviços"
+        "Estorno", "Crédito em confiança", "Finanças", "Assinaturas e Serviços", "Cuidados Pessoais"
     ]
     
     # Pre-process: strip lines and remove empty ones but KEEP indices stable

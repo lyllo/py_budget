@@ -143,6 +143,14 @@ def is_authorized_transaction(texts):
 
 def init(input_file, force_until_date=None):
 
+    # 1. Determine target date (lowest date we need to reach)
+    if force_until_date:
+        target_date = force_until_date
+    else:
+        target_date = db.fetch_most_recent_transaction_date_formatted()
+    
+    print(f"📅 Collecting until: {target_date}")
+
     #[ ] TO-DO: Inicializar automaticamente o Appium Server 
 
     # Inicia a sessão do Appium
@@ -182,13 +190,6 @@ def init(input_file, force_until_date=None):
             EC.presence_of_element_located((AppiumBy.XPATH, '//*[@text="Atividades"]'))
         )
 
-        # 1. Determine target date (lowest date we need to reach)
-        if force_until_date:
-            target_date = force_until_date
-        else:
-            target_date = db.fetch_most_recent_transaction_date_formatted()
-        
-        print(f"📅 Collecting until: {target_date}")
         
         # ====================================================================
         # New Container-Based Collection with Deduplication

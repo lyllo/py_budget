@@ -498,7 +498,7 @@ def verifica_alteracao(registro_bd, registro_excel, num_registros_lidos, conn=No
             houve_alteracao = True
             # Se mudou a categoria, marcamos como Manual para o DB
             source = 'Manual' if registro_excel['categoria'] != registro_bd['categoria'] else registro_bd.get('categoria_fonte', 'history')
-            update_record(registro_excel, source)
+            update_record(registro_excel, source, conn)
             # Retornamos no primeiro campo alterado pois update_record já atualiza todos os campos
             return True
 
@@ -936,6 +936,7 @@ def update_record(registro_excel, category, conn=None):
         cursor.execute(
             "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ?, categoria_fonte = 'Manual' WHERE hash = ?",
             (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
+        conn.commit()
         
     else:
 
@@ -943,6 +944,7 @@ def update_record(registro_excel, category, conn=None):
         cursor.execute(
             "UPDATE transactions SET detalhe = ?, cartao = ?, parcela = ?, categoria = ?, tag = ? WHERE hash = ?",
             (f"{detalhe}",f"{cartao}",f"{parcela}",f"{categoria}",f"{tag}",f"{hash}",))
+        conn.commit()
     
     # Close Connection
     if should_close:
@@ -1062,11 +1064,14 @@ def fetch_most_recent_transaction_date_formatted():
     cursor = conn.cursor()
 
     # Executa a consulta para buscar a data mais recente de transações não parceladas
+    # (ou com parcela 1/1) filtrando especificamente pelo meio Cartão BTG.
     cursor.execute(
         """
-        SELECT MAX(data)
-        FROM transactions
-        WHERE parcela IS NULL OR parcela = ''
+        SELECT MAX(data) 
+        FROM transactions 
+        WHERE (parcela IS NULL OR parcela = '' OR parcela = '1/1')
+        AND meio = 'Cartão BTG'
+        AND data <= CURRENT_DATE
         """
     )
 
