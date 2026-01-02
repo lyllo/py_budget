@@ -79,12 +79,16 @@ def limpar_data(linha):
     mes_str = match.group(2)
     mes = obter_numero_mes(mes_str)
     
-    ano_match = re.search(r'/\d{1,2}/(\d{4})', linha)
+    # Try once more for a 4-digit year anywhere in the line
+    ano_match = re.search(r'(\d{4})', linha)
     if ano_match:
         ano = int(ano_match.group(1))
     else:
-        # Default to current year for mobile scraper dates
-        ano = datetime.now().year
+        # Default to current year, but if we are in Jan and the transaction is Dec, it's last year
+        now = datetime.now()
+        ano = now.year
+        if now.month == 1 and mes == 12:
+            ano -= 1
     
     return datetime(ano, mes, dia).date()
 

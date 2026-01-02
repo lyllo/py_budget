@@ -65,7 +65,7 @@ def extract_transaction_fields(texts):
     """
     Extract structured fields from transaction text array (Expected 4-5 texts).
     """
-    if len(texts) not in [4, 5]:
+    if len(texts) not in [4, 5, 6, 7]:
         return None
     
     import re
@@ -329,8 +329,8 @@ def collect_new_transactions(driver, seen_signatures, collected_data, last_date)
                 collected_data.append("") # Newline after date
                 current_date = txt
         
-        # RULE: 4-5 TextViews = Transaction
-        elif len(texts) in [4, 5]:
+        # RULE: 4-7 TextViews = Transaction (Flexible to handle installments/icons)
+        elif len(texts) in [4, 5, 6, 7]:
             fields = extract_transaction_fields(texts)
             if fields and is_authorized_transaction(texts):
                 signature = create_transaction_signature(

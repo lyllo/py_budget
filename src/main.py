@@ -28,10 +28,10 @@ import config as config
 # Force UTF-8 encoding for stdout on Windows to prevent Ã§Ã£o characters
 if sys.platform == 'win32':
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', line_buffering=True)
 
-def main():
+def main(force_until_date=None):
 
     # Configura os paths dos arquivos que serão utilizados
     ROOT_DIR = os.path.dirname(
@@ -90,7 +90,7 @@ def main():
     if config.toggle_extract_btg_mobile == "true":
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"\n[{timestamp}] Iniciando 'extract' da Timeline Mobile BTG...")       
-        status = btg_mobile_scraper.init(PATH_TO_BTG_MOBILE_INPUT_FILE)
+        status = btg_mobile_scraper.init(PATH_TO_BTG_MOBILE_INPUT_FILE, force_until_date=force_until_date)
         if status == UNSUCCESSFUL_SCRAPING:
             print("[main.py] Erro ao extrair dados da Timeline Mobile BTG. Encerrando a execução do programa.")
             sys.exit(1)
